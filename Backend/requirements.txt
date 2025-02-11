@@ -1,3 +1,7 @@
 python-dotenv
 langchain-google-genai
 langchain_core
+langchain 
+langchain_huggingface
+langchain-community
+faiss-cpu
