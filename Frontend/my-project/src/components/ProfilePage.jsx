@@ -39,7 +39,8 @@ export default function ProfilePage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [datasetName, setDatasetName] = useState("");
   const [datasetDescription, setDatasetDescription] = useState("");
-  const [showDatasetForm, setShowDatasetForm] = useState(false); // State to toggle dataset form
+  const [vectorDimensions, setVectorDimensions] = useState(""); // Added for vector dimensions
+  const [showDatasetForm, setShowDatasetForm] = useState(false);
 
   const avatars = [
     "/avatars/avatar1.png",
@@ -95,7 +96,7 @@ export default function ProfilePage() {
   };
 
   const handleProfileClick = () => {
-    setShowProfileInfo(!showProfileInfo); // Toggle profile info visibility
+    setShowProfileInfo(!showProfileInfo);
   };
 
   const handleDatasetSubmit = (e) => {
@@ -103,10 +104,12 @@ export default function ProfilePage() {
     // Handle dataset submission logic here
     console.log("Dataset Name:", datasetName);
     console.log("Dataset Description:", datasetDescription);
+    console.log("Vector Dimensions:", vectorDimensions);
     console.log("Selected File:", selectedFile);
     setShowDatasetForm(false);
     setDatasetName("");
     setDatasetDescription("");
+    setVectorDimensions("");
     setSelectedFile(null);
   };
 
@@ -119,6 +122,9 @@ export default function ProfilePage() {
     }
   };
 
+  const handleVectorDimensionsChange = (e) =>
+    setVectorDimensions(e.target.value);
+
   useEffect(() => {
     if (!userName || !selectedAvatar) {
       setUserName(user?.name || "Default Name");
@@ -130,7 +136,7 @@ export default function ProfilePage() {
       setCurrentTime(new Date().toLocaleString());
     }, 60000);
 
-    return () => clearInterval(interval); // Cleanup interval on component unmount
+    return () => clearInterval(interval);
   }, [userName, selectedAvatar]);
 
   return (
@@ -288,14 +294,12 @@ export default function ProfilePage() {
 
             {/* Button to toggle dataset upload form */}
             <Button
-              class="large-button"
-            
               style={{
                 width: "200px",
                 height: "50px",
-                color:"white",
+                color: "white",
                 backgroundColor: "rgb(100,149,237)",
-                borderRadius: "12px", 
+                borderRadius: "12px",
               }}
               color="blue"
               onClick={() => {
@@ -303,6 +307,7 @@ export default function ProfilePage() {
                   setDatasetName("");
                   setDatasetDescription("");
                   setSelectedFile(null);
+                  setVectorDimensions("");
                 }
                 setShowDatasetForm(!showDatasetForm);
               }}
@@ -317,57 +322,104 @@ export default function ProfilePage() {
                 <Typography variant="h6" className="mb-4">
                   Upload a New Dataset
                 </Typography>
-                <form onSubmit={handleDatasetSubmit} className="p-6 border rounded-lg shadow-lg bg-white">
-                <div className="mb-10">
-  <label className="block mb-2 text-sm font-medium text-black">
-    Dataset Name
+                <form
+                  onSubmit={handleDatasetSubmit}
+                  className="p-6 border rounded-lg shadow-lg bg-white"
+                >
+                  <div className="mb-10">
+                    <label className="block mb-2 text-sm font-medium text-black">
+                      Dataset Name
+                    </label>
+                    <Input
+                      value={datasetName}
+                      onChange={(e) => setDatasetName(e.target.value)}
+                      required
+                      className="p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                    />
+                  </div>
+                  <div className="mb-5">
+                    <label className="block mb-2 text-sm font-medium text-gray-700">
+                      Vector Dimensions
+                    </label>
+                    <Input
+                      type="number"
+                      value={vectorDimensions}
+                      onChange={handleVectorDimensionsChange}
+                      required
+                      min="100"
+                      max="5000"
+                      className="p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                    />
+                  </div>
+                  <div className="mb-5">
+  <label className="block mb-2 text-sm font-medium text-gray-700">
+    Database Type
   </label>
-  <Input
-    value={datasetName}
-    onChange={(e) => setDatasetName(e.target.value)}
-    required
+  <select
+    name="databaseType"
+    id="databaseType"
     className="p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-  />
+    required
+  >
+    <option value="raw_file">Raw File</option>
+    <option value="vector_file">Vectorised File</option>
+    
+  </select>
 </div>
+
 <div className="mb-5">
   <label className="block mb-2 text-sm font-medium text-gray-700">
-    Dataset Description
-  </label>
-  <Textarea
-    value={datasetDescription}
-    onChange={(e) => setDatasetDescription(e.target.value)}
-    required
-    className="p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
-  />
-</div>
-<div className="mb-5">
-  <label className="block mb-2 text-sm font-medium text-gray-700">
-    Upload File
+    Vector Dimensions
   </label>
   <Input
-    type="file"
-    accept=".txt, .pdf, .docx"
-    onChange={handleFileUpload}
+    type="number"
+    value={vectorDimensions}
+    onChange={handleVectorDimensionsChange}
     required
+    min="100"
+    max="5000"
     className="p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
   />
 </div>
-<Button 
-class="large-button" 
-type="submit" 
-color="blue"
-style={{
-  width: "200px",
-  height: "50px",
-  backgroundColor: "rgb(100,149,237)",
-  borderRadius: "12px", 
-}}
- >
-  Submit Dataset
-</Button>
 
-</form>
+                  <div className="mb-5">
+                    <label className="block mb-2 text-sm font-medium text-gray-700">
+                      Dataset Description
+                    </label>
+                    <Textarea
+                      value={datasetDescription}
+                      onChange={(e) => setDatasetDescription(e.target.value)}
+                      required
+                      className="p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                    />
+                  </div>
 
+                  <div className="mb-5">
+                    <label className="block mb-2 text-sm font-medium text-gray-700">
+                      Upload File
+                    </label>
+                    <Input
+                      type="file"
+                      accept=".txt, .pdf, .docx"
+                      onChange={handleFileUpload}
+                      required
+                      multiple
+                      className="p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    color="blue"
+                    style={{
+                      width: "200px",
+                      height: "50px",
+                      backgroundColor: "rgb(100,149,237)",
+                      borderRadius: "12px",
+                    }}
+                  >
+                    Submit Dataset
+                  </Button>
+                </form>
               </div>
             )}
           </div>
