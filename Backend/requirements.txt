@@ -1,8 +1,11 @@
-python-dotenv
-langchain-google-genai
-langchain_core
-langchain 
-langchain_huggingface
-langchain-community
-faiss-cpu
-numpy
+# python-dotenv
+# langchain-google-genai
+# langchain_core
+# langchain 
+# langchain_huggingface
+# langchain-community
+# faiss-cpu
+# numpy
+fastapi
+uvicorn
+pymongo
