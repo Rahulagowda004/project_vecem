@@ -57,13 +57,7 @@ const Navbar = () => {
                   />
                 </Link>
 
-                {/* Log Out Button */}
-                <button
-                  className="px-3 py-1 cursor-pointer rounded-md bg-blue-500 text-white flex items-center gap-1 shadow-md border-blue-400 border-2"
-                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                >
-                  Log Out
-                </button>
+               
               </li>
             ) : (
               <li>
