@@ -1,133 +1,107 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom"; // Import Link for routing
+
+// List avatars in the public/avatars directory
+const avatars = [
+  "avatar1.png",
+  "avatar2.png",
+  "avatar3.png",
+  "avatar4.png",
+];
 
 const EditProfile = () => {
+  const [selectedAvatar, setSelectedAvatar] = useState(avatars[0]);
+  const [email, setEmail] = useState("richard@fusionauth.io");
+  const [firstName, setFirstName] = useState("Richard");
+  const [lastName, setLastName] = useState("Hendricks");
+  const [username, setUsername] = useState("richard_h"); // Add a username state
+
+  // Handle avatar selection
+  const handleAvatarSelect = (avatar) => {
+    setSelectedAvatar(avatar);
+  };
+
+  // Handle username change
+  const handleUsernameChange = (e) => {
+    setUsername(e.target.value);
+  };
+
   return (
-    <div style={{ backgroundColor: "rgb(99, 39, 120)", paddingTop: "20px", paddingBottom: "20px" }}>
-      <div className="container rounded bg-white mt-5 mb-5">
-        <div className="row">
-          <div className="col-md-3 border-right">
-            <div
-              className="d-flex flex-column align-items-center text-center p-3 py-5"
-              style={{ paddingTop: "30px", paddingBottom: "30px" }}
-            >
-              <img
-                className="rounded-circle mt-5"
-                width="150px"
-                src="https://st3.depositphotos.com/15648834/17930/v/600/depositphotos_179308454-stock-illustration-unknown-person-silhouette-glasses-profile.jpg"
-                alt="Profile"
+    <div style={{ padding: "40px", backgroundColor: "#f8f9fa", minHeight: "100vh" }}>
+      <div className="container rounded shadow-lg bg-white p-4" style={{ maxWidth: "1000px", margin: "auto" }}>
+        <div className="d-flex align-items-center justify-content-between">
+          {/* Profile Section - Avatar and User Info */}
+          <div className="text-center p-3" style={{ flex: 1 }}>
+            <img
+              className="rounded-circle"
+              width="120px"
+              src={`/avatars/${selectedAvatar}`} // Dynamically load avatar from the public/avatars directory
+              alt="Profile"
+              style={{
+                borderRadius: "50%", // Make the avatar rounded
+                border: "3px solid #6f42c1", // Set the border style and color
+                cursor: "pointer", // Make avatar clickable
+                transition: "transform 0.2s ease-in-out", // Add smooth transition on hover
+              }}
+              onClick={() => handleAvatarSelect(selectedAvatar)} // Click to change avatar
+            />
+            <h4 className="mt-2">{firstName}</h4>
+            <h5>@{username}</h5> {/* Display current username */}
+          </div>
+
+          {/* Edit Form Section */}
+          <div style={{ flex: 2 }}>
+            <div className="mt-3">
+              <label className="form-label">Username: </label>
+              <input
+                type="text"
+                className="form-control"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)} // Update username state
               />
-              <span className="font-weight-bold">Edogaru</span>
-              <span className="text-black-50">edogaru@mail.com.my</span>
+            </div>    
+
+            {/* Avatar Selection Section */}
+            <div className="mt-4">
+              <label className="form-label">Choose Avatar</label>
+              <div className="d-flex justify-content-start" style={{ overflowX: "auto" }}>
+                {avatars.map((avatar, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleAvatarSelect(avatar)}
+                    style={{
+                      cursor: "pointer",
+                      margin: "10px",
+                      transition: "transform 0.2s ease",
+                    }}
+                  >
+                    <img
+                      src={`/avatars/${avatar}`} // Reference avatar images in the public/avatars folder
+                      alt={`avatar-${index}`}
+                      width="100px"
+                      height="100px"
+                      style={{
+                        borderRadius: "50%", // Make avatar rounded
+                        border: selectedAvatar === avatar ? "4px solid #6f42c1" : "2px solid transparent",
+                        transition: "all 0.3s ease-in-out",
+                      }}
+                      onMouseEnter={(e) => (e.target.style.transform = "scale(1.1)")}
+                      onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-          <div className="col-md-5 border-right">
-            <div className="p-3 py-5">
-              <div
-                className="d-flex justify-content-between align-items-center mb-3"
-                style={{ marginBottom: "20px" }}
-              >
-                <h4 className="text-right">Profile Settings</h4>
-              </div>
-              <div className="row mt-2">
-                <div className="col-md-6">
-                  <label className="labels">Name</label>
-                  <input type="text" className="form-control" placeholder="first name" />
-                </div>
-                <div className="col-md-6">
-                  <label className="labels">Surname</label>
-                  <input type="text" className="form-control" placeholder="surname" />
-                </div>
-              </div>
-              <div className="row mt-3">
-                <div className="col-md-12">
-                  <label className="labels">Mobile Number</label>
-                  <input type="text" className="form-control" placeholder="enter phone number" />
-                </div>
-                <div className="col-md-12">
-                  <label className="labels">Address Line 1</label>
-                  <input type="text" className="form-control" placeholder="enter address line 1" />
-                </div>
-                <div className="col-md-12">
-                  <label className="labels">Address Line 2</label>
-                  <input type="text" className="form-control" placeholder="enter address line 2" />
-                </div>
-                <div className="col-md-12">
-                  <label className="labels">Postcode</label>
-                  <input type="text" className="form-control" placeholder="enter postcode" />
-                </div>
-                <div className="col-md-12">
-                  <label className="labels">State</label>
-                  <input type="text" className="form-control" placeholder="enter state" />
-                </div>
-                <div className="col-md-12">
-                  <label className="labels">Area</label>
-                  <input type="text" className="form-control" placeholder="enter area" />
-                </div>
-                <div className="col-md-12">
-                  <label className="labels">Email ID</label>
-                  <input type="text" className="form-control" placeholder="enter email id" />
-                </div>
-                <div className="col-md-12">
-                  <label className="labels">Education</label>
-                  <input type="text" className="form-control" placeholder="education" />
-                </div>
-              </div>
-              <div className="row mt-3">
-                <div className="col-md-6">
-                  <label className="labels">Country</label>
-                  <input type="text" className="form-control" placeholder="country" />
-                </div>
-                <div className="col-md-6">
-                  <label className="labels">State/Region</label>
-                  <input type="text" className="form-control" placeholder="state/region" />
-                </div>
-              </div>
-              <div className="mt-5 text-center">
+
+            <div className="mt-4 text-center">
+              <Link to="/profile">
                 <button
-                  className="btn profile-button"
-                  type="button"
-                  style={{
-                    background: "rgb(99, 39, 120)",
-                    boxShadow: "none",
-                    border: "none",
-                    color: "#fff",
-                    cursor: "pointer",
-                  }}
+                  className="px-6 py-2 text-white bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ padding: "10px 20px", borderRadius: "20px" }}
                 >
-                  Save Profile
+                  Submit
                 </button>
-              </div>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="p-3 py-5">
-              <div
-                className="d-flex justify-content-between align-items-center experience"
-                style={{ marginBottom: "20px" }}
-              >
-                <span>Edit Experience</span>
-                <span
-                  className="border px-3 p-1 add-experience"
-                  style={{
-                    background: "#BA68C8",
-                    color: "#fff",
-                    cursor: "pointer",
-                    border: "solid 1px #BA68C8",
-                  }}
-                >
-                  <i className="fa fa-plus"></i>&nbsp;Experience
-                </span>
-              </div>
-              <br />
-              <div className="col-md-12">
-                <label className="labels">Experience in Designing</label>
-                <input type="text" className="form-control" placeholder="experience" />
-              </div>
-              <br />
-              <div className="col-md-12">
-                <label className="labels">Additional Details</label>
-                <input type="text" className="form-control" placeholder="additional details" />
-              </div>
+              </Link>
             </div>
           </div>
         </div>

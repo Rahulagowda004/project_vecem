@@ -1,3 +1,4 @@
+// ProfilePage.jsx
 import React from "react";
 import { Link } from "react-router-dom"; // Import Link from react-router-dom
 import { Button } from "@material-tailwind/react";
@@ -14,13 +15,13 @@ export default function ProfilePage() {
   };
 
   return (
-    <section className="min-h-screen bg-white py-16 px-4 md:px-0">
+    <section className="min-h-screen bg-white flex items-center justify-center">
       <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-8 md:p-12 flex flex-col md:flex-row items-center md:items-start">
         
         {/* Profile Image */}
         <div className="w-full md:w-1/3 flex justify-center md:justify-start">
           <img
-            src="/avatars/default.png" // Local path from the public directory
+            src={`/avatars/${/* Dynamically set the avatar based on user data */ "default.png"}`} // Avatar logic
             alt="Avatar"
             className="w-48 h-48 rounded-full shadow-md"
           />
@@ -53,14 +54,14 @@ export default function ProfilePage() {
           {/* Buttons Row */}
           <div className="flex justify-between mt-6 space-x-4">
             {/* Edit Profile Button */}
-            <Link to="/edit-profile">
+            <Link to="/editprofile">
               <button className="px-6 py-2 text-white bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 Edit Profile
               </button>
             </Link>
 
             {/* Upload File Button */}
-            <Link to="/upload-file">
+            <Link to="/uploadfiles">
               <button className="px-6 py-2 text-white bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 Upload File
               </button>
