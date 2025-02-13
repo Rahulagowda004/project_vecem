@@ -28,6 +28,16 @@ export default function ProfilePage() {
 
         {/* Profile Details */}
         <div className="w-full md:w-2/3 mt-6 md:mt-0 md:pl-10">
+          {/* User Info */}
+          <div className="mb-6">
+            <p className="text-xl font-bold text-gray-800">
+              <span className="font-semibold text-gray-700">Username:</span> Benhur
+            </p>
+            <p className="text-xl font-bold text-gray-800">
+              <span className="font-semibold text-gray-700">Email:</span> vector@gmail.com
+            </p>
+          </div>
+
           <h2 className="text-3xl font-bold text-gray-800">About Me</h2>
           <h4 className="text-xl font-semibold text-red-500 mt-1">
             A Lead UX & UI designer based in Canada
@@ -38,44 +48,29 @@ export default function ProfilePage() {
             My passion is to design digital user experiences through bold interfaces and meaningful interactions.
           </p>
 
-          {/* User Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div>
-              <p>
-                <span className="font-semibold text-gray-700">Username:</span> Benhur
-              </p>
-              <p>
-                <span className="font-semibold text-gray-700">Email:</span> vector@gmail.com
-              </p>
-            </div>
-          </div>
-
           {/* Buttons Row */}
           <div className="flex justify-between mt-6 space-x-4">
             {/* Edit Profile Button */}
             <Link to="/editprofile">
-            <button className="px-6 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg shadow-blue-500">
+              <button className="px-6 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg shadow-blue-500">
                 Edit Profile
-            </button>
-
+              </button>
             </Link>
 
             {/* Upload File Button */}
             <Link to="/uploadfiles">
-            <button className="px-6 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg shadow-blue-500">
-  Upload File
-</button>
-
+              <button className="px-6 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg shadow-blue-500">
+                Upload File
+              </button>
             </Link>
 
             {/* Log Out Button */}
             <button
-  className="px-6 py-2 text-white bg-red-600 rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg shadow-red-500"
-  onClick={handleLogout} // Call handleLogout function on click
->
-  Log Out
-</button>
-
+              className="px-6 py-2 text-white bg-red-600 rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg shadow-red-500"
+              onClick={handleLogout} // Call handleLogout function on click
+            >
+              Log Out
+            </button>
           </div>
         </div>
       </div>
