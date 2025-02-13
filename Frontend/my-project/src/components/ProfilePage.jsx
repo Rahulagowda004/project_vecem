@@ -1,4 +1,3 @@
-// ProfilePage.jsx
 import React from "react";
 import { Link } from "react-router-dom"; // Import Link from react-router-dom
 import { Button } from "@material-tailwind/react";
@@ -15,15 +14,15 @@ export default function ProfilePage() {
   };
 
   return (
-    <section className="min-h-screen bg-white flex items-center justify-center">
-      <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-8 md:p-12 flex flex-col md:flex-row items-center md:items-start">
+    <section className="min-h-screen bg-gray-950 flex items-center justify-center ">
+      <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-8 md:p-12 flex flex-col md:flex-row items-center md:items-start border-blue-600 shadow-[0px_0px_15px_10px_rgba(0,0,0,0.3)] shadow-blue-500">
         
         {/* Profile Image */}
         <div className="w-full md:w-1/3 flex justify-center md:justify-start">
           <img
             src={`public/avatars/${/* Dynamically set the avatar based on user data */ "default.png"}`} // Avatar logic
             alt="Avatar"
-            className="w-48 h-48 rounded-full shadow-md"
+            className="w-50 h-50 rounded-full shadow-md border-blue-600  shadow-[0px_0px_15px_10px_rgba(0,0,0,0.3)] shadow-blue-500"
           />
         </div>
 
@@ -55,25 +54,28 @@ export default function ProfilePage() {
           <div className="flex justify-between mt-6 space-x-4">
             {/* Edit Profile Button */}
             <Link to="/editprofile">
-              <button className="px-6 py-2 text-white bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button className="px-6 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg shadow-blue-500">
                 Edit Profile
-              </button>
+            </button>
+
             </Link>
 
             {/* Upload File Button */}
             <Link to="/uploadfiles">
-              <button className="px-6 py-2 text-white bg-blue-600 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                Upload File
-              </button>
+            <button className="px-6 py-2 text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg shadow-blue-500">
+  Upload File
+</button>
+
             </Link>
 
             {/* Log Out Button */}
             <button
-              className="px-6 py-2 text-white bg-red-600 rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-              onClick={handleLogout} // Call handleLogout function on click
-            >
-              Log Out
-            </button>
+  className="px-6 py-2 text-white bg-red-600 rounded-full hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 shadow-lg shadow-red-500"
+  onClick={handleLogout} // Call handleLogout function on click
+>
+  Log Out
+</button>
+
           </div>
         </div>
       </div>
