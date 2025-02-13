@@ -21,7 +21,7 @@ export default function ProfilePage() {
         {/* Profile Image */}
         <div className="w-full md:w-1/3 flex justify-center md:justify-start">
           <img
-            src={`/avatars/${/* Dynamically set the avatar based on user data */ "default.png"}`} // Avatar logic
+            src={`public/avatars/${/* Dynamically set the avatar based on user data */ "default.png"}`} // Avatar logic
             alt="Avatar"
             className="w-48 h-48 rounded-full shadow-md"
           />
