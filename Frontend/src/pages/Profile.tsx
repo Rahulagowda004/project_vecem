@@ -10,7 +10,7 @@ import {
   Edit2,
 } from "lucide-react";
 
-function App() {
+const Profile = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingAbout, setIsEditingAbout] = useState(false);
@@ -24,16 +24,6 @@ function App() {
     { id: 3, name: "Projects", files: 12 },
     { id: 4, name: "Downloads", files: 48 },
     { id: 5, name: "Music", files: 67 },
-    { id: 6, name: "Videos", files: 34 },
-    { id: 7, name: "Work", files: 89 },
-    { id: 8, name: "Personal", files: 15 },
-    { id: 9, name: "Archives", files: 56 },
-    { id: 10, name: "Backups", files: 92 },
-    { id: 11, name: "Reports", files: 43 },
-    { id: 12, name: "Templates", files: 27 },
-    { id: 13, name: "Resources", files: 78 },
-    { id: 14, name: "Presentations", files: 31 },
-    { id: 15, name: "Designs", files: 124 },
   ];
 
   const filteredFolders = folders.filter((folder) =>
@@ -48,7 +38,7 @@ function App() {
     <div className="min-h-screen bg-[#030712] text-gray-100 p-8">
       <div className="max-w-6xl mx-auto bg-gray-900 rounded-xl shadow-2xl">
         <div className="flex flex-col md:flex-row">
-          {/* Left Section - Profile Info */}
+          {/* Left Section */}
           <div className="md:w-1/3 p-8 border-r border-gray-800">
             <div className="relative mb-6">
               <div className="w-32 h-32 mx-auto relative">
@@ -121,9 +111,8 @@ function App() {
             )}
           </div>
 
-          {/* Right Section - Details & Folders */}
+          {/* Right Section */}
           <div className="md:w-2/3 p-8">
-            {/* Details Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">About</h2>
@@ -156,7 +145,6 @@ function App() {
               </div>
             </div>
 
-            {/* Search and Upload Section */}
             <div className="flex items-center justify-between mb-6">
               <div className="relative flex-1 mr-4">
                 <input
@@ -177,31 +165,28 @@ function App() {
               </button>
             </div>
 
-            {/* Folders Section */}
             <div className="flex-1 min-h-0">
               <h2 className="text-xl font-semibold mb-4">Uploaded Folders</h2>
-              <div className="h-[calc(100vh-24rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800 pr-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredFolders.map((folder) => (
-                    <div
-                      key={folder.id}
-                      className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Folder
-                          className="text-blue-400 group-hover:text-blue-300 transition-colors"
-                          size={24}
-                        />
-                        <div>
-                          <h3 className="font-medium">{folder.name}</h3>
-                          <p className="text-sm text-gray-400">
-                            {folder.files} files
-                          </p>
-                        </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredFolders.map((folder) => (
+                  <div
+                    key={folder.id}
+                    className="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Folder
+                        className="text-blue-400 group-hover:text-blue-300 transition-colors"
+                        size={24}
+                      />
+                      <div>
+                        <h3 className="font-medium">{folder.name}</h3>
+                        <p className="text-sm text-gray-400">
+                          {folder.files} files
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -209,6 +194,6 @@ function App() {
       </div>
     </div>
   );
-}
+};
 
-export default App;
+export default Profile;

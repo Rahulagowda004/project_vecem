@@ -1,0 +1,46 @@
+.profileContainer {
+  min-height: 100vh;
+  background-color: #030712;
+  color: #f3f4f6;
+  padding: 2rem;
+}
+
+.profileWrapper {
+  max-width: 72rem;
+  margin: 0 auto;
+  background-color: #111827;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.profileLayout {
+  display: flex;
+  flex-direction: column;
+}
+
+.profileInfo {
+  width: 100%;
+  padding: 2rem;
+  border-right: 1px solid #1f2937;
+}
+
+.profileDetails {
+  width: 100%;
+  padding: 2rem;
+}
+
+@media (min-width: 768px) {
+  .profileLayout {
+    flex-direction: row;
+  }
+
+  .profileInfo {
+    width: 33.333333%;
+  }
+
+  .profileDetails {
+    width: 66.666667%;
+  }
+}
+
+/* Add any additional styles from the original inline Tailwind classes */
