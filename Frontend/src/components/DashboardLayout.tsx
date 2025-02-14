@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth0 } from '@auth0/auth0-react';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   Search,
   User,
@@ -13,16 +13,18 @@ import {
   FileAudio,
   Image,
   FileVideo,
-  FileText
-} from 'lucide-react';
-import DatasetGrid from './DatasetGrid';
+  FileText,
+} from "lucide-react";
+import DatasetGrid from "./DatasetGrid";
 
 const LogoutButton = () => {
   const { logout } = useAuth0();
 
   return (
     <button
-      onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+      onClick={() =>
+        logout({ logoutParams: { returnTo: window.location.origin } })
+      }
       className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
     >
       <LogOut className="h-4 w-4 mr-3" />
@@ -34,13 +36,23 @@ const LogoutButton = () => {
 const DashboardLayout = () => {
   const { user, isAuthenticated } = useAuth0();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['datasets']);
-  const [userAvatar, setUserAvatar] = useState(localStorage.getItem("userAvatar") || user?.picture || "/avatars/avatar1.png");
-  const [userName, setUserName] = useState(localStorage.getItem("userName") || user?.name || "Guest");
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(["datasets"]);
+  const [userAvatar, setUserAvatar] = useState(
+    localStorage.getItem("userAvatar") ||
+      user?.picture ||
+      "/avatars/avatar1.png"
+  );
+  const [userName, setUserName] = useState(
+    localStorage.getItem("userName") || user?.name || "Guest"
+  );
 
   useEffect(() => {
     const handleStorageChange = () => {
-      setUserAvatar(localStorage.getItem("userAvatar") || user?.picture || "/avatars/avatar1.png");
+      setUserAvatar(
+        localStorage.getItem("userAvatar") ||
+          user?.picture ||
+          "/avatars/avatar1.png"
+      );
       setUserName(localStorage.getItem("userName") || user?.name || "Guest");
     };
 
@@ -51,9 +63,9 @@ const DashboardLayout = () => {
   }, [user]);
 
   const toggleMenu = (menu: string) => {
-    setExpandedMenus(prev =>
+    setExpandedMenus((prev) =>
       prev.includes(menu)
-        ? prev.filter(item => item !== menu)
+        ? prev.filter((item) => item !== menu)
         : [...prev, menu]
     );
   };
@@ -92,17 +104,27 @@ const DashboardLayout = () => {
                     src={userAvatar}
                     alt={user.name}
                   />
-                  <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isProfileOpen ? 'transform rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`h-4 w-4 text-gray-400 transition-transform ${
+                      isProfileOpen ? "transform rotate-180" : ""
+                    }`}
+                  />
                 </button>
 
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
                     <div className="py-1">
-                      <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                      <Link
+                        to="/profile"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                      >
                         <User className="h-4 w-4 mr-3" />
                         My Profile
                       </Link>
-                      <Link to="/settings" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                      <Link
+                        to="/settings"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                      >
                         <Settings className="h-4 w-4 mr-3" />
                         Settings
                       </Link>
@@ -132,7 +154,6 @@ const DashboardLayout = () => {
                   />
                   <div>
                     <div className="font-medium text-gray-200">{user.name}</div>
-                    
                   </div>
                 </div>
               </div>
@@ -143,17 +164,23 @@ const DashboardLayout = () => {
               {/* Datasets Section */}
               <div>
                 <button
-                  onClick={() => toggleMenu('datasets')}
+                  onClick={() => toggleMenu("datasets")}
                   className="flex items-center justify-between w-full px-2 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-gray-700 hover:text-white"
                 >
                   <div className="flex items-center">
                     <Database className="h-5 w-5 mr-3" />
                     Datasets
                   </div>
-                  <ChevronRight className={`h-4 w-4 transition-transform ${expandedMenus.includes('datasets') ? 'transform rotate-90' : ''}`} />
+                  <ChevronRight
+                    className={`h-4 w-4 transition-transform ${
+                      expandedMenus.includes("datasets")
+                        ? "transform rotate-90"
+                        : ""
+                    }`}
+                  />
                 </button>
 
-                {expandedMenus.includes('datasets') && (
+                {expandedMenus.includes("datasets") && (
                   <div className="ml-8 mt-2 space-y-1">
                     <button className="flex items-center w-full px-2 py-2 text-sm text-gray-400 rounded-md hover:bg-gray-700 hover:text-white">
                       <FileAudio className="h-4 w-4 mr-3" />
@@ -176,10 +203,13 @@ const DashboardLayout = () => {
               </div>
 
               {/* Community Section */}
-              <button className="flex items-center w-full px-2 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-gray-700 hover:text-white">
+              <Link
+                to="/community"
+                className="flex items-center w-full px-2 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-gray-700 hover:text-white"
+              >
                 <Users className="h-5 w-5 mr-3" />
                 Community
-              </button>
+              </Link>
             </nav>
           </div>
         </div>
