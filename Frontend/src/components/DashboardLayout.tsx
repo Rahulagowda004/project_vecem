@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import {
@@ -32,8 +32,23 @@ const LogoutButton = () => {
 };
 
 const DashboardLayout = () => {
+  const { user, isAuthenticated } = useAuth0();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['datasets']);
+  const [userAvatar, setUserAvatar] = useState(localStorage.getItem("userAvatar") || user?.picture || "/avatars/avatar1.png");
+  const [userName, setUserName] = useState(localStorage.getItem("userName") || user?.name || "Guest");
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setUserAvatar(localStorage.getItem("userAvatar") || user?.picture || "/avatars/avatar1.png");
+      setUserName(localStorage.getItem("userName") || user?.name || "Guest");
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [user]);
 
   const toggleMenu = (menu: string) => {
     setExpandedMenus(prev =>
@@ -41,11 +56,6 @@ const DashboardLayout = () => {
         ? prev.filter(item => item !== menu)
         : [...prev, menu]
     );
-  };
-
-  const user = {
-    name: 'John Doe',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
   };
 
   return (
@@ -71,35 +81,37 @@ const DashboardLayout = () => {
               </div>
             </div>
 
-            <div className="relative">
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-3 focus:outline-none"
-              >
-                <img
-                  className="h-8 w-8 rounded-full"
-                  src={user.avatar}
-                  alt={user.name}
-                />
-                <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isProfileOpen ? 'transform rotate-180' : ''}`} />
-              </button>
+            {isAuthenticated && user && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-3 focus:outline-none"
+                >
+                  <img
+                    className="h-8 w-8 rounded-full"
+                    src={userAvatar}
+                    alt={user.name}
+                  />
+                  <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isProfileOpen ? 'transform rotate-180' : ''}`} />
+                </button>
 
-              {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
-                  <div className="py-1">
-                    <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
-                      <User className="h-4 w-4 mr-3" />
-                      My Profile
-                    </Link>
-                    <Link to="/settings" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
-                      <Settings className="h-4 w-4 mr-3" />
-                      Settings
-                    </Link>
-                    <LogoutButton />
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
+                    <div className="py-1">
+                      <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                        <User className="h-4 w-4 mr-3" />
+                        My Profile
+                      </Link>
+                      <Link to="/settings" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                        <Settings className="h-4 w-4 mr-3" />
+                        Settings
+                      </Link>
+                      <LogoutButton />
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -110,19 +122,21 @@ const DashboardLayout = () => {
         <div className="w-64 fixed h-full bg-gray-800 shadow-lg">
           <div className="flex flex-col h-full">
             {/* User Info */}
-            <div className="p-4 border-b border-gray-700">
-              <div className="flex items-center space-x-3">
-                <img
-                  className="h-10 w-10 rounded-full"
-                  src={user.avatar}
-                  alt={user.name}
-                />
-                <div>
-                  <div className="font-medium text-gray-200">{user.name}</div>
-                  <div className="text-sm text-gray-400">View Profile</div>
+            {isAuthenticated && user && (
+              <div className="p-4 border-b border-gray-700">
+                <div className="flex items-center space-x-3">
+                  <img
+                    className="h-10 w-10 rounded-full"
+                    src={userAvatar}
+                    alt={user.name}
+                  />
+                  <div>
+                    <div className="font-medium text-gray-200">{user.name}</div>
+                    
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Navigation Menu */}
             <nav className="flex-1 px-2 py-4 space-y-1">
