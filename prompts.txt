@@ -1,0 +1,1 @@
+I have the webpage code for the community section in the 'community' folder. I need you to move this code to the 'frontend' folder, as the frontend folder contains the entire website. The community page should be routed to /community on the website.
