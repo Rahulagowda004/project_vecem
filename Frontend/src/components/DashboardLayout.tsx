@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { useAuth0 } from '@auth0/auth0-react';
 import {
   Search,
   User,
@@ -17,6 +17,19 @@ import {
 } from 'lucide-react';
 import DatasetGrid from './DatasetGrid';
 
+const LogoutButton = () => {
+  const { logout } = useAuth0();
+
+  return (
+    <button
+      onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+    >
+      <LogOut className="h-4 w-4 mr-3" />
+      Logout
+    </button>
+  );
+};
 
 const DashboardLayout = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -74,18 +87,15 @@ const DashboardLayout = () => {
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
                   <div className="py-1">
-                  <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
-                    <User className="h-4 w-4 mr-3" />
-                    My Profile
-                  </Link>
-                  <Link to="/settings" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
-                    <Settings className="h-4 w-4 mr-3" />
-                          Settings
-                  </Link>
-                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
-                      <LogOut className="h-4 w-4 mr-3" />
-                      Logout
-                    </button>
+                    <Link to="/profile" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                      <User className="h-4 w-4 mr-3" />
+                      My Profile
+                    </Link>
+                    <Link to="/settings" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                      <Settings className="h-4 w-4 mr-3" />
+                      Settings
+                    </Link>
+                    <LogoutButton />
                   </div>
                 </div>
               )}

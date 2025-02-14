@@ -1,5 +1,26 @@
 import React from 'react';
 import { Menu, X } from 'lucide-react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
+
+const LoginButton = () => {
+  const { loginWithRedirect } = useAuth0();
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    await loginWithRedirect();
+    navigate('/home');
+  };
+
+  return (
+    <button
+      onClick={handleLogin}
+      className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+    >
+      Log In
+    </button>
+  );
+};
 
 interface NavbarProps {
   onLogin: () => void;
@@ -18,12 +39,7 @@ const Navbar = ({ onLogin }: NavbarProps) => {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
-            <button 
-              onClick={onLogin}
-              className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
-            >
-              Login
-            </button>
+            <LoginButton />
             <button className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition-colors">
               Sign Up
             </button>
@@ -45,12 +61,7 @@ const Navbar = ({ onLogin }: NavbarProps) => {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <button
-              onClick={onLogin}
-              className="block w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-base font-medium"
-            >
-              Login
-            </button>
+            <LoginButton />
             <button className="block w-full text-left bg-indigo-600 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-500">
               Sign Up
             </button>
@@ -61,4 +72,4 @@ const Navbar = ({ onLogin }: NavbarProps) => {
   );
 };
 
-export default Navbar
+export default Navbar;
