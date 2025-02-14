@@ -162,88 +162,81 @@ function UploadFile() {
               </select>
             </div>
 
-            {datasetType === "Raw" && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    File Type
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setFileType("Image")}
-                      className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
-                        fileType === "Image"
-                          ? "bg-blue-600 border-blue-500"
-                          : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                      }`}
-                    >
-                      <Image className="w-6 h-6 mb-2" />
-                      Image
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFileType("Audio")}
-                      className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
-                        fileType === "Audio"
-                          ? "bg-blue-600 border-blue-500"
-                          : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                      }`}
-                    >
-                      <Mic className="w-6 h-6 mb-2" />
-                      Audio
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFileType("Text")}
-                      className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
-                        fileType === "Text"
-                          ? "bg-blue-600 border-blue-500"
-                          : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                      }`}
-                    >
-                      <FileType className="w-6 h-6 mb-2" />
-                      Text
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFileType("Video")}
-                      className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
-                        fileType === "Video"
-                          ? "bg-blue-600 border-blue-500"
-                          : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                      }`}
-                    >
-                      <Video className="w-6 h-6 mb-2" />
-                      Video
-                    </button>
-                  </div>
-                </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                File Type
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFileType("Image")}
+                  className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
+                    fileType === "Image"
+                      ? "bg-blue-600 border-blue-500"
+                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
+                  }`}
+                >
+                  <Image className="w-6 h-6 mb-2" />
+                  Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFileType("Audio")}
+                  className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
+                    fileType === "Audio"
+                      ? "bg-blue-600 border-blue-500"
+                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
+                  }`}
+                >
+                  <Mic className="w-6 h-6 mb-2" />
+                  Audio
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFileType("Text")}
+                  className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
+                    fileType === "Text"
+                      ? "bg-blue-600 border-blue-500"
+                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
+                  }`}
+                >
+                  <FileType className="w-6 h-6 mb-2" />
+                  Text
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFileType("Video")}
+                  className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
+                    fileType === "Video"
+                      ? "bg-blue-600 border-blue-500"
+                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
+                  }`}
+                >
+                  <Video className="w-6 h-6 mb-2" />
+                  Video
+                </button>
+              </div>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Upload Dataset
-                  </label>
-                  <div className="relative">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      onChange={handleFileChange}
-                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                      accept={fileTypeMap[fileType].join(",")}
-                      multiple
-                    />
-                  </div>
-                  {error && (
-                    <p className="mt-2 text-sm text-red-400">{error}</p>
-                  )}
-                  <p className="mt-2 text-sm text-gray-400">
-                    Select a folder containing only {fileType.toLowerCase()}{" "}
-                    files
-                  </p>
-                </div>
-              </>
-            )}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Upload Dataset
+              </label>
+              <div className="relative">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileChange}
+                  className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  accept={fileTypeMap[fileType].join(",")}
+                  multiple
+                />
+              </div>
+              {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+              <p className="mt-2 text-sm text-gray-400">
+                Select a folder containing only {fileType.toLowerCase()} files
+              </p>
+            </div>
 
             <button
               type="submit"
