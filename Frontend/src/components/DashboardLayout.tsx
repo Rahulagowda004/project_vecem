@@ -76,10 +76,10 @@ const DashboardLayout = () => {
                     <User className="h-4 w-4 mr-3" />
                     My Profile
                   </Link>
-                    <button className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
-                      <Settings className="h-4 w-4 mr-3" />
-                      Settings
-                    </button>
+                  <Link to="/settings" className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                    <Settings className="h-4 w-4 mr-3" />
+                          Settings
+                  </Link>
                     <button className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
                       <LogOut className="h-4 w-4 mr-3" />
                       Logout
