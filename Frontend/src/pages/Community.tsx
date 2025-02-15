@@ -1,6 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import CommunityLayout from "../components/CommunityLayout";
-import { User, MessageSquare, Send, Paperclip, Smile } from "lucide-react";
+import {
+  User,
+  MessageSquare,
+  Send,
+  Paperclip,
+  Smile,
+  Edit2,
+  Trash2,
+  Clock,
+} from "lucide-react";
 
 interface Message {
   id: number;
@@ -10,6 +19,8 @@ interface Message {
   content: string;
   timestamp: string;
   reactions?: string[];
+  isEditing?: boolean;
+  isTyping?: boolean;
 }
 
 const onlineUsers = [
@@ -19,7 +30,6 @@ const onlineUsers = [
     avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=John",
     status: "online",
     lastSeen: "2 hours ago",
-    role: "Admin",
   },
   {
     id: 2,
@@ -27,7 +37,6 @@ const onlineUsers = [
     avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=Alice",
     status: "online",
     lastSeen: "Just now",
-    role: "Member",
   },
   {
     id: 3,
@@ -35,7 +44,6 @@ const onlineUsers = [
     avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=Bob",
     status: "offline",
     lastSeen: "5 minutes ago",
-    role: "Member",
   },
   {
     id: 4,
@@ -43,7 +51,6 @@ const onlineUsers = [
     avatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=Emma",
     status: "online",
     lastSeen: "1 hour ago",
-    role: "Moderator",
   },
 ];
 
@@ -79,6 +86,9 @@ const initialMessages: Message[] = [
 const Community = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [newMessage, setNewMessage] = useState("");
+  const [editingMessage, setEditingMessage] = useState<number | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -112,6 +122,31 @@ const Community = () => {
   const handleUserClick = (userId: number) => {
     // Handle user click
     console.log("User clicked:", userId);
+  };
+
+  const handleEditMessage = (messageId: number) => {
+    setEditingMessage(messageId);
+  };
+
+  const handleDeleteMessage = (messageId: number) => {
+    setMessages(messages.filter((m) => m.id !== messageId));
+  };
+
+  const handleReaction = (messageId: number, reaction: string) => {
+    setMessages(
+      messages.map((message) => {
+        if (message.id === messageId) {
+          const reactions = message.reactions || [];
+          return {
+            ...message,
+            reactions: reactions.includes(reaction)
+              ? reactions.filter((r) => r !== reaction)
+              : [...reactions, reaction],
+          };
+        }
+        return message;
+      })
+    );
   };
 
   return (
@@ -196,11 +231,33 @@ const Community = () => {
                         >
                           {message.userName}
                         </button>
-                        <span className="text-xs text-gray-500">
+                        <span
+                          className="text-xs text-gray-500 hover:text-gray-400 cursor-help"
+                          title={new Date().toLocaleString()}
+                        >
                           {message.timestamp}
                         </span>
                       </div>
-                      <p className="text-gray-300 mt-1">{message.content}</p>
+                      {editingMessage === message.id ? (
+                        <input
+                          type="text"
+                          value={message.content}
+                          onChange={(e) => {
+                            setMessages(
+                              messages.map((m) =>
+                                m.id === message.id
+                                  ? { ...m, content: e.target.value }
+                                  : m
+                              )
+                            );
+                          }}
+                          onBlur={() => setEditingMessage(null)}
+                          className="mt-1 w-full bg-gray-700 text-gray-200 rounded px-2 py-1"
+                          autoFocus
+                        />
+                      ) : (
+                        <p className="text-gray-300 mt-1">{message.content}</p>
+                      )}
                       {message.reactions && message.reactions.length > 0 && (
                         <div className="flex gap-1 mt-1">
                           {message.reactions.map((reaction, index) => (
@@ -213,6 +270,47 @@ const Community = () => {
                           ))}
                         </div>
                       )}
+                      {/* Message actions */}
+                      <div className="hidden group-hover:flex items-center space-x-2 mt-2">
+                        <button
+                          onClick={() => setShowEmojiPicker(message.id)}
+                          className="text-gray-400 hover:text-gray-300"
+                        >
+                          <Smile className="w-4 h-4" />
+                        </button>
+                        {showEmojiPicker === message.id && (
+                          <div className="absolute bottom-full mb-2 bg-gray-800 rounded-lg shadow-lg p-2">
+                            {["👋", "😊", "❤️", "👍", "🎉"].map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => {
+                                  handleReaction(message.id, emoji);
+                                  setShowEmojiPicker(null);
+                                }}
+                                className="p-1 hover:bg-gray-700 rounded"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {message.userId === 1 && ( // Assuming 1 is current user
+                          <>
+                            <button
+                              onClick={() => handleEditMessage(message.id)}
+                              className="text-gray-400 hover:text-gray-300"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteMessage(message.id)}
+                              className="text-gray-400 hover:text-red-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
