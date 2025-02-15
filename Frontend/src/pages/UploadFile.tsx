@@ -9,7 +9,7 @@ import {
 
 // Add custom type definition for directory input
 interface DirectoryInputElement extends HTMLInputElement {
-  webkitdirectory?: boolean;
+  webkitdirectory: boolean;
   directory?: string;
   mozdirectory?: string;
 }
@@ -128,7 +128,7 @@ const UploadFile = () => {
     <div className="min-h-screen h-full bg-gray-900 text-gray-100">
       <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
         <div className="min-h-[calc(100vh-4rem)] bg-gray-800 rounded-lg shadow-xl p-6 md:p-8 overflow-y-auto">
-          <h1 className="text-3xl font-bold mb-6 text-center text-blue-400">
+          <h1 className="text-3xl font-bold mb-6 text-center text-indigo-400">
             Dataset Information
           </h1>
 
@@ -139,7 +139,7 @@ const UploadFile = () => {
               </label>
               <input
                 type="text"
-                className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                 placeholder="Enter dataset name"
               />
             </div>
@@ -149,7 +149,7 @@ const UploadFile = () => {
                 Dataset Description
               </label>
               <textarea
-                className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition h-32"
+                className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition h-32"
                 placeholder="Enter dataset description"
               />
             </div>
@@ -166,7 +166,7 @@ const UploadFile = () => {
                     onClick={() => setDatasetType(type as typeof datasetType)}
                     className={`flex-1 px-4 py-2 rounded-md border transition ${
                       datasetType === type
-                        ? "bg-blue-600 border-blue-500"
+                        ? "bg-indigo-600 border-indigo-500"
                         : "bg-gray-700 border-gray-600 hover:bg-gray-600"
                     }`}
                   >
@@ -188,7 +188,7 @@ const UploadFile = () => {
                     </label>
                     <input
                       type="number"
-                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                       placeholder="Enter dimensions"
                     />
                   </div>
@@ -198,7 +198,7 @@ const UploadFile = () => {
                     </label>
                     <input
                       type="text"
-                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                       placeholder="Enter vector database name"
                     />
                   </div>
@@ -208,7 +208,7 @@ const UploadFile = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">Domain</label>
-              <select className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition">
+              <select className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition">
                 <option value="">Select a domain</option>
                 {domains.map((domain) => (
                   <option key={domain} value={domain.toLowerCase()}>
@@ -228,7 +228,7 @@ const UploadFile = () => {
                   onClick={() => setFileType("Image")}
                   className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
                     fileType === "Image"
-                      ? "bg-blue-600 border-blue-500"
+                      ? "bg-indigo-600 border-indigo-500"
                       : "bg-gray-700 border-gray-600 hover:bg-gray-600"
                   }`}
                 >
@@ -240,7 +240,7 @@ const UploadFile = () => {
                   onClick={() => setFileType("Audio")}
                   className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
                     fileType === "Audio"
-                      ? "bg-blue-600 border-blue-500"
+                      ? "bg-indigo-600 border-indigo-500"
                       : "bg-gray-700 border-gray-600 hover:bg-gray-600"
                   }`}
                 >
@@ -252,7 +252,7 @@ const UploadFile = () => {
                   onClick={() => setFileType("Text")}
                   className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
                     fileType === "Text"
-                      ? "bg-blue-600 border-blue-500"
+                      ? "bg-indigo-600 border-indigo-500"
                       : "bg-gray-700 border-gray-600 hover:bg-gray-600"
                   }`}
                 >
@@ -264,7 +264,7 @@ const UploadFile = () => {
                   onClick={() => setFileType("Video")}
                   className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
                     fileType === "Video"
-                      ? "bg-blue-600 border-blue-500"
+                      ? "bg-indigo-600 border-indigo-500"
                       : "bg-gray-700 border-gray-600 hover:bg-gray-600"
                   }`}
                 >
@@ -290,7 +290,7 @@ const UploadFile = () => {
                         ref={rawInputRef}
                         type="file"
                         onChange={(e) => handleFileChange(e, "raw")}
-                        className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                        className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
                         accept={fileTypeMap[fileType].join(",")}
                         multiple
                         directory=""
@@ -307,7 +307,7 @@ const UploadFile = () => {
                         ref={vectorizedInputRef}
                         type="file"
                         onChange={(e) => handleFileChange(e, "vectorized")}
-                        className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                        className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
                         accept={fileTypeMap[fileType].join(",")}
                         multiple
                         directory=""
@@ -325,7 +325,7 @@ const UploadFile = () => {
                         datasetType.toLowerCase() as "raw" | "vectorized"
                       )
                     }
-                    className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                    className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
                     accept={fileTypeMap[fileType].join(",")}
                     multiple
                     directory=""
@@ -359,7 +359,7 @@ const UploadFile = () => {
                                       ? "bg-green-500"
                                       : item.status === "error"
                                       ? "bg-red-500"
-                                      : "bg-blue-500"
+                                      : "bg-indigo-500"
                                   }`}
                                   style={{ width: `${item.progress}%` }}
                                 />
@@ -392,7 +392,7 @@ const UploadFile = () => {
                                       ? "bg-green-500"
                                       : item.status === "error"
                                       ? "bg-red-500"
-                                      : "bg-blue-500"
+                                      : "bg-indigo-500"
                                   }`}
                                   style={{ width: `${item.progress}%` }}
                                 />
@@ -412,7 +412,7 @@ const UploadFile = () => {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-md font-medium transition"
+              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded-md font-medium transition"
             >
               Submit
             </button>
