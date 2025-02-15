@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import {
   Download,
   Share2,
@@ -11,7 +11,7 @@ import {
   Code,
 } from "lucide-react";
 
-type ExampleType = "basic" | "vectorized" | "advanced";
+type ExampleType = "basic";
 
 interface PythonExample {
   label: string;
@@ -23,7 +23,6 @@ type PythonExamples = Record<ExampleType, PythonExample>;
 const DatasetDetail = () => {
   const { id } = useParams();
   const [copied, setCopied] = useState(false);
-  const [selectedExample, setSelectedExample] = useState<ExampleType>("basic");
   const [isCodeOpen, setIsCodeOpen] = useState(false);
 
   // Dataset structure matching upload form fields
@@ -87,36 +86,10 @@ dataset = vc.load_dataset("${id}")
 # Access the data
 data = dataset.get_files()  # For raw files`,
     },
-    vectorized: {
-      label: "Vectorized Data",
-      code: `import vecem as vc
-
-# Load and access vectorized data
-dataset = vc.load_dataset("${id}")
-vectors = dataset.get_vectors()
-embeddings = vectors.to_numpy()`,
-    },
-    advanced: {
-      label: "Advanced Usage",
-      code: `import vecem as vc
-
-# Initialize with custom settings
-dataset = vc.load_dataset(
-    id="${id}",
-    batch_size=32,
-    cache_dir="./cache"
-)
-
-# Process data with transformation
-processed_data = dataset.transform(
-    num_workers=4,
-    preprocessing_fn=your_preprocessing_function
-)`,
-    },
   } as const;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(pythonExamples[selectedExample].code);
+  const handleCopy = (code: string) => {
+    navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -194,8 +167,11 @@ processed_data = dataset.transform(
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Python Usage Dropdown Section */}
+          {/* Right Sidebar */}
+          <div className="space-y-6">
+            {/* Python Usage Section */}
             <div className="bg-gray-800 rounded-lg overflow-hidden">
               <button
                 onClick={() => setIsCodeOpen(!isCodeOpen)}
@@ -224,59 +200,45 @@ processed_data = dataset.transform(
 
               {isCodeOpen && (
                 <div className="p-6 pt-0">
-                  <div className="flex items-center justify-end gap-4 mb-4">
-                    <select
-                      value={selectedExample}
-                      onChange={(e) =>
-                        setSelectedExample(e.target.value as ExampleType)
-                      }
-                      className="bg-gray-700 text-gray-200 rounded-lg px-3 py-1 text-sm border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                    >
-                      {Object.entries(pythonExamples).map(
-                        ([key, { label }]) => (
-                          <option key={key} value={key}>
-                            {label}
-                          </option>
-                        )
-                      )}
-                    </select>
-                    <button
-                      onClick={handleCopy}
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      {copied ? (
-                        <Check className="w-4 h-4 text-green-400" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-medium">
+                        {pythonExamples.basic.label}
+                      </h3>
+                      <button
+                        onClick={() => handleCopy(pythonExamples.basic.code)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        {copied ? (
+                          <Check className="w-4 h-4 text-green-400" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                    <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
+                      <code className="text-sm">
+                        {pythonExamples.basic.code}
+                      </code>
+                    </pre>
                   </div>
-                  <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
-                    <code className="text-sm">
-                      {pythonExamples[selectedExample].code}
-                    </code>
-                  </pre>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Right Sidebar */}
-          <div className="space-y-6">
             {/* About Section */}
             <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4">About</h2>
+              <h2 className="text-lg font-semibold mb-4">Uploaded User</h2>
               <div className="space-y-3 text-gray-300">
-                <p>Uploaded by: {dataset.owner}</p>
+                <p>
+                  Uploaded by:{" "}
+                  <Link to={`/user-profile/${dataset.owner}`} className="text-blue-400 hover:underline">
+                    {dataset.owner}
+                  </Link>
+                </p>
                 <p>
                   Upload Date:{" "}
                   {new Date(dataset.uploadDate).toLocaleDateString()}
-                </p>
-                <p>
-                  Status:{" "}
-                  <span className="text-green-400">
-                    {dataset.status.processingComplete ? "Ready" : "Processing"}
-                  </span>
                 </p>
               </div>
             </div>
