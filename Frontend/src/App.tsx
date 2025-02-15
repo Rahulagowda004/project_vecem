@@ -6,6 +6,7 @@ import Profile from "./pages/Profile";
 import UploadFile from "./pages/UploadFile";
 import Community from "./pages/Community";
 import UserProfile from "./pages/UserProfile";
+import DatasetDetail from "./pages/DatasetDetail";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/upload" element={<UploadFile />} />
         <Route path="/community" element={<Community />} />
         <Route path="/profile/:userId" element={<UserProfile />} />
+        <Route path="/datasets/:id" element={<DatasetDetail />} />
       </Routes>
     </Router>
   );
