@@ -1,22 +1,24 @@
 import React from 'react';
-import { Shield, Zap, Globe } from 'lucide-react';
+import {  Database, Users,PersonStanding} from 'lucide-react';
 
 const Features = () => {
   const features = [
     {
-      icon: <Shield className="w-12 h-12 text-indigo-500" />,
-      title: "Secure by Design",
-      description: "Enterprise-grade security built into every layer of our platform."
+      icon: <Database className="w-12 h-12 text-indigo-500" />,
+      title: "Hassle-Free Vector Data",
+      description: "Easily access and utilize vectorized datasets without the need for high computational power."
+
+
     },
     {
-      icon: <Zap className="w-12 h-12 text-indigo-500" />,
-      title: "Lightning Fast",
-      description: "Optimized performance ensuring quick response times and smooth interactions."
+      icon: <Users className="w-12 h-12 text-indigo-500" />,
+      title: "Open-Source & Community-Driven",
+      description: "Contribute, enhance, and innovate—our platform thrives on global collaboration."
     },
     {
-      icon: <Globe className="w-12 h-12 text-indigo-500" />,
-      title: "Global Scale",
-      description: "Built to scale globally with reliable infrastructure and support."
+      icon: <PersonStanding className="w-12 h-12 text-indigo-500" />,
+      title: "Optimized for Accessibility",
+      description: "Find and utilize vectorized data easily for research, AI, and other applications."
     }
   ];
 
@@ -29,7 +31,7 @@ const Features = () => {
               Why Choose Vecem?
             </h2>
             <p className="mt-4 text-xl text-gray-400">
-              Discover the features that make us stand out
+              Empowering users with vectorized data
             </p>
           </div>
         </div>
