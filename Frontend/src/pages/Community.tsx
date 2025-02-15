@@ -151,10 +151,10 @@ const Community = () => {
 
   return (
     <CommunityLayout>
-      <div className="p-6">
-        <div className="flex h-screen bg-gray-900">
+      <div className="h-[calc(100vh-4rem)]">
+        <div className="flex h-full bg-gray-900">
           {/* Sidebar - Online Users */}
-          <div className="w-72 bg-gray-800 border-r border-gray-700">
+          <div className="w-72 bg-gray-800 border-r border-gray-700 flex flex-col">
             <div className="p-4 border-b border-gray-700">
               <h2 className="text-lg font-semibold text-gray-200 flex items-center gap-2">
                 <User className="w-5 h-5" />
@@ -162,7 +162,7 @@ const Community = () => {
                 {onlineUsers.filter((u) => u.status === "online").length})
               </h2>
             </div>
-            <div className="px-2">
+            <div className="flex-1 overflow-y-auto">
               {onlineUsers.map((user) => (
                 <button
                   key={user.id}
@@ -199,7 +199,7 @@ const Community = () => {
           </div>
 
           {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-w-0">
             {/* Chat Header */}
             <div className="bg-gray-800 border-b border-gray-700 p-4">
               <h1 className="text-xl font-semibold text-gray-200 flex items-center gap-2">

@@ -26,7 +26,7 @@ const CommunityLayout: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <nav className="bg-gray-800 shadow-lg fixed w-full z-50">
+      <nav className="bg-gray-800 shadow-lg fixed w-full z-50 h-16">
         <div className="max-w-full mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex-shrink-0">
@@ -91,7 +91,7 @@ const CommunityLayout: React.FC<{ children: React.ReactNode }> = ({
         </div>
       </nav>
 
-      <div className="pt-16">{children}</div>
+      <div className="pt-16 h-[calc(100vh-4rem)]">{children}</div>
     </div>
   );
 };
