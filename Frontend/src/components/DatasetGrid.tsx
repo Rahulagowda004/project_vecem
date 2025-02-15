@@ -98,12 +98,12 @@ const DatasetGrid = () => {
                   <h3 className="text-lg font-medium text-white hover:text-indigo-400 transition-colors">
                     {dataset.name}
                   </h3>
-                  <p className="text-sm text-gray-400 mt-1 capitalize">
-                    {dataset.type} • {dataset.domain}
+                  <p className="text-sm text-gray-400 mt-0 capitalize">
+                     {dataset.datasetType} 
                   </p>
-                  <div className="mt-2 text-sm text-gray-500">
+                  <div className="mt-1 text-sm text-gray-500 capitalize">
+                    <p>{dataset.type} • {dataset.domain}</p>
                     <p>Size: {dataset.size}</p>
-                    <p>Last Modified: {dataset.lastModified}</p>
                   </div>
                 </div>
               </div>
@@ -153,7 +153,6 @@ const DatasetGrid = () => {
                 <div>
                   <h3 className="text-lg font-medium text-gray-300 mb-2">Metadata</h3>
                   <ul className="space-y-2 text-gray-400">
-                    <li>Last Modified: {selectedDataset.lastModified}</li>
                     <li>ID: {selectedDataset.id}</li>
                   </ul>
                 </div>
