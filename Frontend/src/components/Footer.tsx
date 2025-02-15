@@ -7,12 +7,8 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-wrap text-left lg:text-left">
           <div className="w-full lg:w-4/12 px-4">
-            <h4 className="text-3xl font-semibold text-white">About Us</h4>
-            <p className="text-gray-400 mt-4">
-              Vecem is dedicated to revolutionizing digital experiences through innovative solutions
-              and cutting-edge technology. Our mission is to empower businesses and individuals
-              with tools that make a difference.
-            </p>
+            <h4 className="text-3xl font-semibold text-white">Social Links</h4>
+
             <div className="mt-6 flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white">
                 <Facebook size={24} />
@@ -32,7 +28,7 @@ const Footer = () => {
               <li>
                 <a href="#" className="text-gray-400 hover:text-white">About Us</a>
               </li>
-              <li>
+              {/* <li>
                 <a href="#" className="text-gray-400 hover:text-white">Services</a>
               </li>
               <li>
@@ -40,7 +36,7 @@ const Footer = () => {
               </li>
               <li>
                 <a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a>
-              </li>
+              </li> */}
             </ul>
           </div>
           
@@ -49,16 +45,16 @@ const Footer = () => {
             <div className="mt-4 space-y-4">
               <div className="flex items-center space-x-3 text-gray-400">
                 <Mail size={20} />
-                <span>contact@vecem.com</span>
+                <span>vectorembeddings@gmail.com</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400">
+              {/* <div className="flex items-center space-x-3 text-gray-400">
                 <Phone size={20} />
                 <span>+1 (555) 123-4567</span>
-              </div>
-              <div className="flex items-center space-x-3 text-gray-400">
+              </div> */}
+              {/* <div className="flex items-center space-x-3 text-gray-400">
                 <MapPin size={20} />
                 <span>123 Innovation Drive, Tech City, TC 12345</span>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
