@@ -21,9 +21,9 @@ const Hero = () => {
                 Experience the future of digital innovation. Vecem provides cutting-edge solutions
                 that transform the way you interact with technology.
               </p>
-              <button className="mt-8 bg-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-indigo-500 transition-colors">
+              {/* <button className="mt-8 bg-indigo-600 text-white font-bold px-6 py-3 rounded-lg hover:bg-indigo-500 transition-colors">
                 Get Started
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

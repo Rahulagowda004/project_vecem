@@ -15,9 +15,9 @@ const LoginButton = () => {
   return (
     <button
       onClick={handleLogin}
-      className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+      className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition-colors"
     >
-      Log In
+      Log In / Sign Up
     </button>
   );
 };
@@ -40,9 +40,6 @@ const Navbar = ({ onLogin }: NavbarProps) => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
             <LoginButton />
-            <button className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition-colors">
-              Sign Up
-            </button>
           </div>
 
           {/* Mobile menu button */}
@@ -62,9 +59,6 @@ const Navbar = ({ onLogin }: NavbarProps) => {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <LoginButton />
-            <button className="block w-full text-left bg-indigo-600 text-white px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-500">
-              Sign Up
-            </button>
           </div>
         </div>
       )}
