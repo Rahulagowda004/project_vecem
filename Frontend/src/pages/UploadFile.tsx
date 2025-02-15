@@ -1,18 +1,41 @@
 import React, { useState, useRef } from "react";
-import { FileType, Image, Mic, Video } from "lucide-react";
+import {
+  FileType,
+  Image,
+  Mic,
+  Video,
+  Upload as UploadIcon,
+} from "lucide-react";
 
-type HTMLInputElementWithDirectory = HTMLInputElement & {
-  webkitdirectory: boolean;
-  directory: string;
-};
+// Add custom type definition for directory input
+interface DirectoryInputElement extends HTMLInputElement {
+  webkitdirectory?: boolean;
+  directory?: string;
+  mozdirectory?: string;
+}
 
-function UploadFile() {
-  const [datasetType, setDatasetType] = useState<"Raw" | "Vectorized">("Raw");
+interface UploadProgress {
+  fileName: string;
+  progress: number;
+  status: "uploading" | "completed" | "error";
+  type: "raw" | "vectorized";
+}
+
+const UploadFile = () => {
+  const [datasetType, setDatasetType] = useState<"Raw" | "Vectorized" | "Both">(
+    "Raw"
+  );
   const [fileType, setFileType] = useState<
     "Image" | "Audio" | "Text" | "Video"
   >("Text");
   const [error, setError] = useState<string>("");
-  const fileInputRef = useRef<HTMLInputElementWithDirectory>(null);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+  const fileInputRef = useRef<DirectoryInputElement>(null);
+  const [rawInputRef, setRawInputRef] = useState<DirectoryInputElement | null>(
+    null
+  );
+  const [vectorizedInputRef, setVectorizedInputRef] =
+    useState<DirectoryInputElement | null>(null);
 
   const domains = [
     "Health",
@@ -38,14 +61,18 @@ function UploadFile() {
     Text: ["text/plain", "text/csv", "application/json"],
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: "raw" | "vectorized"
+  ) => {
     setError("");
     const files = event.target.files;
 
     if (!files || files.length === 0) return;
 
     const allowedTypes = fileTypeMap[fileType];
-    const invalidFiles = Array.from(files).filter(
+    const filesArray = Array.from(files);
+    const invalidFiles = filesArray.filter(
       (file) => !allowedTypes.includes(file.type)
     );
 
@@ -59,10 +86,42 @@ function UploadFile() {
       return;
     }
 
-    // If we reach here, all files are valid
-    console.log(
-      `Selected ${files.length} valid ${fileType.toLowerCase()} files`
-    );
+    // Initialize progress tracking for each file
+    const newProgress = filesArray.map((file) => ({
+      fileName: file.name,
+      progress: 0,
+      status: "uploading" as const,
+      type,
+    }));
+    setUploadProgress((prev) => [...prev, ...newProgress]);
+
+    // Simulate upload progress for demo
+    filesArray.forEach((file, index) => {
+      simulateFileUpload(file.name, uploadProgress.length + index, type);
+    });
+  };
+
+  const simulateFileUpload = (
+    fileName: string,
+    index: number,
+    type: "raw" | "vectorized"
+  ) => {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      setUploadProgress((prev) =>
+        prev.map((item, i) =>
+          i === index
+            ? {
+                ...item,
+                progress: progress,
+                status: progress === 100 ? "completed" : "uploading",
+              }
+            : item
+        )
+      );
+      if (progress >= 100) clearInterval(interval);
+    }, 500);
   };
 
   return (
@@ -100,52 +159,49 @@ function UploadFile() {
                 Dataset Type
               </label>
               <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setDatasetType("Raw")}
-                  className={`flex-1 px-4 py-2 rounded-md border transition ${
-                    datasetType === "Raw"
-                      ? "bg-blue-600 border-blue-500"
-                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                  }`}
-                >
-                  Raw
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDatasetType("Vectorized")}
-                  className={`flex-1 px-4 py-2 rounded-md border transition ${
-                    datasetType === "Vectorized"
-                      ? "bg-blue-600 border-blue-500"
-                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                  }`}
-                >
-                  Vectorized
-                </button>
+                {["Raw", "Vectorized", "Both"].map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setDatasetType(type as typeof datasetType)}
+                    className={`flex-1 px-4 py-2 rounded-md border transition ${
+                      datasetType === type
+                        ? "bg-blue-600 border-blue-500"
+                        : "bg-gray-700 border-gray-600 hover:bg-gray-600"
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {datasetType === "Vectorized" && (
-              <div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">
-                    Dataset Dimensions
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
-                    placeholder="Enter dimensions"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Vector Database
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
-                    placeholder="Enter vector database name"
-                  />
+            {(datasetType === "Vectorized" || datasetType === "Both") && (
+              <div className="space-y-4 p-6 bg-gray-750 rounded-lg border border-gray-700">
+                <h3 className="text-lg font-medium text-gray-100 mb-4">
+                  Vectorized Settings
+                </h3>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-100">
+                      Dataset Dimensions
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                      placeholder="Enter dimensions"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-100">
+                      Vector Database
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                      placeholder="Enter vector database name"
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -222,15 +278,131 @@ function UploadFile() {
               <label className="block text-sm font-medium mb-2">
                 Upload Dataset
               </label>
-              <div className="relative">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileChange}
-                  className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                  accept={fileTypeMap[fileType].join(",")}
-                  multiple
-                />
+              <div className="space-y-4">
+                {datasetType === "Both" ? (
+                  <>
+                    {/* Raw Data Upload */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-100">
+                        Raw Data
+                      </label>
+                      <input
+                        ref={rawInputRef}
+                        type="file"
+                        onChange={(e) => handleFileChange(e, "raw")}
+                        className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                        accept={fileTypeMap[fileType].join(",")}
+                        multiple
+                        directory=""
+                        webkitdirectory=""
+                      />
+                    </div>
+
+                    {/* Vectorized Data Upload */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-100">
+                        Vectorized Data
+                      </label>
+                      <input
+                        ref={vectorizedInputRef}
+                        type="file"
+                        onChange={(e) => handleFileChange(e, "vectorized")}
+                        className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                        accept={fileTypeMap[fileType].join(",")}
+                        multiple
+                        directory=""
+                        webkitdirectory=""
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={(e) =>
+                      handleFileChange(
+                        e,
+                        datasetType.toLowerCase() as "raw" | "vectorized"
+                      )
+                    }
+                    className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                    accept={fileTypeMap[fileType].join(",")}
+                    multiple
+                    directory=""
+                    webkitdirectory=""
+                  />
+                )}
+
+                {/* Upload Progress Bars */}
+                {uploadProgress.length > 0 && (
+                  <div className="space-y-4">
+                    {/* Raw Data Progress */}
+                    {uploadProgress.some((p) => p.type === "raw") && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-gray-100">
+                          Raw Data Progress
+                        </h4>
+                        {uploadProgress
+                          .filter((item) => item.type === "raw")
+                          .map((item, index) => (
+                            <div key={index} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="truncate">
+                                  {item.fileName}
+                                </span>
+                                <span>{item.progress}%</span>
+                              </div>
+                              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full transition-all duration-300 ${
+                                    item.status === "completed"
+                                      ? "bg-green-500"
+                                      : item.status === "error"
+                                      ? "bg-red-500"
+                                      : "bg-blue-500"
+                                  }`}
+                                  style={{ width: `${item.progress}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+
+                    {/* Vectorized Data Progress */}
+                    {uploadProgress.some((p) => p.type === "vectorized") && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-gray-100">
+                          Vectorized Data Progress
+                        </h4>
+                        {uploadProgress
+                          .filter((item) => item.type === "vectorized")
+                          .map((item, index) => (
+                            <div key={index} className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="truncate">
+                                  {item.fileName}
+                                </span>
+                                <span>{item.progress}%</span>
+                              </div>
+                              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full transition-all duration-300 ${
+                                    item.status === "completed"
+                                      ? "bg-green-500"
+                                      : item.status === "error"
+                                      ? "bg-red-500"
+                                      : "bg-blue-500"
+                                  }`}
+                                  style={{ width: `${item.progress}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
               <p className="mt-2 text-sm text-gray-400">
@@ -249,6 +421,6 @@ function UploadFile() {
       </div>
     </div>
   );
-}
+};
 
 export default UploadFile;
