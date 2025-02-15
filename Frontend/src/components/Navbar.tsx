@@ -1,25 +1,67 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 
-const Navbar = () => {
+const LoginButton = () => {
+  const { loginWithRedirect } = useAuth0();
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    await loginWithRedirect();
+    navigate('/home');
+  };
+
   return (
-    <nav className="bg-gray-900 fixed w-full z-10 top-0 shadow-lg ">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center ">
-        <Link to="/" className="text-2xl font-bold text-white ">
-          Vecem
-        </Link>
-        <div className="flex space-x-4">
-          <Link to="/" className="text-gray-300 hover:text-white hover:text-indigo-500">
-            Home
-          </Link>
-          <Link to="/" className="text-gray-300 hover:text-white hover:text-indigo-500">
-            About
-          </Link>
-          <Link to="/" className="text-gray-300 hover:text-white hover:text-indigo-500">
-            Contact
-          </Link>
+    <button
+      onClick={handleLogin}
+      className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 transition-colors"
+    >
+      Log In / Sign Up
+    </button>
+  );
+};
+
+interface NavbarProps {
+  onLogin: () => void;
+}
+
+const Navbar = ({ onLogin }: NavbarProps) => {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+  return (
+    <nav className="bg-gray-800 fixed w-full z-50 top-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex-shrink-0">
+            <span className="text-2xl font-bold text-indigo-500">Vecem</span>
+          </div>
+          
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center space-x-4">
+            <LoginButton />
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-400 hover:text-white"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <LoginButton />
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
