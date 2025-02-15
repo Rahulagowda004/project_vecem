@@ -25,7 +25,7 @@ const LogoutButton = () => {
       onClick={() =>
         logout({ logoutParams: { returnTo: window.location.origin } })
       }
-      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-red-500"
     >
       <LogOut className="h-4 w-4 mr-3" />
       Logout
@@ -116,14 +116,14 @@ const DashboardLayout = () => {
                     <div className="py-1">
                       <Link
                         to="/profile"
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-indigo-600"
                       >
                         <User className="h-4 w-4 mr-3" />
                         My Profile
                       </Link>
                       <Link
                         to="/settings"
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-700"
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-indigo-600"
                       >
                         <Settings className="h-4 w-4 mr-3" />
                         Settings

@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useAuth0 } from "@auth0/auth0-react";
 import AvatarSelector from "../components/AvatarSelector";
-import CommunityLayout from "../components/CommunityLayout";
 
 interface ProfileStats {
   projects: number;
@@ -118,7 +117,7 @@ const Profile = () => {
   };
 
   return (
-    <CommunityLayout>
+    <>
       <div className="min-h-screen bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Simplified Header */}
@@ -263,9 +262,7 @@ const Profile = () => {
                             <span>{folder.files} files</span>
                             <span>{folder.size}</span>
                             <span>
-                              {new Date(
-                                folder.lastModified
-                              ).toLocaleDateString()}
+                              {new Date(folder.lastModified).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -286,7 +283,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
-    </CommunityLayout>
+    </>
   );
 };
 
