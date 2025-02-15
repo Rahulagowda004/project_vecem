@@ -17,7 +17,11 @@ interface AvatarSelectorProps {
   setSelectedAvatar: (avatar: string) => void;
 }
 
-const AvatarSelector: React.FC<AvatarSelectorProps> = ({ user, selectedAvatar, setSelectedAvatar }) => {
+const AvatarSelector: React.FC<AvatarSelectorProps> = ({
+  user,
+  selectedAvatar,
+  setSelectedAvatar,
+}) => {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
   const handleAvatarClick = () => {
@@ -49,7 +53,9 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({ user, selectedAvatar, s
       {isAvatarModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-gray-800 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-100 mb-4">Choose an Avatar</h3>
+            <h3 className="text-lg font-semibold text-gray-100 mb-4">
+              Choose an Avatar
+            </h3>
             <div className="grid grid-cols-3 gap-4">
               {avatars.map((avatar) => (
                 <img
