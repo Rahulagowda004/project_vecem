@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Folder,
   Mail,
@@ -226,10 +227,12 @@ const Profile = () => {
                       className="pl-10 pr-4 py-2 bg-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
-                  <button className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-white flex items-center space-x-2">
-                    <Upload size={18} />
-                    <span>Upload</span>
-                  </button>
+                  <Link to="/upload">
+                    <button className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-white flex items-center space-x-2">
+                      <Upload size={18} />
+                      <span>Upload</span>
+                    </button>
+                  </Link>
                 </div>
               </div>
             </div>

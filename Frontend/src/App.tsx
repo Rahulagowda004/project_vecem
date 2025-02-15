@@ -4,8 +4,8 @@ import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/HomePage";
 import Profile from "./pages/Profile";
 import UploadFile from "./pages/UploadFile";
-import Community from "./pages/Community"; // Import the Community component
-import UserProfile from "./pages/UserProfile"; // Import the UserProfile component
+import Community from "./pages/Community";
+import UserProfile from "./pages/UserProfile";
 
 function App() {
   return (
@@ -15,10 +15,8 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/upload" element={<UploadFile />} />
-        <Route path="/community" element={<Community />} />{" "}
-        {/* Add the route for Community */}
-        <Route path="/profile/:userId" element={<UserProfile />} />{" "}
-        {/* Add the route for UserProfile */}
+        <Route path="/community" element={<Community />} />
+        <Route path="/profile/:userId" element={<UserProfile />} />
       </Routes>
     </Router>
   );
