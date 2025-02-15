@@ -1,9 +1,9 @@
 import React from 'react';
-import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from 'lucide-react';
+import { Mail } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 pt-12 pb-8">
+    <footer id="footer" className="bg-gray-900 pt-12 pb-8">
       <div className="container mx-auto px-4">
         <div className="flex flex-wrap text-left lg:text-left">
           <div className="w-full lg:w-4/12 px-4">
@@ -19,15 +19,6 @@ const Footer = () => {
               <li>
                 <a href="#" className="text-gray-400 hover:text-white">About Us</a>
               </li>
-              {/* <li>
-                <a href="#" className="text-gray-400 hover:text-white">Services</a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-400 hover:text-white">Blog</a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a>
-              </li> */}
             </ul>
           </div>
           
@@ -38,14 +29,6 @@ const Footer = () => {
                 <Mail size={20} />
                 <span>vectorembeddings@gmail.com</span>
               </div>
-              {/* <div className="flex items-center space-x-3 text-gray-400">
-                <Phone size={20} />
-                <span>+1 (555) 123-4567</span>
-              </div> */}
-              {/* <div className="flex items-center space-x-3 text-gray-400">
-                <MapPin size={20} />
-                <span>123 Innovation Drive, Tech City, TC 12345</span>
-              </div> */}
             </div>
           </div>
         </div>

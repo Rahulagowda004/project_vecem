@@ -1,5 +1,5 @@
 import React from 'react';
-import {  Database, Users,PersonStanding} from 'lucide-react';
+import { Database, Users, PersonStanding } from 'lucide-react';
 
 const Features = () => {
   const features = [
@@ -7,8 +7,6 @@ const Features = () => {
       icon: <Database className="w-12 h-12 text-indigo-500" />,
       title: "Hassle-Free Vector Data",
       description: "Easily access and utilize vectorized datasets without the need for high computational power."
-
-
     },
     {
       icon: <Users className="w-12 h-12 text-indigo-500" />,
