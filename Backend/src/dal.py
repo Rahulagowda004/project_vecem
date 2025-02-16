@@ -20,3 +20,4 @@ class Database:
     def push_dataset(self,user_id,name, email, data_id, ):
         self.collection.insert()
     
+    logging.info("server started successfully")
