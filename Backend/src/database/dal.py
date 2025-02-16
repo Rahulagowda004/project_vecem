@@ -17,7 +17,4 @@ class Database:
         except Exception as e:
             raise CustomException(e,sys)
     
-    def push_dataset(self,user_id,name, email, data_id, ):
-        self.collection.insert()
-    
     logging.info("server started successfully")
