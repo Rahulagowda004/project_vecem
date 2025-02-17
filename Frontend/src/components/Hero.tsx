@@ -1,31 +1,43 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import FloatingParticlesBackground from './FloatingParticlesBackground';
 
 const Hero = () => {
   return (
-    <div className="relative pt-16 pb-32 flex content-center items-center justify-center min-h-screen h-screen">
-      <div className="absolute top-0 w-full h-full bg-center bg-cover"
-           style={{
-             backgroundImage: "url('https://images.pexels.com/photos/1210276/pexels-photo-1210276.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1')"
-           }}>
-        <span className="w-full h-full absolute opacity-50 bg-black"></span>
-      </div>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+      className="relative min-h-screen bg-slate-900 overflow-hidden"
+    >
+      <FloatingParticlesBackground />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 opacity-70"></div>
       
-      <div className="container relative mx-auto h-full flex justify-center items-center">
-        <div className="w-full lg:w-8/12 px-4 text-center absolute"
-             style={{
-               top: "50%",  // Adjust this to move text down/up
-               left: "50%", // Adjust this to move text left/right
-               transform: "translate(-50%, -50%)" // Center the text
-             }}>
-          <h1 className="text-6xl font-bold text-white mb-10">
-            Your Journey Begins with Vecem
-          </h1>
-          <p className="text-xl text-gray-300 w-2/3 mx-auto items-center justify-normal">
-          Vecem enables effortless sharing and access to vectorized and raw datasets across diverse domains. Connect globally, collaborate, contribute, and exchange insights in an open community, making data more accessible, innovative, and impactful.
-          </p>
-        </div>
+      <div className="container relative mx-auto min-h-screen flex items-center z-10 px-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full lg:w-8/12 mx-auto text-center"
+        >
+          <motion.h1 
+            className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500 mb-6"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            Transform Your Data Journey with Vecem
+          </motion.h1>
+          <motion.p 
+            className="text-xl text-gray-300 md:w-3/4 mx-auto leading-relaxed font-light"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+          >
+            Discover the power of vectorized datasets. <span className="text-cyan-500">Connect</span> globally, <span className="text-cyan-500">collaborate</span> with a community, and <span className="text-cyan-500">innovate</span> for the future of AI.
+          </motion.p>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
