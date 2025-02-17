@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.3.0",
+    "axios": "^1.7.9",
     "css-houdini-connections": "^1.0.5",
     "css-paint-polyfill": "^3.4.0",
     "framer-motion": "^12.4.3",
