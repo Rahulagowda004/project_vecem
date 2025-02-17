@@ -174,3 +174,4 @@ cython_debug/
 Backend/src/logs/*
 
 logs/*
+Frontend/package-lock.json
