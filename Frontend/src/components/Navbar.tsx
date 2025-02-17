@@ -3,7 +3,7 @@ import { Menu, X } from 'lucide-react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import FloatingParticlesBackground from './FloatingParticlesBackground';
+import PulsatingGridBackground from './NeuralNetwork';
 
 const LoginButton = () => {
   const { loginWithRedirect } = useAuth0();
@@ -33,7 +33,7 @@ const Navbar = ({ onLogin }: NavbarProps) => {
 
   return (
     <nav className="fixed w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-cyan-500/10 overflow-hidden">
-      <FloatingParticlesBackground />
+      <PulsatingGridBackground />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
