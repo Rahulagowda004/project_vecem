@@ -21,7 +21,7 @@ const Footer = () => {
           </div>
         </div>
         
-        <hr className="my-6 border-gray-700" />
+        {/* <hr className="my-6 border-gray-700" /> */}
         
         <div className="flex flex-wrap items-center md:justify-between justify-center">
           <motion.div 
