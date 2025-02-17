@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, FormEvent } from "react";
 import {
   FileType,
   Image,
@@ -21,6 +21,14 @@ interface UploadProgress {
   type: "raw" | "vectorized";
 }
 
+interface DatasetForm {
+  name: string;
+  description: string;
+  domain: string;
+  dimensions?: number;
+  vectorDatabase?: string;
+}
+
 const UploadFile = () => {
   const [datasetType, setDatasetType] = useState<"Raw" | "Vectorized" | "Both">(
     "Raw"
@@ -36,6 +44,11 @@ const UploadFile = () => {
   );
   const [vectorizedInputRef, setVectorizedInputRef] =
     useState<DirectoryInputElement | null>(null);
+  const [formData, setFormData] = useState<DatasetForm>({
+    name: "",
+    description: "",
+    domain: "",
+  });
 
   const domains = [
     "Health",
@@ -124,6 +137,70 @@ const UploadFile = () => {
     }, 500);
   };
 
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const uploadFiles = async (files: FileList, type: "raw" | "vectorized") => {
+    const formDataToSend = new FormData();
+    Array.from(files).forEach((file) => {
+      formDataToSend.append("files", file);
+    });
+    formDataToSend.append("type", type);
+    formDataToSend.append("datasetInfo", JSON.stringify(formData));
+
+    try {
+      const response = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("Upload error:", error);
+      setError("Failed to upload files");
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      if (datasetType === "Both") {
+        if (rawInputRef?.files) {
+          await uploadFiles(rawInputRef.files, "raw");
+        }
+        if (vectorizedInputRef?.files) {
+          await uploadFiles(vectorizedInputRef.files, "vectorized");
+        }
+      } else {
+        const inputRef = fileInputRef.current;
+        if (inputRef?.files) {
+          await uploadFiles(
+            inputRef.files,
+            datasetType.toLowerCase() as "raw" | "vectorized"
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      setError("Failed to upload dataset");
+    }
+  };
+
   return (
     <div className="min-h-screen h-full bg-gray-900 text-gray-100">
       <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
@@ -132,13 +209,16 @@ const UploadFile = () => {
             Dataset Information
           </h1>
 
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
                 Dataset Name
               </label>
               <input
                 type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
                 className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                 placeholder="Enter dataset name"
               />
@@ -149,6 +229,9 @@ const UploadFile = () => {
                 Dataset Description
               </label>
               <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
                 className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition h-32"
                 placeholder="Enter dataset description"
               />
@@ -188,6 +271,9 @@ const UploadFile = () => {
                     </label>
                     <input
                       type="number"
+                      name="dimensions"
+                      value={formData.dimensions || ""}
+                      onChange={handleInputChange}
                       className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                       placeholder="Enter dimensions"
                     />
@@ -198,6 +284,9 @@ const UploadFile = () => {
                     </label>
                     <input
                       type="text"
+                      name="vectorDatabase"
+                      value={formData.vectorDatabase || ""}
+                      onChange={handleInputChange}
                       className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
                       placeholder="Enter vector database name"
                     />
@@ -208,7 +297,12 @@ const UploadFile = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">Domain</label>
-              <select className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition">
+              <select
+                name="domain"
+                value={formData.domain}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+              >
                 <option value="">Select a domain</option>
                 {domains.map((domain) => (
                   <option key={domain} value={domain.toLowerCase()}>
