@@ -39,11 +39,8 @@ const UploadFile = () => {
   const [error, setError] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
   const fileInputRef = useRef<DirectoryInputElement>(null);
-  const [rawInputRef, setRawInputRef] = useState<DirectoryInputElement | null>(
-    null
-  );
-  const [vectorizedInputRef, setVectorizedInputRef] =
-    useState<DirectoryInputElement | null>(null);
+  const rawInputRef = useRef<DirectoryInputElement>(null);
+  const vectorizedInputRef = useRef<DirectoryInputElement>(null);
   const [formData, setFormData] = useState<DatasetForm>({
     name: "",
     description: "",
@@ -148,13 +145,24 @@ const UploadFile = () => {
     });
   };
 
-  const uploadFiles = async (files: FileList, type: "raw" | "vectorized") => {
+  const uploadFiles = async (
+    files: FileList,
+    type: "raw" | "vectorized",
+    datasetId?: string
+  ) => {
     const formDataToSend = new FormData();
+
     Array.from(files).forEach((file) => {
       formDataToSend.append("files", file);
     });
+
+    const datasetInfo = {
+      ...formData,
+      datasetId, // Include datasetId for combined datasets
+    };
+
     formDataToSend.append("type", type);
-    formDataToSend.append("datasetInfo", JSON.stringify(formData));
+    formDataToSend.append("datasetInfo", JSON.stringify(datasetInfo));
 
     try {
       const response = await fetch("http://localhost:5000/upload", {
@@ -163,14 +171,17 @@ const UploadFile = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Upload failed");
       }
 
       const result = await response.json();
+      console.log(`Upload result for ${type}:`, result);
       return result;
     } catch (error) {
-      console.error("Upload error:", error);
-      setError("Failed to upload files");
+      console.error(`Upload error for ${type}:`, error);
+      setError(`Failed to upload ${type} files: ${error.message}`);
+      return null;
     }
   };
 
@@ -178,22 +189,50 @@ const UploadFile = () => {
     e.preventDefault();
     setError("");
 
+    if (!formData.name.trim()) {
+      setError("Please provide a dataset name");
+      return;
+    }
+
     try {
       if (datasetType === "Both") {
-        if (rawInputRef?.files) {
-          await uploadFiles(rawInputRef.files, "raw");
+        const rawFiles = rawInputRef.current?.files;
+        const vectorizedFiles = vectorizedInputRef.current?.files;
+
+        if (!rawFiles?.length && !vectorizedFiles?.length) {
+          setError(`Please select ${fileType.toLowerCase()} files to upload`);
+          return;
         }
-        if (vectorizedInputRef?.files) {
-          await uploadFiles(vectorizedInputRef.files, "vectorized");
+
+        // Generate a unique ID for the combined dataset
+        const datasetId = `${formData.name}_${Date.now()}`;
+
+        const uploads = [];
+        if (rawFiles?.length) {
+          uploads.push(uploadFiles(rawFiles, "raw", datasetId));
+        }
+        if (vectorizedFiles?.length) {
+          uploads.push(uploadFiles(vectorizedFiles, "vectorized", datasetId));
+        }
+
+        const results = await Promise.all(uploads);
+        const failedUploads = results.filter((result) => !result?.success);
+        if (failedUploads.length > 0) {
+          setError(
+            "Some uploads failed. Please check the console for details."
+          );
+          console.error("Failed uploads:", failedUploads);
         }
       } else {
         const inputRef = fileInputRef.current;
-        if (inputRef?.files) {
-          await uploadFiles(
-            inputRef.files,
-            datasetType.toLowerCase() as "raw" | "vectorized"
-          );
+        if (!inputRef?.files?.length) {
+          setError(`Please select ${fileType.toLowerCase()} files to upload`);
+          return;
         }
+        await uploadFiles(
+          inputRef.files,
+          datasetType.toLowerCase() as "raw" | "vectorized"
+        );
       }
     } catch (error) {
       console.error("Submission error:", error);
