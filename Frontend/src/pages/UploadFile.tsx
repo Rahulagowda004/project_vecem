@@ -146,19 +146,40 @@ const UploadFile = () => {
   };
 
   const uploadFiles = async (
-    files: FileList,
-    type: "raw" | "vectorized",
+    rawFiles: FileList | null,
+    vectorizedFiles: FileList | null,
+    type: "raw" | "vectorized" | "both",
     datasetId?: string
   ) => {
     const formDataToSend = new FormData();
 
-    Array.from(files).forEach((file) => {
-      formDataToSend.append("files", file);
-    });
+    if (type === "both") {
+      // Add raw files
+      if (rawFiles) {
+        Array.from(rawFiles).forEach((file) => {
+          formDataToSend.append("raw_files", file);
+        });
+      }
+
+      // Add vectorized files
+      if (vectorizedFiles) {
+        Array.from(vectorizedFiles).forEach((file) => {
+          formDataToSend.append("vectorized_files", file);
+        });
+      }
+    } else {
+      // Handle single type uploads
+      const files = type === "raw" ? rawFiles : vectorizedFiles;
+      if (files) {
+        Array.from(files).forEach((file) => {
+          formDataToSend.append("files", file);
+        });
+      }
+    }
 
     const datasetInfo = {
       ...formData,
-      datasetId, // Include datasetId for combined datasets
+      datasetId,
     };
 
     formDataToSend.append("type", type);
@@ -207,21 +228,16 @@ const UploadFile = () => {
         // Generate a unique ID for the combined dataset
         const datasetId = `${formData.name}_${Date.now()}`;
 
-        const uploads = [];
-        if (rawFiles?.length) {
-          uploads.push(uploadFiles(rawFiles, "raw", datasetId));
-        }
-        if (vectorizedFiles?.length) {
-          uploads.push(uploadFiles(vectorizedFiles, "vectorized", datasetId));
-        }
+        // Send both types of files in a single request
+        const result = await uploadFiles(
+          rawFiles,
+          vectorizedFiles,
+          "both",
+          datasetId
+        );
 
-        const results = await Promise.all(uploads);
-        const failedUploads = results.filter((result) => !result?.success);
-        if (failedUploads.length > 0) {
-          setError(
-            "Some uploads failed. Please check the console for details."
-          );
-          console.error("Failed uploads:", failedUploads);
+        if (!result?.success) {
+          setError(result?.message || "Upload failed");
         }
       } else {
         const inputRef = fileInputRef.current;
@@ -231,6 +247,7 @@ const UploadFile = () => {
         }
         await uploadFiles(
           inputRef.files,
+          null,
           datasetType.toLowerCase() as "raw" | "vectorized"
         );
       }
