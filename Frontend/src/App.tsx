@@ -7,6 +7,7 @@ import UploadFile from "./pages/UploadFile";
 import Community from "./pages/Community";
 import UserProfile from "./pages/UserProfile";
 import DatasetDetail from "./pages/DatasetDetail";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/community" element={<Community />} />
         <Route path="/profile/:userId" element={<UserProfile />} />
         <Route path="/datasets/:id" element={<DatasetDetail />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </Router>
   );

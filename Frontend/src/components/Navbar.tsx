@@ -30,7 +30,7 @@ const Navbar = ({ onLogin }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   return (
-    <nav className="bg-gray-800 fixed w-full z-50 top-0">
+    <nav className="bg-gray-900 fixed w-full z-50 top-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
@@ -38,7 +38,7 @@ const Navbar = ({ onLogin }: NavbarProps) => {
           </div>
           
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-centre space-x-4">
             <LoginButton />
           </div>
 

@@ -1,285 +1,153 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  Folder,
-  Mail,
-  Github,
-  Search,
-  Upload,
-  Edit2,
-  Grid,
-  List,
-  Download,
-  Share2,
-} from "lucide-react";
+import { Mail, Github, Edit2, Trash2 } from "lucide-react";
 import { useAuth0 } from "@auth0/auth0-react";
 import AvatarSelector from "../components/AvatarSelector";
 
-interface ProfileStats {
-  projects: number;
-  followers: number;
-  following: number;
-  contributions: number;
-}
-
-const initialStats: ProfileStats = {
-  projects: 24,
-  followers: 1234,
-  following: 567,
-  contributions: 892,
-};
-
-interface FolderItem {
-  id: number;
-  name: string;
-  files: number;
-  lastModified: string;
-  size: string;
-  type: "folder" | "file";
-}
-
-const Profile = () => {
-  const { user, isAuthenticated } = useAuth0();
-  const [searchTerm, setSearchTerm] = useState("");
+const Settings = () => {
+  const { user, isAuthenticated, logout } = useAuth0();
   const [isEditing, setIsEditing] = useState(false);
-  const [isEditingAbout, setIsEditingAbout] = useState(false);
-  const [aboutText, setAboutText] = useState(
-    "Creative professional with over 8 years of experience in digital design and art direction. Passionate about creating beautiful, functional designs that enhance user experience. Specialized in UI/UX design and brand identity."
+  const [name, setName] = useState(localStorage.getItem("userName") || user?.name || "Guest");
+  const [about, setAbout] = useState(
+    localStorage.getItem("userAbout") || 
+    "Creative professional with over 8 years of experience in digital design and art direction."
   );
   const [selectedAvatar, setSelectedAvatar] = useState(
     localStorage.getItem("userAvatar") ||
-      user?.picture ||
-      "/avatars/avatar1.png"
+    user?.picture ||
+    "/avatars/avatar1.png"
   );
-  const [userName, setUserName] = useState(
-    localStorage.getItem("userName") || user?.name || "Guest"
-  );
-  const [stats, setStats] = useState<ProfileStats>(initialStats);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
-  const [sortBy, setSortBy] = useState<"name" | "date" | "size">("date");
-
-  const folders: FolderItem[] = [
-    {
-      id: 1,
-      name: "Project Documentation",
-      files: 23,
-      lastModified: "2024-01-15",
-      size: "156 MB",
-      type: "folder",
-    },
-    {
-      id: 2,
-      name: "Design Assets",
-      files: 145,
-      lastModified: "2024-01-20",
-      size: "2.1 GB",
-      type: "folder",
-    },
-    {
-      id: 3,
-      name: "Client Presentations",
-      files: 12,
-      lastModified: "2024-01-18",
-      size: "45 MB",
-      type: "folder",
-    },
-  ];
-
-  const sortedFolders = [...folders].sort((a, b) => {
-    switch (sortBy) {
-      case "date":
-        return (
-          new Date(b.lastModified).getTime() -
-          new Date(a.lastModified).getTime()
-        );
-      case "name":
-        return a.name.localeCompare(b.name);
-      case "size":
-        return parseFloat(b.size) - parseFloat(a.size);
-      default:
-        return 0;
-    }
-  });
-
-  const filteredFolders = sortedFolders.filter((folder) =>
-    folder.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const [githubUrl, setGithubUrl] = useState(
+    localStorage.getItem("githubUrl") || 
+    `https://github.com/${user?.nickname || 'username'}`
   );
 
-  const handleAboutSave = () => {
-    setIsEditingAbout(false);
+  const displayUsername = user?.nickname || 'username';
+
+  const handleSave = () => {
+    setIsEditing(false);
+    localStorage.setItem("userName", name);
+    localStorage.setItem("userAbout", about);
+    localStorage.setItem("githubUrl", githubUrl);
   };
 
-  const handleSaveChanges = () => {
-    setIsEditing(false);
-    // Save changes to localStorage or a global state
-    localStorage.setItem("userAvatar", selectedAvatar);
-    localStorage.setItem("userName", userName);
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      try {
+        // Add API call to delete account here
+        await logout({ 
+          logoutParams: {
+            returnTo: window.location.origin
+          }
+        });
+      } catch (error) {
+        console.error('Error deleting account:', error);
+      }
+    }
   };
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Simplified Header */}
-          <div className="bg-gray-800 rounded-lg p-6 mb-8">
-            <div className="flex items-start space-x-8">
-              <AvatarSelector
-                user={user}
-                selectedAvatar={selectedAvatar}
-                setSelectedAvatar={setSelectedAvatar}
-              />
-              <div className="flex-1">
-                <div className="flex items-center space-x-4">
-                  <h1 className="text-3xl font-bold text-gray-100">
-                    {isAuthenticated && user ? userName : "Guest"}
-                  </h1>
-                  
+    <div className="min-h-screen bg-gray-900">
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="bg-gray-800 rounded-lg p-6">
+          <div className="flex items-start space-x-8">
+            <AvatarSelector
+              user={user}
+              selectedAvatar={selectedAvatar}
+              setSelectedAvatar={setSelectedAvatar}
+            />
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col flex-1">
+                  {isEditing ? (
+                    <>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="text-2xl bg-gray-700 text-gray-100 rounded px-2 py-1 mb-1"
+                      />
+                      <span className="text-gray-400 text-sm ml-2">@{displayUsername}</span>
+                    </>
+                  ) : (
+                    <>
+                      <h1 className="text-3xl font-bold text-gray-100">{name}</h1>
+                      <span className="text-gray-400 text-sm mt-1">@{displayUsername}</span>
+                    </>
+                  )}
                 </div>
-                <p className="text-gray-400 mt-2">{aboutText}</p>
-                <div className="flex items-center space-x-6 mt-4">
-                  <div className="flex items-center space-x-2 text-gray-400">
-                    <Mail size={16} />
-                    <span>
-                      {isAuthenticated && user
-                        ? user.email
-                        : "guest@example.com"}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-400">
-                    <Github size={16} />
-                    <a
-                      href="https://github.com/yourusername"
-                      className="hover:text-blue-400"
+                <div className="flex space-x-2">
+                  {isEditing ? (
+                    <button
+                      onClick={handleSave}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                     >
-                      @yourusername
-                    </a>
-                  </div>
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+                    >
+                      <Edit2 size={16} className="text-gray-400" />
+                    </button>
+                  )}
                 </div>
               </div>
-            </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-4 gap-4 mt-8">
-              {Object.entries(stats).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="bg-gray-700 rounded-lg p-4 text-center"
-                >
-                  <h3 className="text-2xl font-bold text-gray-100">{value}</h3>
-                  <p className="text-gray-400 capitalize">{key}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+              {isEditing ? (
+                <textarea
+                  value={about}
+                  onChange={(e) => setAbout(e.target.value)}
+                  className="w-full mt-4 bg-gray-700 text-gray-100 rounded p-2"
+                  rows={3}
+                />
+              ) : (
+                <p className="text-gray-400 mt-4">{about}</p>
+              )}
 
-          {/* Files Section */}
-          <div className="bg-gray-800 rounded-lg">
-            <div className="p-4 border-b border-gray-700">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <h2 className="text-xl font-semibold text-gray-100">Files</h2>
-                  <div className="flex items-center bg-gray-700 rounded-lg p-1">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2 rounded ${
-                        viewMode === "grid" ? "bg-gray-600" : ""
-                      }`}
-                    >
-                      <Grid size={18} className="text-gray-400" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2 rounded ${
-                        viewMode === "list" ? "bg-gray-600" : ""
-                      }`}
-                    >
-                      <List size={18} className="text-gray-400" />
-                    </button>
-                  </div>
-                  <select
-                    onChange={(e) =>
-                      setSortBy(e.target.value as "name" | "date" | "size")
-                    }
-                    className="bg-gray-700 text-gray-200 rounded-lg px-3 py-2 text-sm"
-                  >
-                    <option value="date">Sort by Date</option>
-                    <option value="name">Sort by Name</option>
-                    <option value="size">Sort by Size</option>
-                  </select>
+              <div className="flex items-center space-x-6 mt-4">
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <Mail size={16} />
+                  <span>{isAuthenticated ? user?.email : "guest@example.com"}</span>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    <Search
-                      className="absolute left-3 top-2.5 text-gray-400"
-                      size={18}
-                    />
+                <div className="flex items-center space-x-2 text-gray-400">
+                  <Github size={16} />
+                  {isEditing ? (
                     <input
                       type="text"
-                      placeholder="Search files..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 bg-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      placeholder="Enter GitHub URL"
+                      className="bg-gray-700 text-gray-100 rounded px-2 py-1 text-sm w-64"
                     />
-                  </div>
-                  <Link to="/upload">
-                    <button className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-white flex items-center space-x-2">
-                      <Upload size={18} />
-                      <span>Upload</span>
-                    </button>
-                  </Link>
+                  ) : (
+                    <a 
+                      href={githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-blue-400"
+                    >
+                      @{user?.nickname || 'username'}
+                    </a>
+                  )}
                 </div>
               </div>
-            </div>
 
-            <div className="p-6">
-              <div
-                className={`grid gap-4 ${
-                  viewMode === "grid" ? "grid-cols-3" : "grid-cols-1"
-                }`}
-              >
-                {filteredFolders.map((folder) => (
-                  <div
-                    key={folder.id}
-                    className="bg-gray-750 rounded-lg p-4 hover:bg-gray-700 transition-all cursor-pointer group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="p-2 bg-gray-600 rounded-lg group-hover:bg-gray-650">
-                          <Folder className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h3 className="font-medium text-gray-100">
-                              {folder.name}
-                            </h3>
-                          </div>
-                          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-400">
-                            <span>{folder.files} files</span>
-                            <span>{folder.size}</span>
-                            <span>
-                              {new Date(folder.lastModified).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button className="p-2 hover:bg-gray-600 rounded-full">
-                          <Share2 className="w-4 h-4 text-gray-400" />
-                        </button>
-                        <button className="p-2 hover:bg-gray-600 rounded-full">
-                          <Download className="w-4 h-4 text-gray-400" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="mt-8 pt-6 border-t border-gray-700">
+                <button
+                  onClick={handleDeleteAccount}
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  <Trash2 size={16} />
+                  <span>Delete Account</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export default Profile;
+export default Settings;
