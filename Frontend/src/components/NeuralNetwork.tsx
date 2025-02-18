@@ -24,7 +24,7 @@ const NeuralNetwork = () => {
           <motion.div
             key={i}
             className="absolute w-2 h-2 bg-cyan-500 rounded-full"
-            initial={{ x: point.x, y: point.y, z:point.z }}
+            initial={{ x: point.x, y: point.y }}
             animate={{
               x: [
                 point.x,
@@ -36,7 +36,6 @@ const NeuralNetwork = () => {
                 point.y + Math.random() * 40 - 20,
                 point.y + Math.random() * 40 - 20,
               ],
-             
             }}
             transition={{
               duration: 2+ Math.random() * 2,
