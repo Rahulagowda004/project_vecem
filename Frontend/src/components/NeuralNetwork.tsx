@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 
 const NeuralNetwork = () => {
   const numPoints = 15;
-  const [points, setPoints] = useState<{ x: number; y: number }[]>([]);
+  const [points, setPoints] = useState<{ x: number; y: number}[]>([]);
 
   useEffect(() => {
     const generatePoints = () =>
       Array.from({ length: numPoints }).map(() => ({
         x: Math.random() * window.innerWidth,
         y: Math.random() * window.innerHeight,
+        
       }));
 
     setPoints(generatePoints());
@@ -17,18 +18,13 @@ const NeuralNetwork = () => {
 
   return (
     <div className="relative">
-      {/* Content of your webpage */}
-      <div className="content">
-        {/* Your content here */}
-      </div>
-
       {/* Background animation */}
       <div className="absolute inset-0 pointer-events-none">
         {points.map((point, i) => (
           <motion.div
             key={i}
             className="absolute w-2 h-2 bg-cyan-500 rounded-full"
-            initial={{ x: point.x, y: point.y }}
+            initial={{ x: point.x, y: point.y, z:point.z }}
             animate={{
               x: [
                 point.x,
@@ -40,9 +36,10 @@ const NeuralNetwork = () => {
                 point.y + Math.random() * 40 - 20,
                 point.y + Math.random() * 40 - 20,
               ],
+             
             }}
             transition={{
-              duration: 4,
+              duration: 2+ Math.random() * 2,
               repeat: Infinity,
               repeatType: "loop",
               ease: "easeInOut",
