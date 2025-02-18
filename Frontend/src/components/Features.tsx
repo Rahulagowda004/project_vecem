@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Database, Users, PersonStanding } from 'lucide-react';
-import FloatingParticlesBackground from './FloatingParticlesBackground';
+import PulsatingGridBackground from './NeuralNetwork';
 
 const Features = () => {
   const features = [
@@ -30,14 +30,14 @@ const Features = () => {
       transition={{ staggerChildren: 0.2, delayChildren: 0.1 }}
       className="relative py-20 bg-slate-900 overflow-hidden"
     >
-      <FloatingParticlesBackground />
+      <PulsatingGridBackground />
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 opacity-70"></div>
       
       <div className="container relative mx-auto px-4">
         <div className="flex flex-wrap">
           <div className="w-full mb-16 text-center">
             <motion.h2 
-              className="text-6xl font-semibold text-white"
+              className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500 mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}

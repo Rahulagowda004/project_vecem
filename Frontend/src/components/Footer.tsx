@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
-import FloatingParticlesBackground from './FloatingParticlesBackground';
+import PulsatingGridBackground from './NeuralNetwork';
 
 const Footer = () => {
   return (
@@ -12,7 +12,7 @@ const Footer = () => {
       transition={{ duration: 0.8 }}
       className="relative bg-slate-900 pt-12 pb-8 border-t border-cyan-500/10 overflow-hidden"
     >
-      <FloatingParticlesBackground />
+      <PulsatingGridBackground />
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 opacity-70"></div>
       
       <div className="container mx-auto px-4 relative z-10">
@@ -21,7 +21,7 @@ const Footer = () => {
           </div>
         </div>
         
-        {/* <hr className="my-6 border-gray-700" /> */}
+        <hr className="my-4 border-cyan-500" />
         
         <div className="flex flex-wrap items-center md:justify-between justify-center">
           <motion.div 
@@ -31,10 +31,10 @@ const Footer = () => {
             whileHover={{ scale: 1.02 }}
             className="w-full lg:w-4/12 px-4"
           >
-            <h4 className="text-3xl font-semibold text-white">Quick Links</h4>
+            <h4 className="text-3xl font-semibold text-cyan-500">Quick Links</h4>
             <ul className="mt-4 space-y-2">
               <li>
-                <a href="#" className="text-gray-400 hover:text-white">About Us</a>
+                <a href="#" className="text-white hover:text-cyan-500">About Us</a>
               </li>
             </ul>
           </motion.div>
@@ -46,11 +46,11 @@ const Footer = () => {
             whileHover={{ scale: 1.02 }}
             className="w-full lg:w-4/12 px-4"
           >
-            <h4 className="text-3xl font-semibold text-white">Contact Us</h4>
+            <h4 className="text-3xl font-semibold text-cyan-500">Contact Us</h4>
             <div className="mt-4 space-y-4">
               <div className="flex items-center space-x-3 text-gray-400">
-                <Mail size={20} />
-                <span>vectorembeddings@gmail.com</span>
+                <Mail size={20} className="text-cyan-500" />
+                <span className="text-white hover:text-cyan-500">vectorembeddings@gmail.com</span>
               </div>
             </div>
           </motion.div>
@@ -58,7 +58,7 @@ const Footer = () => {
 
         <div className="flex flex-wrap items-center md:justify-between justify-center mt-6">
           <div className="w-full md:w-4/12 px-4 mx-auto text-center">
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-white hover:text-cyan-500 justify-left text-centre">
               © {new Date().getFullYear()} Vecem. All rights reserved.
             </div>
           </div>

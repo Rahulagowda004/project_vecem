@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import FloatingParticlesBackground from './FloatingParticlesBackground';
+
+import PulsatingGridBackground from './NeuralNetwork';
 
 const Hero = () => {
   return (
@@ -10,7 +11,8 @@ const Hero = () => {
       transition={{ duration: 1 }}
       className="relative min-h-screen bg-slate-900 overflow-hidden"
     >
-      <FloatingParticlesBackground />
+     
+      <PulsatingGridBackground />
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 opacity-70"></div>
       
       <div className="container relative mx-auto min-h-screen flex items-center z-10 px-4">
