@@ -6,6 +6,7 @@ import {
   Video,
   Upload as UploadIcon,
 } from "lucide-react";
+import { uploadDataset, DatasetForm } from "../services/uploadService";
 
 // Add custom type definition for directory input
 interface DirectoryInputElement extends HTMLInputElement {
@@ -19,14 +20,6 @@ interface UploadProgress {
   progress: number;
   status: "uploading" | "completed" | "error";
   type: "raw" | "vectorized";
-}
-
-interface DatasetForm {
-  name: string;
-  description: string;
-  domain: string;
-  dimensions?: number;
-  vectorDatabase?: string;
 }
 
 const UploadFile = () => {
@@ -145,67 +138,6 @@ const UploadFile = () => {
     });
   };
 
-  const uploadFiles = async (
-    rawFiles: FileList | null,
-    vectorizedFiles: FileList | null,
-    type: "raw" | "vectorized" | "both",
-    datasetId?: string
-  ) => {
-    const formDataToSend = new FormData();
-
-    if (type === "both") {
-      // Add raw files
-      if (rawFiles) {
-        Array.from(rawFiles).forEach((file) => {
-          formDataToSend.append("raw_files", file);
-        });
-      }
-
-      // Add vectorized files
-      if (vectorizedFiles) {
-        Array.from(vectorizedFiles).forEach((file) => {
-          formDataToSend.append("vectorized_files", file);
-        });
-      }
-    } else {
-      // Handle single type uploads
-      const files = type === "raw" ? rawFiles : vectorizedFiles;
-      if (files) {
-        Array.from(files).forEach((file) => {
-          formDataToSend.append("files", file);
-        });
-      }
-    }
-
-    const datasetInfo = {
-      ...formData,
-      datasetId,
-    };
-
-    formDataToSend.append("type", type);
-    formDataToSend.append("datasetInfo", JSON.stringify(datasetInfo));
-
-    try {
-      const response = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formDataToSend,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Upload failed");
-      }
-
-      const result = await response.json();
-      console.log(`Upload result for ${type}:`, result);
-      return result;
-    } catch (error) {
-      console.error(`Upload error for ${type}:`, error);
-      setError(`Failed to upload ${type} files: ${error.message}`);
-      return null;
-    }
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -225,16 +157,12 @@ const UploadFile = () => {
           return;
         }
 
-        // Generate a unique ID for the combined dataset
         const datasetId = `${formData.name}_${Date.now()}`;
-
-        // Send both types of files in a single request
-        const result = await uploadFiles(
-          rawFiles,
-          vectorizedFiles,
-          "both",
-          datasetId
-        );
+        const result = await uploadDataset(rawFiles, vectorizedFiles, "both", {
+          ...formData,
+          datasetId,
+          file_type: fileType.toLowerCase(),
+        });
 
         if (!result?.success) {
           setError(result?.message || "Upload failed");
@@ -245,10 +173,11 @@ const UploadFile = () => {
           setError(`Please select ${fileType.toLowerCase()} files to upload`);
           return;
         }
-        await uploadFiles(
-          inputRef.files,
-          null,
-          datasetType.toLowerCase() as "raw" | "vectorized"
+        await uploadDataset(
+          datasetType.toLowerCase() === "raw" ? inputRef.files : null,
+          datasetType.toLowerCase() === "vectorized" ? inputRef.files : null,
+          datasetType.toLowerCase() as "raw" | "vectorized",
+          { ...formData, file_type: fileType.toLowerCase() }
         );
       }
     } catch (error) {

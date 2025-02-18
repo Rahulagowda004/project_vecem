@@ -8,6 +8,7 @@ class DatasetInfo(BaseModel):
     dimensions: Optional[int] = None
     vectorDatabase: Optional[str] = None
     datasetId: Optional[str] = None  # Used to link related datasets
+    file_type: Optional[str] = None
 
 class UploadResponse(BaseModel):
     success: bool
