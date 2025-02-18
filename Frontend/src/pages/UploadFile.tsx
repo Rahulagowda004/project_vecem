@@ -16,10 +16,8 @@ interface DirectoryInputElement extends HTMLInputElement {
 }
 
 interface UploadProgress {
-  fileName: string;
   progress: number;
   status: "uploading" | "completed" | "error";
-  type: "raw" | "vectorized";
 }
 
 const UploadFile = () => {
@@ -30,7 +28,10 @@ const UploadFile = () => {
     "Image" | "Audio" | "Text" | "Video"
   >("Text");
   const [error, setError] = useState<string>("");
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
+    progress: 0,
+    status: "uploading",
+  });
   const fileInputRef = useRef<DirectoryInputElement>(null);
   const rawInputRef = useRef<DirectoryInputElement>(null);
   const vectorizedInputRef = useRef<DirectoryInputElement>(null);
@@ -89,40 +90,21 @@ const UploadFile = () => {
       return;
     }
 
-    // Initialize progress tracking for each file
-    const newProgress = filesArray.map((file) => ({
-      fileName: file.name,
-      progress: 0,
-      status: "uploading" as const,
-      type,
-    }));
-    setUploadProgress((prev) => [...prev, ...newProgress]);
+    // Initialize progress tracking for the folder
+    setUploadProgress({ progress: 0, status: "uploading" });
 
     // Simulate upload progress for demo
-    filesArray.forEach((file, index) => {
-      simulateFileUpload(file.name, uploadProgress.length + index, type);
-    });
+    simulateFolderUpload(filesArray.length);
   };
 
-  const simulateFileUpload = (
-    fileName: string,
-    index: number,
-    type: "raw" | "vectorized"
-  ) => {
+  const simulateFolderUpload = (totalFiles: number) => {
     let progress = 0;
     const interval = setInterval(() => {
       progress += 10;
-      setUploadProgress((prev) =>
-        prev.map((item, i) =>
-          i === index
-            ? {
-                ...item,
-                progress: progress,
-                status: progress === 100 ? "completed" : "uploading",
-              }
-            : item
-        )
-      );
+      setUploadProgress({
+        progress: progress,
+        status: progress === 100 ? "completed" : "uploading",
+      });
       if (progress >= 100) clearInterval(interval);
     }, 500);
   };
@@ -413,73 +395,26 @@ const UploadFile = () => {
                 )}
 
                 {/* Upload Progress Bars */}
-                {uploadProgress.length > 0 && (
+                {uploadProgress.progress > 0 && (
                   <div className="space-y-4">
-                    {/* Raw Data Progress */}
-                    {uploadProgress.some((p) => p.type === "raw") && (
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-gray-100">
-                          Raw Data Progress
-                        </h4>
-                        {uploadProgress
-                          .filter((item) => item.type === "raw")
-                          .map((item, index) => (
-                            <div key={index} className="space-y-1">
-                              <div className="flex justify-between text-sm">
-                                <span className="truncate">
-                                  {item.fileName}
-                                </span>
-                                <span>{item.progress}%</span>
-                              </div>
-                              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                <div
-                                  className={`h-full transition-all duration-300 ${
-                                    item.status === "completed"
-                                      ? "bg-green-500"
-                                      : item.status === "error"
-                                      ? "bg-red-500"
-                                      : "bg-indigo-500"
-                                  }`}
-                                  style={{ width: `${item.progress}%` }}
-                                />
-                              </div>
-                            </div>
-                          ))}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>Upload Progress</span>
+                        <span>{uploadProgress.progress}%</span>
                       </div>
-                    )}
-
-                    {/* Vectorized Data Progress */}
-                    {uploadProgress.some((p) => p.type === "vectorized") && (
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-gray-100">
-                          Vectorized Data Progress
-                        </h4>
-                        {uploadProgress
-                          .filter((item) => item.type === "vectorized")
-                          .map((item, index) => (
-                            <div key={index} className="space-y-1">
-                              <div className="flex justify-between text-sm">
-                                <span className="truncate">
-                                  {item.fileName}
-                                </span>
-                                <span>{item.progress}%</span>
-                              </div>
-                              <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                                <div
-                                  className={`h-full transition-all duration-300 ${
-                                    item.status === "completed"
-                                      ? "bg-green-500"
-                                      : item.status === "error"
-                                      ? "bg-red-500"
-                                      : "bg-indigo-500"
-                                  }`}
-                                  style={{ width: `${item.progress}%` }}
-                                />
-                              </div>
-                            </div>
-                          ))}
+                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${
+                            uploadProgress.status === "completed"
+                              ? "bg-green-500"
+                              : uploadProgress.status === "error"
+                              ? "bg-red-500"
+                              : "bg-indigo-500"
+                          }`}
+                          style={{ width: `${uploadProgress.progress}%` }}
+                        />
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </div>
