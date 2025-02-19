@@ -63,6 +63,7 @@ const UploadFile = () => {
     Image: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
     Audio: ["audio/mpeg", "audio/wav", "audio/ogg"],
     Video: ["video/mp4", "video/webm", "video/ogg"],
+<<<<<<< HEAD
     Text: [
       "text/plain",
       "text/csv",
@@ -71,7 +72,11 @@ const UploadFile = () => {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
       "application/msword", // .doc
     ],
+=======
+    Text: ["text/plain","text/csv","application/json","application/pdf","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/msword"],
+>>>>>>> 3639f4b49c20a96d326c7b48e6e0fb5b92a8634c
   };
+  
 
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,
