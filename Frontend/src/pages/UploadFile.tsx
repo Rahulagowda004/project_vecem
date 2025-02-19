@@ -60,11 +60,12 @@ const UploadFile = () => {
   ];
 
   const fileTypeMap = {
-    Image: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+    Image: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
     Audio: ["audio/mpeg", "audio/wav", "audio/ogg"],
     Video: ["video/mp4", "video/webm", "video/ogg"],
-    Text: ["text/plain", "text/csv", "application/json","text/pdf","text/.docx","text/.doc"],
+    Text: ["text/plain","text/csv","application/json","application/pdf","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/msword"],
   };
+  
 
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,
