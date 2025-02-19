@@ -14,54 +14,44 @@ export interface UploadResponse {
   files: string[];
 }
 
-export async function uploadDataset(
+export const uploadDataset = async (
   rawFiles: FileList | null,
   vectorizedFiles: FileList | null,
   type: "raw" | "vectorized" | "both",
-  datasetInfo: DatasetForm
-): Promise<UploadResponse> {
-  const formData = new FormData();
+  formData: DatasetForm
+) => {
+  try {
+    // Create FormData object
+    const data = new FormData();
 
-  if (type === "both") {
+    // Append form data
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value) data.append(key, value);
+    });
+
+    // Append files
     if (rawFiles) {
-      for (let i = 0; i < rawFiles.length; i++) {
-        formData.append("raw_files", rawFiles[i]);
-      }
+      Array.from(rawFiles).forEach((file) => {
+        data.append("raw_files", file);
+      });
     }
 
     if (vectorizedFiles) {
-      for (let i = 0; i < vectorizedFiles.length; i++) {
-        formData.append("vectorized_files", vectorizedFiles[i]);
-      }
+      Array.from(vectorizedFiles).forEach((file) => {
+        data.append("vectorized_files", file);
+      });
     }
-  } else {
-    const files = type === "raw" ? rawFiles : vectorizedFiles;
-    if (files) {
-      for (let i = 0; i < files.length; i++) {
-        formData.append("files", files[i]);
-      }
-    }
-  }
 
-  formData.append("type", type);
-  formData.append("datasetInfo", JSON.stringify(datasetInfo));
-
-  try {
-    const response = await fetch("http://localhost:5000/upload", {
+    // Send request to your API endpoint
+    const response = await fetch("/api/upload-dataset", {
       method: "POST",
-      body: formData,
+      body: data,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Upload failed");
-    }
-
     const result = await response.json();
-    console.log("Upload result:", result);
-    return result;
+    return { success: true, ...result };
   } catch (error) {
     console.error("Upload error:", error);
-    throw error;
+    return { success: false, message: "Failed to upload dataset" };
   }
-}
+};
