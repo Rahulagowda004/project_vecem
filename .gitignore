@@ -175,3 +175,4 @@ Backend/src/logs/*
 
 logs/*
 Frontend/package-lock.json
+.vscode/settings.json
