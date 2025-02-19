@@ -1,5 +1,11 @@
-fastapi==0.68.1
-python-multipart==0.0.5
-uvicorn==0.15.0
+fastapi==0.104.1
+python-multipart==0.0.6
+uvicorn==0.24.0
 pymongo
 motor
+pydantic==2.4.2
+pydantic-settings==2.0.3
+python-jose==3.3.0
+passlib==1.7.4
+email-validator==2.1.0
+pydantic[email]

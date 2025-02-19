@@ -6,7 +6,7 @@ import json
 import os
 import logging
 from datetime import datetime
-from models import DatasetInfo, UploadResponse
+from models.uploads import DatasetInfo, UploadResponse
 
 # Configure logging with more detail
 logging.basicConfig(
