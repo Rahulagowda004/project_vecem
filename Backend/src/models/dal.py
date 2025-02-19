@@ -7,10 +7,10 @@ from utils.exception import CustomException
 class Database:
     def __init__(self):
         load_dotenv()
-        self.client = None
-        self.db = None
-        self.userprofile = None
-        self.dataset = None
+        self.client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
+        self.db = self.client["vecem"]
+        self.userprofile = self.db["userprofiles"]
+        self.dataset = self.db["datasets"]
         self.connect()
 
     def connect(self):
