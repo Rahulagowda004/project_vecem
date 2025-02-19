@@ -7,6 +7,7 @@ import {
   Upload as UploadIcon,
 } from "lucide-react";
 import { uploadDataset, DatasetForm } from "../services/uploadService";
+import { text } from "framer-motion/client";
 
 // Add custom type definition for directory input
 interface DirectoryInputElement extends HTMLInputElement {
@@ -62,7 +63,7 @@ const UploadFile = () => {
     Image: ["image/jpeg", "image/png", "image/gif", "image/webp"],
     Audio: ["audio/mpeg", "audio/wav", "audio/ogg"],
     Video: ["video/mp4", "video/webm", "video/ogg"],
-    Text: ["text/plain", "text/csv", "application/json"],
+    Text: ["text/plain", "text/csv", "application/json","text/pdf","text/.docx","text/.doc"],
   };
 
   const handleFileChange = (
