@@ -60,36 +60,12 @@ const UploadFile = () => {
   ];
 
   const fileTypeMap = {
-    Image: {
-      mimeTypes: [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-        "image/heic",
-      ],
-      extensions: ".jpg,.jpeg,.png,.gif,.webp,.heic",
-    },
-    Audio: {
-      mimeTypes: ["audio/mpeg", "audio/wav", "audio/ogg"],
-      extensions: ".mp3,.wav,.ogg",
-    },
-    Video: {
-      mimeTypes: ["video/mp4", "video/webm", "video/ogg"],
-      extensions: ".mp4,.webm,.ogv",
-    },
-    Text: {
-      mimeTypes: [
-        "text/plain",
-        "text/csv",
-        "application/json",
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/msword",
-      ],
-      extensions: ".txt,.csv,.json,.pdf,.doc,.docx",
-    },
+    Image: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
+    Audio: ["audio/mpeg", "audio/wav", "audio/ogg"],
+    Video: ["video/mp4", "video/webm", "video/ogg"],
+    Text: ["text/plain","text/csv","application/json","application/pdf","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/msword"],
   };
+  
 
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -100,20 +76,15 @@ const UploadFile = () => {
 
     if (!files || files.length === 0) return;
 
-    const allowedMimeTypes = fileTypeMap[fileType].mimeTypes;
+    const allowedTypes = fileTypeMap[fileType];
     const filesArray = Array.from(files);
-    const invalidFiles = filesArray.filter((file) => {
-      // Check both MIME type and file extension
-      const fileExtension = `.${file.name.split(".").pop()?.toLowerCase()}`;
-      const hasValidMimeType = allowedMimeTypes.includes(file.type);
-      const hasValidExtension =
-        fileTypeMap[fileType].extensions.includes(fileExtension);
-      return !hasValidMimeType && !hasValidExtension;
-    });
+    const invalidFiles = filesArray.filter(
+      (file) => !allowedTypes.includes(file.type)
+    );
 
     if (invalidFiles.length > 0) {
       setError(
-        `Invalid file types detected. Allowed extensions: ${fileTypeMap[fileType].extensions}`
+        `Invalid file types detected. All files must be ${fileType.toLowerCase()} files.`
       );
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -383,9 +354,7 @@ const UploadFile = () => {
                         type="file"
                         onChange={(e) => handleFileChange(e, "raw")}
                         className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
-                        accept={`${fileTypeMap[fileType].mimeTypes.join(",")},${
-                          fileTypeMap[fileType].extensions
-                        }`}
+                        accept={fileTypeMap[fileType].join(",")}
                         multiple
                         directory=""
                         webkitdirectory=""
@@ -402,9 +371,7 @@ const UploadFile = () => {
                         type="file"
                         onChange={(e) => handleFileChange(e, "vectorized")}
                         className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
-                        accept={`${fileTypeMap[fileType].mimeTypes.join(",")},${
-                          fileTypeMap[fileType].extensions
-                        }`}
+                        accept={fileTypeMap[fileType].join(",")}
                         multiple
                         directory=""
                         webkitdirectory=""
@@ -422,9 +389,7 @@ const UploadFile = () => {
                       )
                     }
                     className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
-                    accept={`${fileTypeMap[fileType].mimeTypes.join(",")},${
-                      fileTypeMap[fileType].extensions
-                    }`}
+                    accept={fileTypeMap[fileType].join(",")}
                     multiple
                     directory=""
                     webkitdirectory=""
