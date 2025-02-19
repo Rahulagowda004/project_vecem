@@ -5,4 +5,3 @@ pydantic
 python-dotenv
 pydantic[email]
 fastapi
-multipart
