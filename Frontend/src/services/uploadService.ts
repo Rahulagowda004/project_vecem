@@ -1,11 +1,15 @@
+import axios from "axios";
+
+const API_URL = "http://localhost:5000";
+
 export interface DatasetForm {
   name: string;
   description: string;
   domain: string;
   dimensions?: number;
   vectorDatabase?: string;
-  datasetId?: string;
   file_type?: string;
+  datasetId?: string;
 }
 
 export interface UploadResponse {
@@ -18,40 +22,61 @@ export const uploadDataset = async (
   rawFiles: FileList | null,
   vectorizedFiles: FileList | null,
   type: "raw" | "vectorized" | "both",
-  formData: DatasetForm
+  datasetInfo: DatasetForm
 ) => {
   try {
-    // Create FormData object
-    const data = new FormData();
+    const formData = new FormData();
 
-    // Append form data
-    Object.entries(formData).forEach(([key, value]) => {
-      if (value) data.append(key, value);
-    });
-
-    // Append files
-    if (rawFiles) {
-      Array.from(rawFiles).forEach((file) => {
-        data.append("raw_files", file);
-      });
+    // Add files based on type
+    if (type === "both") {
+      if (rawFiles) {
+        Array.from(rawFiles).forEach((file) => {
+          formData.append("raw_files", file);
+        });
+      }
+      if (vectorizedFiles) {
+        Array.from(vectorizedFiles).forEach((file) => {
+          formData.append("vectorized_files", file);
+        });
+      }
+    } else {
+      if (type === "raw" && rawFiles) {
+        Array.from(rawFiles).forEach((file) => {
+          formData.append("files", file);
+        });
+      }
+      if (type === "vectorized" && vectorizedFiles) {
+        Array.from(vectorizedFiles).forEach((file) => {
+          formData.append("files", file);
+        });
+      }
     }
 
-    if (vectorizedFiles) {
-      Array.from(vectorizedFiles).forEach((file) => {
-        data.append("vectorized_files", file);
-      });
-    }
+    // Add dataset info
+    formData.append("type", type);
+    formData.append("datasetInfo", JSON.stringify(datasetInfo));
 
-    // Send request to your API endpoint
-    const response = await fetch("/api/upload-dataset", {
-      method: "POST",
-      body: data,
+    const response = await axios.post(`${API_URL}/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / (progressEvent.total || 100)
+        );
+        console.log(`Upload Progress: ${percentCompleted}%`);
+      },
     });
 
-    const result = await response.json();
-    return { success: true, ...result };
+    console.log("Upload Response:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("Upload error:", error);
-    return { success: false, message: "Failed to upload dataset" };
+    console.error("Upload Error:", error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.detail || "Failed to upload dataset"
+      );
+    }
+    throw error;
   }
 };

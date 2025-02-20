@@ -63,20 +63,16 @@ const UploadFile = () => {
     Image: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
     Audio: ["audio/mpeg", "audio/wav", "audio/ogg"],
     Video: ["video/mp4", "video/webm", "video/ogg"],
-<<<<<<< HEAD
     Text: [
       "text/plain",
       "text/csv",
       "application/json",
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
       "application/msword", // .doc
     ],
-=======
-    Text: ["text/plain","text/csv","application/json","application/pdf","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/msword"],
->>>>>>> 3639f4b49c20a96d326c7b48e6e0fb5b92a8634c
   };
-  
 
   const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -136,6 +132,7 @@ const UploadFile = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+    setUploadProgress({ progress: 0, status: "uploading" });
 
     if (!formData.name.trim()) {
       setError("Please provide a dataset name");
@@ -143,6 +140,14 @@ const UploadFile = () => {
     }
 
     try {
+      let result;
+      const datasetId = `${formData.name}_${Date.now()}`;
+      const datasetInfoWithId = {
+        ...formData,
+        datasetId,
+        file_type: fileType.toLowerCase(),
+      };
+
       if (datasetType === "Both") {
         const rawFiles = rawInputRef.current?.files;
         const vectorizedFiles = vectorizedInputRef.current?.files;
@@ -152,32 +157,49 @@ const UploadFile = () => {
           return;
         }
 
-        const datasetId = `${formData.name}_${Date.now()}`;
-        const result = await uploadDataset(rawFiles, vectorizedFiles, "both", {
-          ...formData,
-          datasetId,
-          file_type: fileType.toLowerCase(),
+        console.log("Uploading both raw and vectorized files:", {
+          rawCount: rawFiles?.length,
+          vectorizedCount: vectorizedFiles?.length,
         });
 
-        if (!result?.success) {
-          setError(result?.message || "Upload failed");
-        }
+        result = await uploadDataset(
+          rawFiles,
+          vectorizedFiles,
+          "both",
+          datasetInfoWithId
+        );
       } else {
-        const inputRef = fileInputRef.current;
-        if (!inputRef?.files?.length) {
+        const files = fileInputRef.current?.files;
+        if (!files?.length) {
           setError(`Please select ${fileType.toLowerCase()} files to upload`);
           return;
         }
-        await uploadDataset(
-          datasetType.toLowerCase() === "raw" ? inputRef.files : null,
-          datasetType.toLowerCase() === "vectorized" ? inputRef.files : null,
+
+        console.log(`Uploading ${datasetType.toLowerCase()} files:`, {
+          fileCount: files.length,
+        });
+
+        result = await uploadDataset(
+          datasetType.toLowerCase() === "raw" ? files : null,
+          datasetType.toLowerCase() === "vectorized" ? files : null,
           datasetType.toLowerCase() as "raw" | "vectorized",
-          { ...formData, file_type: fileType.toLowerCase() }
+          datasetInfoWithId
         );
       }
+
+      if (result?.success) {
+        setUploadProgress({ progress: 100, status: "completed" });
+        // Optionally add success message or redirect
+      } else {
+        setUploadProgress({ progress: 0, status: "error" });
+        setError(result?.message || "Upload failed");
+      }
     } catch (error) {
-      console.error("Submission error:", error);
-      setError("Failed to upload dataset");
+      console.error("Upload error:", error);
+      setUploadProgress({ progress: 0, status: "error" });
+      setError(
+        error instanceof Error ? error.message : "Failed to upload dataset"
+      );
     }
   };
 

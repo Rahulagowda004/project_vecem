@@ -1,8 +1,7 @@
+import os
 import sys
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from utils.logger import logging
-from utils.exception import CustomException
 
 class Database:
     def __init__(self):

@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from ..models.user import User
+from fastapi import APIRouter
+from models.user import User  # Use absolute import
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
