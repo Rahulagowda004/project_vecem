@@ -27,7 +27,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(email, password);
+        await signup(email, password, 'defaultRole');
       }
       onClose();
       navigate('/home');

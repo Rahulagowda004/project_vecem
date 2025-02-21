@@ -18,17 +18,18 @@ const Navbar = () => {
     <nav className="bg-gray-800 p-4 fixed top-0 w-full z-50">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-white font-bold text-xl">
-          VeCem
+          Vecem
         </Link>
 
         <div className="flex items-center gap-4">
           {!user ? (
-            <button
+            <Link 
+              to="/login" 
               onClick={() => setIsOpen(true)}
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
               Login/Signup
-            </button>
+            </Link>
           ) : (
             <div className="flex items-center gap-4">
               <Link to="/home" className="text-white hover:text-gray-300">
@@ -59,15 +60,15 @@ const Navbar = () => {
               ✕
             </button>
             {isLoginMode ? (
-              <div>
-                <Login onClose={handleClose} />
+                <div>
+                <Login />
                 <button
                   onClick={() => setIsLoginMode(false)}
                   className="mt-4 text-blue-400 hover:text-blue-300 text-center w-full"
                 >
                   Don't have an account? Sign up
                 </button>
-              </div>
+                </div>
             ) : (
               <div>
                 <Signup onClose={handleClose} />
