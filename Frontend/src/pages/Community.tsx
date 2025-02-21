@@ -11,8 +11,8 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
-import { useAuth0 } from "@auth0/auth0-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // Assuming you have an AuthContext for Firebase
 
 interface Message {
   id: number;
@@ -87,7 +87,7 @@ const initialMessages: Message[] = [
 ];
 
 const Community = () => {
-  const { user, isAuthenticated, logout } = useAuth0();
+  const { user, logout } = useAuth();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [newMessage, setNewMessage] = useState("");
   const [editingMessage, setEditingMessage] = useState<number | null>(null);
@@ -110,8 +110,8 @@ const Community = () => {
     const newMsg: Message = {
       id: messages.length + 1,
       userId: 1, // Assuming current user
-      userName: "You",
-      userAvatar: "https://api.dicebear.com/6.x/avataaars/svg?seed=You",
+      userName: user?.displayName || "You",
+      userAvatar: user?.photoURL || "https://api.dicebear.com/6.x/avataaars/svg?seed=You",
       content: newMessage,
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
@@ -164,7 +164,7 @@ const Community = () => {
               <MessageSquare className="w-6 h-6" />
               Chat Room
             </h1>
-            {isAuthenticated && user && (
+            {user && (
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -172,8 +172,7 @@ const Community = () => {
                 >
                   <img
                     className="h-8 w-8 rounded-full"
-                    src={user.picture}
-                    alt={user.name}
+                    
                   />
                   <ChevronDown
                     className={`h-4 w-4 text-gray-400 transition-transform ${
@@ -200,13 +199,7 @@ const Community = () => {
                         Settings
                       </Link>
                       <button
-                        onClick={() =>
-                          logout({
-                            logoutParams: {
-                              returnTo: window.location.origin,
-                            },
-                          })
-                        }
+                        onClick={logout}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-red-500"
                       >
                         <LogOut className="h-4 w-4 mr-3" />
