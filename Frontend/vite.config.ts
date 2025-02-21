@@ -7,4 +7,19 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
+  server: {
+    port: 5173,
+    host: true,
+    open: true,
+    hmr: {
+      overlay: false // Disable HMR overlay to see console errors better
+    },
+  },
+  base: '/',
+  build: {
+    sourcemap: true,
+  },
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  }
 });

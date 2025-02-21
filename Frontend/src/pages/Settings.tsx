@@ -1,49 +1,95 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Mail, Github, Edit2, Trash2 } from "lucide-react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from '../contexts/AuthContext';
+import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { firestore } from '../firebase/firebase';
 import AvatarSelector from "../components/AvatarSelector";
 
 const Settings = () => {
-  const { user, isAuthenticated, logout } = useAuth0();
+  const { user, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(localStorage.getItem("userName") || user?.name || "Guest");
+  const [name, setName] = useState(localStorage.getItem("userName") || user?.displayName || "Guest");
   const [about, setAbout] = useState(
     localStorage.getItem("userAbout") || 
     "Creative professional with over 8 years of experience in digital design and art direction."
   );
   const [selectedAvatar, setSelectedAvatar] = useState(
     localStorage.getItem("userAvatar") ||
-    user?.picture ||
+    user?.photoURL ||
     "/avatars/avatar1.png"
   );
   const [githubUrl, setGithubUrl] = useState(
     localStorage.getItem("githubUrl") || 
-    `https://github.com/${user?.nickname || 'username'}`
+    `https://github.com/${user?.displayName || 'username'}`
   );
 
-  const displayUsername = user?.nickname || 'username';
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setName(data.displayName || localStorage.getItem("userName") || user.displayName || "Guest");
+          setAbout(data.about || localStorage.getItem("userAbout") || about);
+          setSelectedAvatar(data.photoURL || localStorage.getItem("userAvatar") || user.photoURL || "/avatars/avatar1.png");
+          setGithubUrl(data.githubUrl || localStorage.getItem("githubUrl") || `https://github.com/${user.displayName || 'username'}`);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
 
-  const handleSave = () => {
+    fetchUserData();
+  }, [user]);
+
+  const displayUsername = user?.displayName || user?.email?.split('@')[0] || 'username';
+
+  const handleSave = async () => {
     setIsEditing(false);
     localStorage.setItem("userName", name);
     localStorage.setItem("userAbout", about);
     localStorage.setItem("githubUrl", githubUrl);
-  };
+    localStorage.setItem("userAvatar", selectedAvatar);
 
-  const handleDeleteAccount = async () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+    if (user?.uid) {
       try {
-        // Add API call to delete account here
-        await logout({ 
-          logoutParams: {
-            returnTo: window.location.origin
-          }
+        await updateDoc(doc(firestore, 'users', user.uid), {
+          displayName: name,
+          about,
+          githubUrl,
+          photoURL: selectedAvatar
         });
       } catch (error) {
-        console.error('Error deleting account:', error);
+        console.error('Error updating profile:', error);
       }
     }
   };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      if (user?.uid) {
+        await deleteDoc(doc(firestore, 'users', user.uid));
+      }
+      await logout();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error deleting account:', error);
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Please log in to access settings.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -108,7 +154,7 @@ const Settings = () => {
               <div className="flex items-center space-x-6 mt-4">
                 <div className="flex items-center space-x-2 text-gray-400">
                   <Mail size={16} />
-                  <span>{isAuthenticated ? user?.email : "guest@example.com"}</span>
+                  <span>{user?.email || "guest@example.com"}</span>
                 </div>
                 <div className="flex items-center space-x-2 text-gray-400">
                   <Github size={16} />
@@ -127,7 +173,7 @@ const Settings = () => {
                       rel="noopener noreferrer"
                       className="hover:text-blue-400"
                     >
-                      @{user?.nickname || 'username'}
+                      @{user?.displayName || 'username'}
                     </a>
                   )}
                 </div>

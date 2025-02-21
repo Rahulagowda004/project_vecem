@@ -1,79 +1,87 @@
-import React from 'react';
-import { Menu, X } from 'lucide-react';
-import { useAuth0 } from '@auth0/auth0-react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import PulsatingGridBackground from './NeuralNetwork';
-import NeuralNetwork from './NeuralNetwork';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import Login from '../pages/Login';
+import Signup from '../pages/Signup';
 
-const LoginButton = () => {
-  const { loginWithRedirect } = useAuth0();
-  const navigate = useNavigate();
+const Navbar = () => {
+  const { user, logout } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(true);
 
-  const handleLogin = async () => {
-    await loginWithRedirect();
-    navigate('/home');
+  const handleClose = () => {
+    setIsOpen(false);
+    setIsLoginMode(true);
   };
 
   return (
-    <button
-      onClick={handleLogin}
-      className="bg-cyan-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-cyan-500 transition-colors"
-    >
-      Log In / Sign Up
-    </button>
-  );
-};
+    <nav className="bg-gray-800 p-4 fixed top-0 w-full z-50">
+      <div className="container mx-auto flex justify-between items-center">
+        <Link to="/" className="text-white font-bold text-xl">
+          VeCem
+        </Link>
 
-interface NavbarProps {
-  onLogin: () => void;
-}
-
-const Navbar = ({ onLogin }: NavbarProps) => {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-
-  return (
-    <nav className="fixed w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-cyan-500/10 overflow-hidden">
-      <NeuralNetwork />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex-shrink-0">
-            <span className="text-2xl font-bold text-cyan-500">Vecem</span>
-          </div>
-          
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-centre space-x-4">
-            <LoginButton />
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+        <div className="flex items-center gap-4">
+          {!user ? (
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-400 hover:text-white"
+              onClick={() => setIsOpen(true)}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              Login/Signup
             </button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <Link to="/home" className="text-white hover:text-gray-300">
+                Home
+              </Link>
+              <Link to="/profile" className="text-white hover:text-gray-300">
+                Profile
+              </Link>
+              <button
+                onClick={logout}
+                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="md:hidden bg-slate-800/90 backdrop-blur-md"
-          >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <LoginButton />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Auth Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="relative">
+            <button
+              onClick={handleClose}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 z-50"
+            >
+              ✕
+            </button>
+            {isLoginMode ? (
+              <div>
+                <Login onClose={handleClose} />
+                <button
+                  onClick={() => setIsLoginMode(false)}
+                  className="mt-4 text-blue-400 hover:text-blue-300 text-center w-full"
+                >
+                  Don't have an account? Sign up
+                </button>
+              </div>
+            ) : (
+              <div>
+                <Signup onClose={handleClose} />
+                <button
+                  onClick={() => setIsLoginMode(true)}
+                  className="mt-4 text-blue-400 hover:text-blue-300 text-center w-full"
+                >
+                  Already have an account? Login
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

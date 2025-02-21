@@ -1,23 +1,25 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import Features from '../components/Features';
 import Footer from '../components/Footer';
+import { useAuth } from '../contexts/AuthContext';
 
 const LandingPage = () => {
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleLogin = () => {
-    // This would typically handle authentication
-    navigate('/home');
-  };
+  if (user) {
+    return <Navigate to="/home" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <Navbar onLogin={handleLogin} />
-      <Hero />
-      <Features />
+      <Navbar />
+      <div className="container mx-auto pt-16">
+        <Hero />
+        <Features />
+      </div>
       <Footer />
     </div>
   );

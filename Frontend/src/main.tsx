@@ -1,19 +1,59 @@
+import React from 'react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
-import { Auth0Provider } from '@auth0/auth0-react';
+import { AuthProvider } from './contexts/AuthContext';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Auth0Provider
-      domain="dev-yis1mhtj5nqvuvr4.us.auth0.com"
-      clientId="oHV3nXY9J0oItTNY4gWZjVrMh3pxdLFA"
-      authorizationParams={{
-        redirect_uri: window.location.origin + '/home'
-      }}
-    >
-      <App />
-    </Auth0Provider>
-  </StrictMode>
-);
+// Define ErrorBoundary first
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>Something went wrong. Please refresh the page.</div>;
+    }
+    return this.props.children;
+  }
+}
+
+// Root element check and rendering
+const root = document.getElementById('root');
+
+if (!root) {
+  throw new Error('Root element not found');
+}
+
+try {
+  console.log('Initializing app...');
+  
+  createRoot(root).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </StrictMode>
+  );
+} catch (error) {
+  console.error('Render error:', error);
+  root.innerHTML = 'An error occurred while loading the application.';
+}

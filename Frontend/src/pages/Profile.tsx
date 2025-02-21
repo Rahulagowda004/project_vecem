@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Folder,
@@ -11,7 +11,9 @@ import {
   Download,
   Share2,
 } from "lucide-react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from '../contexts/AuthContext';  // Replace Auth0 with Firebase auth context
+import { doc, getDoc } from 'firebase/firestore';
+import { firestore } from '../firebase/firebase';
 import AvatarSelector from "../components/AvatarSelector";
 
 interface ProfileStats {
@@ -38,26 +40,49 @@ interface FolderItem {
 }
 
 const Profile = () => {
-  const { user, isAuthenticated } = useAuth0();
+  const { user } = useAuth(); // Replace Auth0 hook with Firebase auth context
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [aboutText, setAboutText] = useState(
-    "Creative professional with over 8 years of experience in digital design and art direction. Passionate about creating beautiful, functional designs that enhance user experience. Specialized in UI/UX design and brand identity."
+    localStorage.getItem("userAbout") ||
+    "Creative professional with over 8 years of experience in digital design and art direction..."
   );
   const [selectedAvatar, setSelectedAvatar] = useState(
     localStorage.getItem("userAvatar") ||
-      user?.picture ||
+      user?.photoURL ||
       "/avatars/avatar1.png"
   );
   const [userName, setUserName] = useState(
-    localStorage.getItem("userName") || user?.name || "Guest"
+    localStorage.getItem("userName") || user?.displayName || "Guest"
   );
   const [stats, setStats] = useState<ProfileStats>(initialStats);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [sortBy, setSortBy] = useState<"name" | "date" | "size">("date");
+  const [userData, setUserData] = useState<any>(null);
 
-  const displayUsername = user?.nickname || 'username';
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserData(data);
+          setUserName(data.displayName || user.displayName || 'Guest');
+          setAboutText(data.about || localStorage.getItem("userAbout") || aboutText);
+          setSelectedAvatar(data.photoURL || user.photoURL || '/avatars/avatar1.png');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
+  const displayUsername = userData?.username || user?.email?.split('@')[0] || 'username';
 
   const folders: FolderItem[] = [
     {
@@ -108,14 +133,34 @@ const Profile = () => {
 
   const handleAboutSave = () => {
     setIsEditingAbout(false);
+    localStorage.setItem("userAbout", aboutText);
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     setIsEditing(false);
-    // Save changes to localStorage or a global state
     localStorage.setItem("userAvatar", selectedAvatar);
     localStorage.setItem("userName", userName);
+    
+    if (user?.uid) {
+      try {
+        await updateDoc(doc(firestore, 'users', user.uid), {
+          displayName: userName,
+          photoURL: selectedAvatar,
+          about: aboutText
+        });
+      } catch (error) {
+        console.error('Error updating profile:', error);
+      }
+    }
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Please log in to view your profile.</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -132,7 +177,7 @@ const Profile = () => {
               <div className="flex-1">
                 <div className="flex flex-col">
                   <h1 className="text-3xl font-bold text-gray-100">
-                    {isAuthenticated && user ? userName : "Guest"}
+                    {userName}
                   </h1>
                   <span className="text-gray-400 text-sm mt-1">@{displayUsername}</span>
                 </div>
@@ -140,19 +185,15 @@ const Profile = () => {
                 <div className="flex items-center space-x-6 mt-4">
                   <div className="flex items-center space-x-2 text-gray-400">
                     <Mail size={16} />
-                    <span>
-                      {isAuthenticated && user
-                        ? user.email
-                        : "guest@example.com"}
-                    </span>
+                    <span>{user.email || "guest@example.com"}</span>
                   </div>
                   <div className="flex items-center space-x-2 text-gray-400">
                     <Github size={16} />
                     <a
-                      href="https://github.com/yourusername"
+                      href={`https://github.com/${displayUsername}`}
                       className="hover:text-blue-400"
                     >
-                      @yourusername
+                      @{displayUsername}
                     </a>
                   </div>
                 </div>

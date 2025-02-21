@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../contexts/AuthContext';
 import {
   Search,
   User,
@@ -18,13 +18,21 @@ import {
 import DatasetGrid from "./DatasetGrid";
 
 const LogoutButton = () => {
-  const { logout } = useAuth0();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   return (
     <button
-      onClick={() =>
-        logout({ logoutParams: { returnTo: window.location.origin } })
-      }
+      onClick={handleLogout}
       className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-red-500"
     >
       <LogOut className="h-4 w-4 mr-3" />
@@ -34,33 +42,17 @@ const LogoutButton = () => {
 };
 
 const DashboardLayout = () => {
-  const { user, isAuthenticated } = useAuth0();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>(["datasets"]);
-  const [userAvatar, setUserAvatar] = useState(
-    localStorage.getItem("userAvatar") ||
-      user?.picture ||
-      "/avatars/avatar1.png"
-  );
-  const [userName, setUserName] = useState(
-    localStorage.getItem("userName") || user?.name || "Guest"
-  );
+  const [userAvatar, setUserAvatar] = useState(user?.photoURL || "/avatars/avatar1.png");
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      setUserAvatar(
-        localStorage.getItem("userAvatar") ||
-          user?.picture ||
-          "/avatars/avatar1.png"
-      );
-      setUserName(localStorage.getItem("userName") || user?.name || "Guest");
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, [user]);
+    if (!user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const toggleMenu = (menu: string) => {
     setExpandedMenus((prev) =>
@@ -93,7 +85,7 @@ const DashboardLayout = () => {
               </div>
             </div>
 
-            {isAuthenticated && user && (
+            {user && (
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
@@ -102,7 +94,7 @@ const DashboardLayout = () => {
                   <img
                     className="h-8 w-8 rounded-full"
                     src={userAvatar}
-                    alt={user.name}
+                    
                   />
                   <ChevronDown
                     className={`h-4 w-4 text-gray-400 transition-transform ${
@@ -144,16 +136,16 @@ const DashboardLayout = () => {
         <div className="w-64 fixed h-full bg-gray-800 shadow-lg">
           <div className="flex flex-col h-full">
             {/* User Info */}
-            {isAuthenticated && user && (
+            {user && (
               <div className="p-4 border-b border-gray-700">
                 <div className="flex items-center space-x-3">
                   <img
                     className="h-10 w-10 rounded-full"
                     src={userAvatar}
-                    alt={user.name}
+                   
                   />
                   <div>
-                    <div className="font-medium text-gray-200">{user.name}</div>
+                    <div className="font-medium text-gray-200">{user.displayName}</div>
                   </div>
                 </div>
               </div>
