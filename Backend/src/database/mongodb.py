@@ -1,5 +1,8 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from config.settings import MONGO_URL, DB_NAME, logger
+from config.settings import logger
+
+MONGO_URL = "mongodb+srv://admin:8bx2pW7Dglj9j5RY@cluster0.tui77.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+DB_NAME = "vecem"
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
