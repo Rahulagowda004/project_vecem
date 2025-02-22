@@ -1,10 +1,26 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import NeuralNetwork from './NeuralNetwork';
-import PageBackground from './layouts/PageBackground';
 
 const Footer = () => {
+  const hoverVariants = {
+    initial: { scale: 1 },
+    whileHover: { 
+      scale: 1.02,
+      transition: { duration: 0.2, ease: "easeInOut" }
+    }
+  };
+
+  const linkHoverVariants = {
+    initial: { color: "#ffffff" },
+    whileHover: { 
+      color: "#22d3ee",
+      transition: { duration: 0.2 }
+    }
+  };
+
   return (
     <div className="relative bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
       <NeuralNetwork />
@@ -18,39 +34,64 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Quick Links - Left */}
             <motion.div 
-              whileHover={{ scale: 1.02 }}
+              variants={hoverVariants}
+              initial="initial"
+              whileHover="whileHover"
               className="col-span-1 text-left"
             >
               <h4 className="text-3xl font-semibold text-cyan-500">Quick Links</h4>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a href="#" className="text-white hover:text-cyan-500">About Us</a>
+                  <motion.div
+                    variants={linkHoverVariants}
+                    initial="initial"
+                    whileHover="whileHover"
+                  >
+                    <Link to="/" className="text-white">
+                      About Us
+                    </Link>
+                  </motion.div>
                 </li>
               </ul>
             </motion.div>
 
             {/* Copyright - Center */}
             <motion.div 
-              whileHover={{ scale: 1.02 }}
+              variants={hoverVariants}
+              initial="initial"
+              whileHover="whileHover"
               className="col-span-1 flex items-center justify-center"
             >
-              <div className="text-sm text-white hover:text-cyan-500 text-center">
+              <motion.div 
+                variants={linkHoverVariants}
+                initial="initial"
+                whileHover="whileHover"
+                className="text-sm text-white text-center"
+              >
                 © {new Date().getFullYear()} Vecem. All rights reserved.
-              </div>
+              </motion.div>
             </motion.div>
 
             {/* Contact Us - Right */}
             <motion.div 
-              whileHover={{ scale: 1.02 }}
+              variants={hoverVariants}
+              initial="initial"
+              whileHover="whileHover"
               className="col-span-1 text-right"
             >
               <h4 className="text-3xl font-semibold text-cyan-500">Contact Us</h4>
               <div className="mt-4 space-y-4">
                 <div className="flex items-center space-x-3 text-gray-400 justify-end">
-                  <div className="flex items-center gap-2">
-                    <Mail size={20} className="text-cyan-500" />
-                    <span className="text-white hover:text-cyan-500">vectorembeddings@gmail.com</span>
-                  </div>
+                  <motion.a
+                    href="mailto:vectorembeddings@gmail.com"
+                    variants={linkHoverVariants}
+                    initial="initial"
+                    whileHover="whileHover"
+                    className="flex items-center gap-2"
+                  >
+                    <Mail size={20} className="text-cyan-500 hover:bg-cyan-500" />
+                    <span className="text-white hover:bg-cyan-500">vectorembeddings@gmail.com</span>
+                  </motion.a>
                 </div>
               </div>
             </motion.div>
