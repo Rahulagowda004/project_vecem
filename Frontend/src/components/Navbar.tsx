@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
-import PageBackground from './layouts/PageBackground';
 import NeuralNetwork from './NeuralNetwork';
 import { motion } from 'framer-motion';
 

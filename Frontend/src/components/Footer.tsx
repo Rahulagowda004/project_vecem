@@ -1,8 +1,6 @@
-import React from 'react';
 import { Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 import NeuralNetwork from './NeuralNetwork';
-import PageBackground from './layouts/PageBackground';
 
 const Footer = () => {
   return (
