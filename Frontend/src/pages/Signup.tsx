@@ -2,6 +2,8 @@ import React from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { validateEmail, validatePassword } from '../utils/validation';
+import PageBackground from '../components/layouts/PageBackground';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SignupProps {
   onClose?: () => void;
@@ -104,85 +106,186 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
 
   render() {
     const { error, loading } = this.state;
-    const { auth } = this.props; // Get auth from props
+    const { auth } = this.props;
 
     if (auth.user) {
       return <Navigate to="/login" replace />;
     }
 
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="bg-gray-800 p-8 rounded-lg shadow-lg w-96">
-          <h2 className="text-2xl font-bold text-white mb-6">Sign Up</h2>
-          
-          <form onSubmit={this.handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <input
-                type="text"
-                name="username"
-                placeholder="Username"
-                onChange={this.handleInputChange}
-                className="w-full p-2 rounded border bg-gray-700 text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                onChange={this.handleInputChange}
-                className="w-full p-2 rounded border bg-gray-700 text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                onChange={this.handleInputChange}
-                className="w-full p-2 rounded border bg-gray-700 text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                onChange={this.handleInputChange}
-                className="w-full p-2 rounded border bg-gray-700 text-white"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
+      <PageBackground>
+        <motion.div
+          initial={{ opacity: 0.9 }}
+          animate={{ opacity: 1 }}
+          className="min-h-screen flex items-center justify-center px-4"
+        >
+          <motion.div
+            initial={{ opacity: 0.95, y: 20 }}
+            animate={{ 
+              opacity: 1, 
+              y: 0,
+              transition: {
+                duration: 0.5,
+                repeat: 0
+              }
+            }}
+            className="bg-slate-800/50 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700/50"
+          >
+            <motion.h2
+              initial={{ opacity: 0.9 }}
+              animate={{ 
+                opacity: 1,
+                transition: {
+                  duration: 0.3,
+                  repeat: 0
+                }
+              }}
+              className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent mb-8 text-center"
             >
-              {loading ? 'Creating Account...' : 'Sign Up'}
-            </button>
+              Create Account
+            </motion.h2>
 
-            <p className="text-gray-400 text-center">
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-400 hover:text-blue-300">
-                Login
-              </Link>
-            </p>
-          </form>
-        </div>
-      </div>
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg mb-6 text-sm"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.form
+              onSubmit={this.handleSubmit}
+              className="space-y-6"
+              initial="initial"
+              animate="animate"
+              variants={{
+                initial: { opacity: 0.9 },
+                animate: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.1,
+                    when: "beforeChildren",
+                    repeat: 0
+                  }
+                }
+              }}
+            >
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="space-y-2"
+              >
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Username"
+                  onChange={this.handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700/50 text-white placeholder-gray-400 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="space-y-2"
+              >
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  onChange={this.handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700/50 text-white placeholder-gray-400 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="space-y-2"
+              >
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  onChange={this.handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700/50 text-white placeholder-gray-400 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="space-y-2"
+              >
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  onChange={this.handleInputChange}
+                  className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700/50 text-white placeholder-gray-400 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </motion.div>
+
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full p-3 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-semibold
+                  hover:from-blue-600 hover:to-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 
+                  disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating Account...
+                  </span>
+                ) : (
+                  'Sign Up'
+                )}
+              </motion.button>
+
+              <motion.p
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1 }
+                }}
+                className="text-gray-400 text-center text-sm"
+              >
+                Already have an account?{' '}
+                <Link to="/login" className="text-blue-400 hover:text-cyan-300 transition-colors duration-200 font-medium">
+                  Login
+                </Link>
+              </motion.p>
+            </motion.form>
+          </motion.div>
+        </motion.div>
+      </PageBackground>
     );
   }
 }
