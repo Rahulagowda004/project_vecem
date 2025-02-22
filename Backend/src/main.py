@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from config.settings import CORS_ORIGINS
 from routes.upload_router import router as upload_router
-from database.mongodb import close_db_client
+from database.mongodb import close_db_client, user_profile_collection
+from schemas.user_profile import UserProfile
 
 app = FastAPI()
 
@@ -25,12 +26,15 @@ async def root():
 
 class UserRequest(BaseModel):
     email: str
+    username: str
 
 @app.post("/register-user")
 async def register_user(user_data: UserRequest):
-    email = user_data.email  # Email is explicitly sent from frontend
-    
-    print(f"User with email {email} is registering")
+    email = user_data.email
+    username = user_data.username
+
+    user_profile = UserProfile(email=email, username=username)
+    user_profile_collection.insert_one(user_profile.dict())
 
     return {"message": "User registered successfully", "email": email}
 

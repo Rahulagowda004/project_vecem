@@ -94,6 +94,7 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
         },
         body: JSON.stringify({
           email: user.email,
+          username: this.state.username, // Include username
         }),
       });
     }
