@@ -1,10 +1,58 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Database, Users, PersonStanding } from 'lucide-react';
-import PageBackground from './layouts/PageBackground';
 import NeuralNetwork from './NeuralNetwork';
 
 const Features = () => {
+  const cardVariants = {
+    initial: { 
+      opacity: 0,
+      y: 20 
+    },
+    animate: (index: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        delay: index * 0.2,
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }),
+    whileHover: {
+      scale: 1.05,
+      y: -5,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const iconVariants = {
+    initial: { 
+      scale: 0,
+      rotate: -180 
+    },
+    animate: {
+      scale: 1,
+      rotate: 0,
+      transition: {
+        type: "spring",
+        stiffness: 200,
+        damping: 20
+      }
+    },
+    whileHover: {
+      scale: 1.2,
+      rotate: 15,
+      transition: {
+        duration: 0.2,
+        type: "spring",
+        stiffness: 300
+      }
+    }
+  };
+
   const features = [
     {
       icon: <Database className="w-10 h-10 text-cyan-400" />,
@@ -24,7 +72,7 @@ const Features = () => {
   ];
 
   return (
-    <div className="py-20 bg-gradient-to-br ">
+    <div className="py-20 bg-gradient-to-br">
       <NeuralNetwork />
       <div className="container relative mx-auto px-4">
         <div className="flex flex-wrap">
@@ -53,27 +101,46 @@ const Features = () => {
           {features.map((feature, index) => (
             <motion.div 
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              custom={index}
+              initial="initial"
+              animate="animate"
+              whileHover="whileHover"
+              variants={cardVariants}
               className="w-full md:w-4/12 px-4 mb-8"
             >
-              <motion.div 
-                whileHover={{ y: -10, boxShadow: "0 0 20px rgba(34, 211, 238, 0.1)" }}
-                className="h-full relative flex flex-col bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-cyan-500/10"
-              >
+              <div className="h-full relative flex flex-col bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-cyan-500/10">
                 <div className="flex-auto">
-                  <div className="mb-6 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gray-900/50 border border-cyan-500/20">
+                  <motion.div 
+                    variants={iconVariants}
+                    className="mb-6 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gray-900/50 border border-cyan-500/20"
+                  >
                     {feature.icon}
-                  </div>
-                  <h6 className="text-xl font-semibold text-white mb-4">
+                  </motion.div>
+                  <motion.h6 
+                    variants={{
+                      whileHover: { 
+                        color: "#22d3ee",
+                        x: 5,
+                        transition: { duration: 0.2 }
+                      }
+                    }}
+                    className="text-xl font-semibold text-cyan-500 mb-4"
+                  >
                     {feature.title}
-                  </h6>
-                  <p className="text-gray-400 leading-relaxed">
+                  </motion.h6>
+                  <motion.p 
+                    variants={{
+                      whileHover: { 
+                        color: "#94a3b8",
+                        transition: { duration: 0.2 }
+                      }
+                    }}
+                    className="text-white leading-relaxed"
+                  >
                     {feature.description}
-                  </p>
+                  </motion.p>
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
           ))}
         </div>
