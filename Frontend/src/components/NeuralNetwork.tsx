@@ -1,52 +1,93 @@
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef } from 'react';
 
-const NeuralNetwork = () => {
-  const numPoints = 15;
-  const [points, setPoints] = useState<{ x: number; y: number}[]>([]);
+// Types
+interface NetworkNode {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+}
+
+// Constants
+const NETWORK_CONFIG = {
+  NODE_COUNT: 50,
+  CONNECTION_DISTANCE: 150,
+  NODE_RADIUS: 3,
+  NODE_COLOR: 'rgba(6, 182, 212, 0.8)',
+  INITIAL_VELOCITY_RANGE: 2,
+} as const;
+
+const NeuralNetwork: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const generatePoints = () =>
-      Array.from({ length: numPoints }).map(() => ({
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        
-      }));
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    setPoints(generatePoints());
+    const context = canvas.getContext('2d');
+    if (!context) return;
+
+    const networkNodes: NetworkNode[] = Array.from({ length: NETWORK_CONFIG.NODE_COUNT }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * NETWORK_CONFIG.INITIAL_VELOCITY_RANGE,
+      vy: (Math.random() - 0.5) * NETWORK_CONFIG.INITIAL_VELOCITY_RANGE,
+    }));
+
+    const updateAndRenderFrame = () => {
+      if (!canvas || !context) return;
+
+      // Update canvas dimensions
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // Update and render nodes
+      networkNodes.forEach(node => {
+        // Update position
+        node.x += node.vx;
+        node.y += node.vy;
+
+        // Handle boundary collisions
+        if (node.x < 0 || node.x > window.innerWidth) node.vx *= -1;
+        if (node.y < 0 || node.y > window.innerHeight) node.vy *= -1;
+
+        // Render node
+        context.beginPath();
+        context.arc(node.x, node.y, NETWORK_CONFIG.NODE_RADIUS, 0, Math.PI * 2);
+        context.fillStyle = NETWORK_CONFIG.NODE_COLOR;
+        context.fill();
+      });
+
+      // Render connections between nodes
+      networkNodes.forEach((sourceNode, index) => {
+        networkNodes.slice(index + 1).forEach(targetNode => {
+          const dx = targetNode.x - sourceNode.x;
+          const dy = targetNode.y - sourceNode.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < NETWORK_CONFIG.CONNECTION_DISTANCE) {
+            const opacity = 1 - distance / NETWORK_CONFIG.CONNECTION_DISTANCE;
+            context.beginPath();
+            context.moveTo(sourceNode.x, sourceNode.y);
+            context.lineTo(targetNode.x, targetNode.y);
+            context.strokeStyle = `rgba(6, 182, 212, ${opacity})`;
+            context.stroke();
+          }
+        });
+      });
+
+      requestAnimationFrame(updateAndRenderFrame);
+    };
+
+    updateAndRenderFrame();
   }, []);
 
   return (
-    <div className="relative">
-      {/* Background animation */}
-      <div className="absolute inset-0 pointer-events-none">
-        {points.map((point, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-cyan-500 rounded-full"
-            initial={{ x: point.x, y: point.y }}
-            animate={{
-              x: [
-                point.x,
-                point.x + Math.random() * 40 - 20,
-                point.x + Math.random() * 40 - 20,
-              ],
-              y: [
-                point.y,
-                point.y + Math.random() * 40 - 20,
-                point.y + Math.random() * 40 - 20,
-              ],
-            }}
-            transition={{
-              duration: 2+ Math.random() * 2,
-              repeat: Infinity,
-              repeatType: "loop",
-              ease: "easeInOut",
-            }}
-          />
-        ))}
-      </div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="fixed top-0 left-0 w-full h-full -z-10"
+      aria-label="Neural Network Background Animation"
+    />
   );
 };
 

@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
 
+import NeuralNetwork from './NeuralNetwork';
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -15,37 +17,44 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gray-800 p-4 fixed top-0 w-full z-50">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-white font-bold text-xl">
-          Vecem
-        </Link>
+    <nav className="fixed top-0 w-full z-50">
+      <div className="relative bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900">
+        <NeuralNetwork />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 opacity-70"></div>
+        <div className="container mx-auto flex justify-between items-center p-4 relative z-10">
+          <Link to="/" className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500">
+            Vecem
+          </Link>
 
-        <div className="flex items-center gap-4">
-          {!user ? (
-            <Link 
-              to="/login" 
-              onClick={() => setIsOpen(true)}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Login/Signup
-            </Link>
-          ) : (
-            <div className="flex items-center gap-4">
-              <Link to="/home" className="text-white hover:text-gray-300">
-                Home
-              </Link>
-              <Link to="/profile" className="text-white hover:text-gray-300">
-                Profile
-              </Link>
-              <button
-                onClick={logout}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          <div className="flex items-center gap-4">
+            {!user ? (
+              <Link 
+                to="/login" 
+                onClick={() => setIsOpen(true)}
+                className="bg-cyan-500/20 border border-cyan-500/50 text-white px-6 py-2.5 rounded-lg hover:bg-cyan-600 transition-all duration-300 backdrop-blur-sm flex items-center gap-2"
               >
-                Logout
-              </button>
-            </div>
-          )}
+                Login/Signup
+              </Link>
+            ) : (
+              <div className="flex items-center gap-6">
+                <Link to="/home" className="text-gray-300 hover:text-cyan-400 transition-colors">
+                  Home
+                </Link>
+                <Link to="/profile" className="text-gray-300 hover:text-cyan-400 transition-colors">
+                  Profile
+                </Link>
+                <button
+                  onClick={logout}
+                  className="bg-red-500/20 border border-red-500/50 text-red-400 px-6 py-2.5 rounded-lg hover:bg-red-500/30 transition-all duration-300"
+                >
+                  Logout
+                </button>
+              </div>
+              
+            )}
+            
+          </div>
+          
         </div>
       </div>
 
@@ -60,21 +69,21 @@ const Navbar = () => {
               ✕
             </button>
             {isLoginMode ? (
-                <div>
+              <div>
                 <Login />
                 <button
                   onClick={() => setIsLoginMode(false)}
-                  className="mt-4 text-blue-400 hover:text-blue-300 text-center w-full"
+                  className="mt-4 text-cyan-400 hover:text-cyan-300 text-center w-full"
                 >
                   Don't have an account? Sign up
                 </button>
-                </div>
+              </div>
             ) : (
               <div>
                 <Signup onClose={handleClose} />
                 <button
                   onClick={() => setIsLoginMode(true)}
-                  className="mt-4 text-blue-400 hover:text-blue-300 text-center w-full"
+                  className="mt-4 text-cyan-400 hover:text-cyan-300 text-center w-full"
                 >
                   Already have an account? Login
                 </button>
