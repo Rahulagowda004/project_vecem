@@ -3,10 +3,11 @@ from typing import List
 import os
 import json
 from datetime import datetime
-from src.config.settings import UPLOAD_DIR, logger
+from src.utils.logger import logging
 from src.models.uploads import DatasetInfo, UploadResponse
 from src.utils.file_handlers import ensure_directories, save_uploaded_file
 from src.database.mongodb import save_metadata
+from src.config.settings import UPLOAD_DIR
 
 router = APIRouter()
 
@@ -73,5 +74,5 @@ async def upload_files(
         )
 
     except Exception as e:
-        logger.error(f"Upload error: {str(e)}")
+        logging.error(f"Upload error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,14 +1,14 @@
 import os
 from fastapi import UploadFile
-from src.config.settings import logger
+from src.utils.logger import logging
 
 def ensure_directories(directory_path: str) -> bool:
     try:
         os.makedirs(directory_path, exist_ok=True)
-        logger.info(f"Created directory: {directory_path}")
+        logging.info(f"Created directory: {directory_path}")
         return True
     except Exception as e:
-        logger.error(f"Error creating directory: {e}")
+        logging.error(f"Error creating directory: {e}")
         return False
 
 async def save_uploaded_file(file: UploadFile, directory: str) -> str:
@@ -25,8 +25,8 @@ async def save_uploaded_file(file: UploadFile, directory: str) -> str:
 
         with open(file_path, "wb") as f:
             f.write(content)
-        logger.info(f"Saved file: {file_path}")
+        logging.info(f"Saved file: {file_path}")
         return safe_filename
     except Exception as e:
-        logger.error(f"Error saving file {safe_filename}: {str(e)}")
+        logging.error(f"Error saving file {safe_filename}: {str(e)}")
         return None

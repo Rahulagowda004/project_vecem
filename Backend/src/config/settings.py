@@ -7,13 +7,6 @@ from pydantic_settings import BaseSettings
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 
-# Logging configuration
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
 class Settings(BaseSettings):
     # Base settings
     DATABASE_URL: str = "sqlite:///./test.db"
