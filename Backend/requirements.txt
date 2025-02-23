@@ -1,19 +1,10 @@
-<<<<<<< HEAD
-fastapi
-python-multipart
-uvicorn
-pymongo
-motor
-pydantic
-pydantic-setting
-python-jose
-pydantic[email]
-=======
-motor
-uvicorn
-pymongo
-pydantic
-python-dotenv
-pydantic[email]
-fastapi
->>>>>>> 3639f4b49c20a96d326c7b48e6e0fb5b92a8634c
+fastapi>=0.115.8
+uvicorn>=0.34.0
+python-multipart>=0.0.20
+pymongo>=4.11.1
+motor>=3.7.0
+pydantic>=2.10.6
+pydantic-settings>=2.7.1
+python-dotenv>=1.0.1
+email-validator>=2.2.0
+bson>=0.5.10

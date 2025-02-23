@@ -1,2 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vecem"
+version = "0.1.0"
+description = "Project Vecem - A project for vector data open sourcing"
+authors = [
+    { name = "Rahul A Gowda", email = "rahulgowda277@gmail.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "fastapi>=0.115.8",
+    "uvicorn>=0.34.0",
+    "python-multipart>=0.0.20",
+    "pymongo>=4.11.1",
+    "motor>=3.7.0",
+    "pydantic>=2.10.6",
+    "pydantic-settings>=2.7.1",
+    "python-dotenv>=1.0.1",
+    "email-validator>=2.2.0",
+    "bson>=0.5.10"
+]
+
+[project.urls]
+Homepage = "https://github.com/rahulgowda277/project_vecem"
+Repository = "https://github.com/rahulgowda277/project_vecem.git"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
 [tool.pytest.ini_options]
-pythonpath = "src"
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
