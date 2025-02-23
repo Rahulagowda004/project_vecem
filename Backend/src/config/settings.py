@@ -1,6 +1,4 @@
 import os
-import logging
-from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 
 # Path configuration
