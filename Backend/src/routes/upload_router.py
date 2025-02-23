@@ -7,7 +7,9 @@ from src.utils.logger import logging
 from src.models.models import DatasetInfo, UploadResponse
 from src.utils.file_handlers import ensure_directories, save_uploaded_file
 from src.database.mongodb import save_metadata
-from src.config.settings import UPLOAD_DIR
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
 
 router = APIRouter()
 
