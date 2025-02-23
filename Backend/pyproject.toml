@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "vecem"
+name = "src"  # Changed from "vecem" to match directory structure
 version = "0.1.0"
 description = "Project Vecem - A project for vector data open sourcing"
 authors = [
