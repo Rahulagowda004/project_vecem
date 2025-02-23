@@ -45,7 +45,6 @@ const DashboardLayout = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(["datasets"]);
   const [userAvatar, setUserAvatar] = useState(user?.photoURL || "/avatars/avatar1.png");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -54,14 +53,6 @@ const DashboardLayout = () => {
       navigate('/');
     }
   }, [user, navigate]);
-
-  const toggleMenu = (menu: string) => {
-    setExpandedMenus((prev) =>
-      prev.includes(menu)
-        ? prev.filter((item) => item !== menu)
-        : [...prev, menu]
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
@@ -144,11 +135,11 @@ const DashboardLayout = () => {
             {user && (
               <div className="p-4 border-b border-gray-800">
                 <div className="flex items-center space-x-3">
-                  <div className="flex flex-col">
+                  <div className="flex flex-col text-center">
                     <div className="font-medium text-white text-centre items-center">
                       Hey, {user.displayName}!
                     </div>
-                    <div className="text-cyan-400 text-sm text-left whitespace-nowrap">
+                    <div className="text-slate-400 text-sm text-left whitespace-nowrap">
                     See what the community is building.
                     </div>
                   </div>
@@ -160,53 +151,43 @@ const DashboardLayout = () => {
             <nav className="flex-1 px-2 py-4 space-y-2">
               {/* Datasets Section */}
               <div className="space-y-2">
-                <button
-                  onClick={() => toggleMenu("datasets")}
-                  className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
-                >
-                  <div className="flex items-center">
-                    <Database className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                    <span className="group-hover:text-cyan-400 transition-colors">Datasets</span>
-                  </div>
-                  <ChevronRight
-                    className={`h-4 w-4 text-gray-400 transition-transform duration-300 ease-in-out ${
-                      expandedMenus.includes("datasets") ? "transform rotate-90" : ""
-                    }`}
-                  />
-                </button>
+                <div className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10">
+                  <Database className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                  <span className="group-hover:text-cyan-400 transition-colors">Datasets</span>
+                </div>
 
-                {expandedMenus.includes("datasets") && (
-                  <div className="ml-4 space-y-1 relative before:absolute before:left-[1.6rem] before:top-0 before:h-full before:w-px before:bg-gradient-to-b before:from-cyan-500/50 before:to-transparent before:opacity-25">
-                    {[
-                      { icon: FileAudio, label: "Audio Dataset", count: 128 },
-                      { icon: Image, label: "Image Dataset", count: 256 },
-                      { icon: FileVideo, label: "Video Dataset", count: 64 },
-                      { icon: FileText, label: "Text Dataset", count: 512 },
-                    ].map(({ icon: Icon, label, count }) => (
-                      <button
-                        key={label}
-                        className="flex items-center justify-between w-full px-4 py-2.5 text-sm text-gray-400 rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6"
-                      >
-                        <div className="flex items-center">
-                          <Icon className="h-4 w-4 mr-3 text-cyan-400/50 group-hover:text-cyan-400 transition-colors" />
-                          <span className="group-hover:text-gray-200 transition-colors">{label}</span>
-                        </div>
-                        <span className="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-500 group-hover:bg-cyan-500/10 group-hover:text-cyan-400 transition-all">
-                          {count}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="ml-4 space-y-1 relative before:absolute before:left-[1.6rem] before:top-0 before:h-full before:w-px before:bg-gradient-to-b before:from-cyan-500/50 before:to-transparent before:opacity-25">
+                  {[
+                    { icon: FileAudio, label: "Audio Dataset", count: 128 },
+                    { icon: Image, label: "Image Dataset", count: 256 },
+                    { icon: FileVideo, label: "Video Dataset", count: 64 },
+                    { icon: FileText, label: "Text Dataset", count: 512 },
+                  ].map(({ icon: Icon, label, count }) => (
+                    <button
+                      key={label}
+                      className="flex items-center justify-between w-full px-4 py-2.5 text-sm text-gray-400 rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6"
+                    >
+                      <div className="flex items-center">
+                        <Icon className="h-4 w-4 mr-3 text-cyan-400/50 group-hover:text-cyan-400 transition-colors" />
+                        <span className="group-hover:text-gray-200 transition-colors">{label}</span>
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-500 group-hover:bg-cyan-500/10 group-hover:text-cyan-400 transition-all">
+                        {count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Community Section */}
               <Link
                 to="/community"
-                className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-300 rounded-lg hover:bg-gray-800 transition-colors"
+                className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
               >
-                <Users className="h-5 w-5 mr-3 text-cyan-400" />
-                Community
+                <div className="flex items-center">
+                  <Users className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                  <span className="group-hover:text-cyan-400 transition-colors">Community</span>
+                </div>
               </Link>
             </nav>
           </div>

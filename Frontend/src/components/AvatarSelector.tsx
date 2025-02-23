@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Dispatch, SetStateAction } from "react";
 import { Camera } from "lucide-react";
 
+interface User {
+  displayName?: string;
+}
+
 interface AvatarSelectorProps {
-  user: any;
+  user: User;
   selectedAvatar: string;
-  setSelectedAvatar: (avatar: string) => void;
-  isEditing?: boolean;
+  setSelectedAvatar: Dispatch<SetStateAction<string>>;
+  isEditing: boolean;
+  className?: string;
 }
 
 const AvatarSelector: React.FC<AvatarSelectorProps> = ({
@@ -36,7 +41,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
         <img
           src={selectedAvatar}
           alt={user?.displayName || "Profile"}
-          className="w-24 h-24 rounded-xl object-cover border-2 border-gray-700/50 shadow-xl"
+          className="w-32 h-32 rounded-full object-cover border-2 border-gray-700/50 shadow-xl"
         />
       </div>
     );
@@ -48,7 +53,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
         <img
           src={selectedAvatar}
           alt={user?.displayName || "Profile"}
-          className="w-24 h-24 rounded-xl object-cover border-2 border-gray-700/50 shadow-xl"
+          className="w-32 h-32 rounded-full object-cover border-2 border-gray-700/50 shadow-xl"
         />
         <button className="absolute bottom-2 right-2 bg-gray-800/90 p-2 rounded-full hover:bg-gray-700 transition-all border border-gray-600/50">
           <Camera size={16} className="text-cyan-400" />

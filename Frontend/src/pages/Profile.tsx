@@ -174,7 +174,7 @@ const Profile = () => {
               <img
                 src={selectedAvatar}
                 alt={user?.displayName || "Profile"}
-                className="w-32 h-32 rounded-xl border-2 border-gray-700/50 shadow-xl object-cover"
+                className="w-32 h-32 rounded-full border-2 border-cyan-400 shadow-xl object-cover"
               />
             </div>
 
