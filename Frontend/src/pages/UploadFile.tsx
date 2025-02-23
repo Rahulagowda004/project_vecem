@@ -1,13 +1,6 @@
 import React, { useState, useRef, FormEvent } from "react";
-import {
-  FileType,
-  Image,
-  Mic,
-  Video,
-  Upload as UploadIcon,
-} from "lucide-react";
+import { FileType, Image, Mic, Video } from "lucide-react";
 import { uploadDataset, DatasetForm } from "../services/uploadService";
-import { text } from "framer-motion/client";
 
 // Add custom type definition for directory input
 interface DirectoryInputElement extends HTMLInputElement {
@@ -204,16 +197,20 @@ const UploadFile = () => {
   };
 
   return (
-    <div className="min-h-screen h-full bg-gray-900 text-gray-100">
+    <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
-        <div className="min-h-[calc(100vh-4rem)] bg-gray-800 rounded-lg shadow-xl p-6 md:p-8 overflow-y-auto">
-          <h1 className="text-3xl font-bold mb-6 text-center text-indigo-400">
-            Dataset Information
+        <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
+          <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-6">
+            Data Specifications
           </h1>
+          <h5 className="text-white text-center items-center mb-8">
+            Specify your dataset, select the format, ensure compatibility, and track uploads in real time.
+          </h5>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Dataset Name */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 text-white">
                 Dataset Name
               </label>
               <input
@@ -221,54 +218,58 @@ const UploadFile = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                  text-white placeholder-gray-400
+                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
                 placeholder="Enter dataset name"
               />
             </div>
 
+            {/* Description */}
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 text-white">
                 Dataset Description
               </label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition h-32"
+                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                  text-white placeholder-gray-400
+                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition h-32"
                 placeholder="Enter dataset description"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Dataset Type
-              </label>
-              <div className="flex gap-4">
-                {["Raw", "Vectorized", "Both"].map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setDatasetType(type as typeof datasetType)}
-                    className={`flex-1 px-4 py-2 rounded-md border transition ${
-                      datasetType === type
-                        ? "bg-indigo-600 border-indigo-500"
-                        : "bg-gray-700 border-gray-600 hover:bg-gray-600"
+            {/* Dataset Type */}
+            <label className="block text-sm font-medium mb-2 text-white">
+              Dataset Type
+            </label>
+            <div className="flex gap-4">
+              {["Raw", "Vectorized", "Both"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setDatasetType(type as typeof datasetType)}
+                  className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all duration-200 
+                    ${datasetType === type
+                      ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                      : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
                     }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
+                >
+                  {type}
+                </button>
+              ))}
             </div>
 
+            {/* Vectorized Settings */}
             {(datasetType === "Vectorized" || datasetType === "Both") && (
               <div className="space-y-4 p-6 bg-gray-750 rounded-lg border border-gray-700">
-                <h3 className="text-lg font-medium text-gray-100 mb-4">
+                <h3 className="text-lg font-medium text-white mb-4">
                   Vectorized Settings
                 </h3>
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-100">
+                    <label className="block text-sm font-medium mb-2 text-white">
                       Dataset Dimensions
                     </label>
                     <input
@@ -276,12 +277,14 @@ const UploadFile = () => {
                       name="dimensions"
                       value={formData.dimensions || ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400
+                        focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
                       placeholder="Enter dimensions"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-100">
+                    <label className="block text-sm font-medium mb-2 text-white">
                       Vector Database
                     </label>
                     <input
@@ -289,7 +292,9 @@ const UploadFile = () => {
                       name="vectorDatabase"
                       value={formData.vectorDatabase || ""}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400
+                        focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
                       placeholder="Enter vector database name"
                     />
                   </div>
@@ -297,81 +302,35 @@ const UploadFile = () => {
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Domain</label>
-              <select
-                name="domain"
-                value={formData.domain}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
-              >
-                <option value="">Select a domain</option>
-                {domains.map((domain) => (
-                  <option key={domain} value={domain.toLowerCase()}>
-                    {domain}
-                  </option>
-                ))}
-              </select>
+            {/* File Type Selection */}
+            <label className="block text-sm font-medium mb-2 text-white">
+              File Type
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { type: "Image", icon: Image },
+                { type: "Audio", icon: Mic },
+                { type: "Text", icon: FileType },
+                { type: "Video", icon: Video }
+              ].map(({ type, icon: Icon }) => (
+                <button
+                  key={type}
+                  onClick={() => setFileType(type as typeof fileType)}
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
+                    ${fileType === type
+                      ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                      : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
+                    }`}
+                >
+                  <Icon className="w-6 h-6 mb-2" />
+                  {type}
+                </button>
+              ))}
             </div>
 
+            {/* File Upload Section */}
             <div>
-              <label className="block text-sm font-medium mb-2">
-                File Type
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setFileType("Image")}
-                  className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
-                    fileType === "Image"
-                      ? "bg-indigo-600 border-indigo-500"
-                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                  }`}
-                >
-                  <Image className="w-6 h-6 mb-2" />
-                  Image
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFileType("Audio")}
-                  className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
-                    fileType === "Audio"
-                      ? "bg-indigo-600 border-indigo-500"
-                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                  }`}
-                >
-                  <Mic className="w-6 h-6 mb-2" />
-                  Audio
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFileType("Text")}
-                  className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
-                    fileType === "Text"
-                      ? "bg-indigo-600 border-indigo-500"
-                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                  }`}
-                >
-                  <FileType className="w-6 h-6 mb-2" />
-                  Text
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFileType("Video")}
-                  className={`flex flex-col items-center justify-center p-4 rounded-md border transition ${
-                    fileType === "Video"
-                      ? "bg-indigo-600 border-indigo-500"
-                      : "bg-gray-700 border-gray-600 hover:bg-gray-600"
-                  }`}
-                >
-                  <Video className="w-6 h-6 mb-2" />
-                  Video
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 text-white">
                 Upload Dataset
               </label>
               <div className="space-y-4">
@@ -379,14 +338,18 @@ const UploadFile = () => {
                   <>
                     {/* Raw Data Upload */}
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-100">
+                      <label className="block text-sm font-medium mb-2 text-white">
                         Raw Data
                       </label>
                       <input
                         ref={rawInputRef}
                         type="file"
                         onChange={(e) => handleFileChange(e, "raw")}
-                        className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
+                        className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
+                          text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
+                          file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
+                          hover:file:bg-cyan-700 file:transition-colors"
                         accept={fileTypeMap[fileType].join(",")}
                         multiple
                         directory=""
@@ -396,14 +359,18 @@ const UploadFile = () => {
 
                     {/* Vectorized Data Upload */}
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-100">
+                      <label className="block text-sm font-medium mb-2 text-white">
                         Vectorized Data
                       </label>
                       <input
                         ref={vectorizedInputRef}
                         type="file"
                         onChange={(e) => handleFileChange(e, "vectorized")}
-                        className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
+                        className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
+                          text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
+                          file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
+                          hover:file:bg-cyan-700 file:transition-colors"
                         accept={fileTypeMap[fileType].join(",")}
                         multiple
                         directory=""
@@ -421,7 +388,11 @@ const UploadFile = () => {
                         datasetType.toLowerCase() as "raw" | "vectorized"
                       )
                     }
-                    className="w-full px-4 py-2 rounded-md bg-gray-700 border border-gray-600 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700"
+                    className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                      focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
+                      text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
+                      file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
+                      hover:file:bg-cyan-700 file:transition-colors"
                     accept={fileTypeMap[fileType].join(",")}
                     multiple
                     directory=""
@@ -431,7 +402,7 @@ const UploadFile = () => {
 
                 {/* Upload Progress Bars */}
                 {uploadProgress.progress > 0 && (
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
                         <span>Upload Progress</span>
@@ -444,7 +415,7 @@ const UploadFile = () => {
                               ? "bg-green-500"
                               : uploadProgress.status === "error"
                               ? "bg-red-500"
-                              : "bg-indigo-500"
+                              : "bg-cyan-500"
                           }`}
                           style={{ width: `${uploadProgress.progress}%` }}
                         />
@@ -453,7 +424,11 @@ const UploadFile = () => {
                   </div>
                 )}
               </div>
-              {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+              {error && (
+                <p className="text-sm text-red-400 mt-2">
+                  {error}
+                </p>
+              )}
               <p className="mt-2 text-sm text-gray-400">
                 Select a folder containing only {fileType.toLowerCase()} files
               </p>
@@ -461,9 +436,12 @@ const UploadFile = () => {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded-md font-medium transition"
+              className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-cyan-400 
+                text-white font-medium rounded-xl shadow-lg shadow-cyan-500/20 
+                hover:from-cyan-600 hover:to-cyan-500 transition-colors
+                focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
             >
-              Submit
+              Upload
             </button>
           </form>
         </div>
