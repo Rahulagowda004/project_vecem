@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from config.settings import CORS_ORIGINS
-from routes.upload_router import router as upload_router
-from database.mongodb import close_db_client, user_profile_collection
-from schemas.user_profile import UserProfile, Dataset
+from src.config.settings import CORS_ORIGINS
+from src.routes.upload_router import router as upload_router
+from src.database.mongodb import close_db_client, user_profile_collection
+from src.schemas.user_profile import UserProfile, Dataset
 from fastapi.encoders import jsonable_encoder
 from bson import ObjectId
 

@@ -1,6 +1,6 @@
 import os
 from fastapi import UploadFile
-from config.settings import logger
+from src.config.settings import logger
 
 def ensure_directories(directory_path: str) -> bool:
     try:

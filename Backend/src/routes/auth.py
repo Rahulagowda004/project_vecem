@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from models.user import User  # Use absolute import
+from src.models.user import User  # Use absolute import
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
