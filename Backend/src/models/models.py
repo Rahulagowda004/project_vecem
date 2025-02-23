@@ -32,6 +32,6 @@ class UserProfile(BaseModel):
     uid: str
     email: str
     name: Optional[str] = None
-    bio: Optional[str] = None
+    bio: Optional[str] = "About me..."
     profilePicture: Optional[str] = None
     datasets: List[DatasetInfo] = Field(default_factory=list)
