@@ -62,7 +62,7 @@ async def register_uid(uid_request: UidRequest):
         print(f"User profile found for UID: {uid, email,name}")
         return jsonable_encoder(user_profile_serializer(user_profile))
     else:
-        new_user_profile = UserProfile(uid=uid, email=email)
+        new_user_profile = UserProfile(uid=uid, email=email,name = name)
         user_profile_collection.insert_one(new_user_profile.dict())
         print(f"New user profile created for UID: {uid,email,name}")
         return jsonable_encoder(new_user_profile.dict())
