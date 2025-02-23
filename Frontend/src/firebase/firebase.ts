@@ -28,10 +28,12 @@ const googleProvider = new GoogleAuthProvider();
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     const uid = user.uid;
+    const name = user.displayName || "";
     const email = user.email || "";
     console.log("User UID:", uid);
     console.log("User Email:", email);
-    await sendFirebaseUidAndEmail(uid, email); // Send UID and email to backend
+    console.log("User Name:", name);
+    await sendFirebaseUidAndEmail(uid, email, name); // Send UID and email to backend
   }
 });
 

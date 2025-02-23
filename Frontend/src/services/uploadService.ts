@@ -94,11 +94,16 @@ export const sendFirebaseUid = async (uid: string) => {
   }
 };
 
-export const sendFirebaseUidAndEmail = async (uid: string, email: string) => {
+export const sendFirebaseUidAndEmail = async (
+  uid: string,
+  email: string,
+  name: string
+) => {
   try {
     const response = await axios.post(`${API_URL}/register-uid`, {
       uid,
       email,
+      name,
     });
     console.log("UID and email sent successfully:", response.data);
   } catch (error) {

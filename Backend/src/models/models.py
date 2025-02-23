@@ -15,6 +15,7 @@ class UserRequest(BaseModel):
 class UidRequest(BaseModel):
     uid: str
     email: str
+    name: str
 
 # Dataset Models
 class Dataset(BaseModel):

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
 from src.database.mongodb import close_db_client, user_profile_collection
-from src.models.models import UserProfile
+from src.models.models import UserProfile,UidRequest
 from fastapi.encoders import jsonable_encoder
 from bson import ObjectId
 
@@ -47,10 +47,6 @@ async def register_user(user_data: UserRequest):
 
     return {"message": "User registered successfully", "email": email}
 
-class UidRequest(BaseModel):
-    uid: str
-    email: str
-
 def user_profile_serializer(user_profile):
     user_profile["_id"] = str(user_profile["_id"])
     return user_profile
@@ -59,16 +55,16 @@ def user_profile_serializer(user_profile):
 async def register_uid(uid_request: UidRequest):
     uid = uid_request.uid
     email = uid_request.email
-
+    name = uid_request.name
     user_profile = await user_profile_collection.find_one({"uid": uid})
 
     if user_profile:
-        print(f"User profile found for UID: {uid}")
+        print(f"User profile found for UID: {uid, email,name}")
         return jsonable_encoder(user_profile_serializer(user_profile))
     else:
         new_user_profile = UserProfile(uid=uid, email=email)
         user_profile_collection.insert_one(new_user_profile.dict())
-        print(f"New user profile created for UID: {uid}")
+        print(f"New user profile created for UID: {uid,email,name}")
         return jsonable_encoder(new_user_profile.dict())
 
 # Shutdown event
