@@ -7,8 +7,8 @@ class Dataset(BaseModel):
     description: str
 
 class UserProfile(BaseModel):
+    uid: str
     email: str
-    username: str
     name: Optional[str] = None
     bio: Optional[str] = None
     profilePicture: Optional[str] = None
