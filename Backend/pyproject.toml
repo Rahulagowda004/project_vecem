@@ -18,16 +18,16 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "fastapi>=0.115.8",
-    "uvicorn>=0.34.0",
-    "python-multipart>=0.0.20",
-    "pymongo>=4.11.1",
-    "motor>=3.7.0",
-    "pydantic>=2.10.6",
-    "pydantic-settings>=2.7.1",
-    "python-dotenv>=1.0.1",
-    "email-validator>=2.2.0",
-    "bson>=0.5.10"
+    "fastapi",
+    "uvicorn",
+    "python-multipart",
+    "pymongo",
+    "motor",
+    "pydantic",
+    "pydantic-settings",
+    "python-dotenv",
+    "email-validator",
+    "bson"
 ]
 
 [project.urls]
