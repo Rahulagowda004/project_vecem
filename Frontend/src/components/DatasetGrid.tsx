@@ -16,9 +16,10 @@ interface Dataset {
 
 interface DatasetGridProps {
   searchQuery: string;
+  category: string;
 }
 
-const DatasetGrid = ({ searchQuery }: DatasetGridProps) => {
+const DatasetGrid = ({ searchQuery, category }: DatasetGridProps) => {
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -36,7 +37,7 @@ const DatasetGrid = ({ searchQuery }: DatasetGridProps) => {
       size: '2.3 GB',
       lastModified: '2024-03-10',
       icon: Music,
-      description: 'High-quality speech samples for machine learning applications',
+      description: 'High-quality speech samples are essential for machine learning applications, enabling accurate speech recognition, text-to-speech synthesis, and language modeling. Clean, noise-free audio with diverse accents, tones, and speaking styles enhances model performance. Properly labeled datasets improve training efficiency and accuracy. Applications include voice assistants, transcription services, and AI-driven customer support. Sampling rates of at least 16 kHz and lossless formats ensure clarity. Ethical considerations, including user consent and data privacy, are crucial when collecting speech samples. Open-source datasets help researchers and developers build innovative solutions. High-quality speech data ultimately leads to more natural and responsive AI-driven voice applications.High-quality speech samples are essential for machine learning applications, enabling accurate speech recognition, text-to-speech synthesis, and language modeling. Clean, noise-free audio with diverse accents, tones, and speaking styles enhances model performance. Properly labeled datasets improve training efficiency and accuracy. Applications include voice assistants, transcription services, and AI-driven customer support. Sampling rates of at least 16 kHz and lossless formats ensure clarity. Ethical considerations, including user consent and data privacy, are crucial when collecting speech samples. Open-source datasets help researchers and developers build innovative solutions. High-quality speech data ultimately leads to more natural and responsive AI-driven voice applications.',
       datasetType: 'Vectorized',
       dimensions: '512 x 1',
       domain: 'Education'
@@ -79,14 +80,12 @@ const DatasetGrid = ({ searchQuery }: DatasetGridProps) => {
   ];
 
   const filteredDatasets = datasets.filter(dataset => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      dataset.name.toLowerCase().includes(searchLower) ||
-      dataset.type.toLowerCase().includes(searchLower) ||
-      dataset.domain.toLowerCase().includes(searchLower) ||
-      dataset.description.toLowerCase().includes(searchLower) ||
-      dataset.datasetType.toLowerCase().includes(searchLower)
-    );
+    const searchTerm = searchQuery.toLowerCase();
+    const matchesSearch = 
+      dataset.name.toLowerCase().includes(searchTerm) ||
+      dataset.domain.toLowerCase().includes(searchTerm);
+    const matchesCategory = category === 'all' || dataset.type === category;
+    return matchesSearch && matchesCategory;
   });
 
   const handleDatasetClick = (dataset: Dataset) => {
@@ -181,7 +180,11 @@ const DatasetGrid = ({ searchQuery }: DatasetGridProps) => {
             <div className="space-y-6">
               <div className="p-4 bg-gray-800/30 rounded-xl">
                 <h3 className="text-lg font-medium text-white mb-2">Description</h3>
-                <p className="text-gray-400 leading-relaxed">{selectedDataset.description}</p>
+                <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                  <p className="text-gray-400 leading-relaxed text-justify pr-4">
+                    {selectedDataset.description}
+                  </p>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -222,5 +225,29 @@ const DatasetGrid = ({ searchQuery }: DatasetGridProps) => {
     </div>
   );
 };
+
+const styles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.5);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(6, 182, 212, 0.3);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(6, 182, 212, 0.5);
+  }
+`;
+
+const styleSheet = document.createElement("style");
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
 
 export default DatasetGrid;

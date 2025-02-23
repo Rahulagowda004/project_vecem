@@ -47,6 +47,7 @@ const DashboardLayout = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState(user?.photoURL || "/avatars/avatar1.png");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
     if (!user) {
@@ -157,18 +158,41 @@ const DashboardLayout = () => {
                 </div>
 
                 <div className="ml-4 space-y-1 relative before:absolute before:left-[1.6rem] before:top-0 before:h-full before:w-px before:bg-gradient-to-b before:from-cyan-500/50 before:to-transparent before:opacity-25">
+                  {/* Add All Datasets button first */}
+                  <button
+                    onClick={() => setSelectedCategory("all")}
+                    className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${
+                      selectedCategory === "all" ? 'bg-cyan-500/10 text-cyan-400' : 'text-gray-400'
+                    } rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6`}
+                  >
+                    <div className="flex items-center">
+                      <Database className={`h-4 w-4 mr-3 ${
+                        selectedCategory === "all" ? 'text-cyan-400' : 'text-cyan-400/50'
+                      } group-hover:text-cyan-400 transition-colors`} />
+                      <span className="group-hover:text-gray-200 transition-colors">All Datasets</span>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-500 group-hover:bg-cyan-500/10 group-hover:text-cyan-400 transition-all">
+                      960
+                    </span>
+                  </button>
+
                   {[
-                    { icon: FileAudio, label: "Audio Dataset", count: 128 },
-                    { icon: Image, label: "Image Dataset", count: 256 },
-                    { icon: FileVideo, label: "Video Dataset", count: 64 },
-                    { icon: FileText, label: "Text Dataset", count: 512 },
-                  ].map(({ icon: Icon, label, count }) => (
+                    { icon: FileAudio, label: "Audio Dataset", count: 128, category: "audio" },
+                    { icon: Image, label: "Image Dataset", count: 256, category: "image" },
+                    { icon: FileVideo, label: "Video Dataset", count: 64, category: "video" },
+                    { icon: FileText, label: "Text Dataset", count: 512, category: "text" },
+                  ].map(({ icon: Icon, label, count, category }) => (
                     <button
                       key={label}
-                      className="flex items-center justify-between w-full px-4 py-2.5 text-sm text-gray-400 rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6"
+                      onClick={() => setSelectedCategory(category)}
+                      className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${
+                        selectedCategory === category ? 'bg-cyan-500/10 text-cyan-400' : 'text-gray-400'
+                      } rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6`}
                     >
                       <div className="flex items-center">
-                        <Icon className="h-4 w-4 mr-3 text-cyan-400/50 group-hover:text-cyan-400 transition-colors" />
+                        <Icon className={`h-4 w-4 mr-3 ${
+                          selectedCategory === category ? 'text-cyan-400' : 'text-cyan-400/50'
+                        } group-hover:text-cyan-400 transition-colors`} />
                         <span className="group-hover:text-gray-200 transition-colors">{label}</span>
                       </div>
                       <span className="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-500 group-hover:bg-cyan-500/10 group-hover:text-cyan-400 transition-all">
@@ -196,7 +220,7 @@ const DashboardLayout = () => {
         {/* Main Content */}
         <div className="flex-1 ml-64">
           <main className="p-6">
-            <DatasetGrid searchQuery={searchQuery} />
+            <DatasetGrid searchQuery={searchQuery} category={selectedCategory} />
           </main>
         </div>
       </div>
