@@ -93,3 +93,21 @@ export const sendFirebaseUid = async (uid: string) => {
     throw error;
   }
 };
+
+export const sendFirebaseUidAndEmail = async (uid: string, email: string) => {
+  try {
+    const response = await axios.post(`${API_URL}/register-uid`, {
+      uid,
+      email,
+    });
+    console.log("UID and email sent successfully:", response.data);
+  } catch (error) {
+    console.error("Error sending UID and email:", error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.detail || "Failed to send UID and email"
+      );
+    }
+    throw error;
+  }
+};

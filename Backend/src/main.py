@@ -40,12 +40,14 @@ async def register_user(user_data: UserRequest):
 
 class UidRequest(BaseModel):
     uid: str
+    email: str
 
 @app.post("/register-uid")
 async def register_uid(uid_request: UidRequest):
     uid = uid_request.uid
-    print(f"Received UID: {uid}")
-    return {"message": "UID received successfully"}
+    email = uid_request.email
+    print(f"Received UID: {uid}, Email: {email}")
+    return {"message": "UID and email received successfully"}
 
 # Shutdown event
 @app.on_event("shutdown")

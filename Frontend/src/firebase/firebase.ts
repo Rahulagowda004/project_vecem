@@ -3,7 +3,7 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
-import { sendFirebaseUid } from "../services/uploadService"; // Import the new function
+import { sendFirebaseUidAndEmail } from "../services/uploadService"; // Import the updated function
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOvJJJ09So-UMX48LPD11Qph5u4kHdY5c",
@@ -28,8 +28,10 @@ const googleProvider = new GoogleAuthProvider();
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     const uid = user.uid;
+    const email = user.email || "";
     console.log("User UID:", uid);
-    await sendFirebaseUid(uid); // Send UID to backend
+    console.log("User Email:", email);
+    await sendFirebaseUidAndEmail(uid, email); // Send UID and email to backend
   }
 });
 
