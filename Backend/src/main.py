@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
@@ -59,6 +59,13 @@ async def register_uid(uid_request: UidRequest):
         user_profile_collection.insert_one(new_user_profile.dict())
         print(f"New user profile created for UID: {uid,email,name}")
         return jsonable_encoder(new_user_profile.dict())
+
+@app.get("/user-profile/{uid}")
+async def get_user_profile(uid: str):
+    user_profile = await user_profile_collection.find_one({"uid": uid})
+    if user_profile:
+        return jsonable_encoder(user_profile_serializer(user_profile))
+    raise HTTPException(status_code=404, detail="User profile not found")
 
 # Shutdown event
 @app.on_event("shutdown")

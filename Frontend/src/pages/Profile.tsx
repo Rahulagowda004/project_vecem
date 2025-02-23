@@ -11,10 +11,11 @@ import {
   Download,
   Share2,
 } from "lucide-react";
-import { useAuth } from '../contexts/AuthContext';  // Replace Auth0 with Firebase auth context
-import { doc, getDoc } from 'firebase/firestore';
-import { firestore } from '../firebase/firebase';
+import { useAuth } from "../contexts/AuthContext"; // Replace Auth0 with Firebase auth context
+import { doc, getDoc } from "firebase/firestore";
+import { firestore } from "../firebase/firebase";
 import AvatarSelector from "../components/AvatarSelector";
+import axios from "axios";
 
 interface ProfileStats {
   projects: number;
@@ -39,14 +40,15 @@ interface FolderItem {
   type: "folder" | "file";
 }
 
+const API_URL = "http://localhost:5000";
+
 const Profile = () => {
   const { user } = useAuth(); // Replace Auth0 hook with Firebase auth context
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [aboutText, setAboutText] = useState(
-    localStorage.getItem("userAbout") ||
-    "About me..."
+    localStorage.getItem("userAbout") || "About me..."
   );
   const [selectedAvatar, setSelectedAvatar] = useState(
     localStorage.getItem("userAvatar") ||
@@ -64,25 +66,42 @@ const Profile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.uid) return;
-      
+
       try {
-        const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+        // Fetch data from Firestore
+        const userDoc = await getDoc(doc(firestore, "users", user.uid));
+
+        // Fetch data from our backend
+        const backendResponse = await axios.get(
+          `${API_URL}/user-profile/${user.uid}`
+        );
+        const backendData = backendResponse.data;
+
         if (userDoc.exists()) {
           const data = userDoc.data();
           setUserData(data);
-          setUserName(data.displayName || user.displayName || 'Guest');
-          setAboutText(data.about || localStorage.getItem("userAbout") || aboutText);
-          setSelectedAvatar(data.photoURL || user.photoURL || '/avatars/avatar1.png');
+          setUserName(data.displayName || user.displayName || "Guest");
+          // Use bio from backend first, then fallback to other sources
+          setAboutText(
+            backendData.bio ||
+              data.about ||
+              localStorage.getItem("userAbout") ||
+              "About me..."
+          );
+          setSelectedAvatar(
+            data.photoURL || user.photoURL || "/avatars/avatar1.png"
+          );
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
 
     fetchUserData();
   }, [user]);
 
-  const displayUsername = userData?.username || user?.email?.split('@')[0] || 'username';
+  const displayUsername =
+    userData?.username || user?.email?.split("@")[0] || "username";
 
   const folders: FolderItem[] = [
     {
@@ -140,16 +159,16 @@ const Profile = () => {
     setIsEditing(false);
     localStorage.setItem("userAvatar", selectedAvatar);
     localStorage.setItem("userName", userName);
-    
+
     if (user?.uid) {
       try {
-        await updateDoc(doc(firestore, 'users', user.uid), {
+        await updateDoc(doc(firestore, "users", user.uid), {
           displayName: userName,
           photoURL: selectedAvatar,
-          about: aboutText
+          about: aboutText,
         });
       } catch (error) {
-        console.error('Error updating profile:', error);
+        console.error("Error updating profile:", error);
       }
     }
   };
@@ -179,7 +198,6 @@ const Profile = () => {
                   <h1 className="text-3xl font-bold text-gray-100">
                     {userName}
                   </h1>
-                 
                 </div>
                 <p className="text-gray-400 mt-2">{aboutText}</p>
                 <div className="flex items-center space-x-6 mt-4">
@@ -299,7 +317,9 @@ const Profile = () => {
                             <span>{folder.files} files</span>
                             <span>{folder.size}</span>
                             <span>
-                              {new Date(folder.lastModified).toLocaleDateString()}
+                              {new Date(
+                                folder.lastModified
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
