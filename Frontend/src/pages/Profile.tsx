@@ -12,9 +12,9 @@ import {
   Share2,
 } from "lucide-react";
 import { useAuth } from '../contexts/AuthContext';  // Replace Auth0 with Firebase auth context
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../firebase/firebase';
-import AvatarSelector from "../components/AvatarSelector";
+import { User } from 'firebase/auth';
 
 interface ProfileStats {
   projects: number;
@@ -143,7 +143,8 @@ const Profile = () => {
     
     if (user?.uid) {
       try {
-        await updateDoc(doc(firestore, 'users', user.uid), {
+        const userRef = doc(firestore, 'users', user.uid);
+        await updateDoc(userRef, {
           displayName: userName,
           photoURL: selectedAvatar,
           about: aboutText
@@ -163,164 +164,171 @@ const Profile = () => {
   }
 
   return (
-    <>
-      <div className="min-h-screen bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Simplified Header */}
-          <div className="bg-gray-800 rounded-lg p-6 mb-8">
-            <div className="flex items-start space-x-8">
-              <AvatarSelector
-                user={user}
-                selectedAvatar={selectedAvatar}
-                setSelectedAvatar={setSelectedAvatar}
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+        {/* Profile Header */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 p-8">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Simple Avatar Display */}
+            <div className="relative">
+              <img
+                src={selectedAvatar}
+                alt={user?.displayName || "Profile"}
+                className="w-32 h-32 rounded-xl border-2 border-gray-700/50 shadow-xl object-cover"
               />
-              <div className="flex-1">
-                <div className="flex flex-col">
-                  <h1 className="text-3xl font-bold text-gray-100">
+            </div>
+
+            <div className="flex-1">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-3xl font-bold text-white">
                     {userName}
                   </h1>
-                  <span className="text-gray-400 text-sm mt-1">@{displayUsername}</span>
+                  <p className="text-gray-300">@{displayUsername}</p>
                 </div>
-                <p className="text-gray-400 mt-2">{aboutText}</p>
-                <div className="flex items-center space-x-6 mt-4">
-                  <div className="flex items-center space-x-2 text-gray-400">
-                    <Mail size={16} />
-                    <span>{user.email || "guest@example.com"}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-gray-400">
-                    <Github size={16} />
-                    <a
-                      href={`https://github.com/${displayUsername}`}
-                      className="hover:text-blue-400"
-                    >
-                      @{displayUsername}
-                    </a>
-                  </div>
-                </div>
+               
               </div>
-            </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-4 gap-4 mt-8">
-              {Object.entries(stats).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="bg-gray-700 rounded-lg p-4 text-center"
-                >
-                  <h3 className="text-2xl font-bold text-gray-100">{value}</h3>
-                  <p className="text-gray-400 capitalize">{key}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+              <p className="mt-4 text-white max-w-2xl">{aboutText}</p>
 
-          {/* Files Section */}
-          <div className="bg-gray-800 rounded-lg">
-            <div className="p-4 border-b border-gray-700">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <h2 className="text-xl font-semibold text-gray-100">Files</h2>
-                  <div className="flex items-center bg-gray-700 rounded-lg p-1">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2 rounded ${
-                        viewMode === "grid" ? "bg-gray-600" : ""
-                      }`}
-                    >
-                      <Grid size={18} className="text-gray-400" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2 rounded ${
-                        viewMode === "list" ? "bg-gray-600" : ""
-                      }`}
-                    >
-                      <List size={18} className="text-gray-400" />
-                    </button>
-                  </div>
-                  <select
-                    onChange={(e) =>
-                      setSortBy(e.target.value as "name" | "date" | "size")
-                    }
-                    className="bg-gray-700 text-gray-200 rounded-lg px-3 py-2 text-sm"
-                  >
-                    <option value="date">Sort by Date</option>
-                    <option value="name">Sort by Name</option>
-                    <option value="size">Sort by Size</option>
-                  </select>
+              <div className="flex gap-6 mt-4">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Mail className="w-4 h-4 text-cyan-400 hover:text-cyan-400" />
+                  {user.email}
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    <Search
-                      className="absolute left-3 top-2.5 text-gray-400"
-                      size={18}
-                    />
-                    <input
-                      type="text"
-                      placeholder="Search files..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 bg-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <Link to="/upload">
-                    <button className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-white flex items-center space-x-2">
-                      <Upload size={18} />
-                      <span>Upload</span>
-                    </button>
-                  </Link>
-                </div>
+                <a href={`https://github.com/${displayUsername}`} 
+                   className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors">
+                  <Github className="w-4 h-4 text-cyan-400" />
+                  @{displayUsername}
+                </a>
               </div>
-            </div>
 
-            <div className="p-6">
-              <div
-                className={`grid gap-4 ${
-                  viewMode === "grid" ? "grid-cols-3" : "grid-cols-1"
-                }`}
-              >
-                {filteredFolders.map((folder) => (
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                {Object.entries(stats).map(([key, value]) => (
                   <div
-                    key={folder.id}
-                    className="bg-gray-750 rounded-lg p-4 hover:bg-gray-700 transition-all cursor-pointer group"
+                    key={key}
+                    className="bg-gray-700/50 rounded-xl p-4 border border-gray-600/50"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="p-2 bg-gray-600 rounded-lg group-hover:bg-gray-650">
-                          <Folder className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h3 className="font-medium text-gray-100">
-                              {folder.name}
-                            </h3>
-                          </div>
-                          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-400">
-                            <span>{folder.files} files</span>
-                            <span>{folder.size}</span>
-                            <span>
-                              {new Date(folder.lastModified).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-all">
-                        <button className="p-2 hover:bg-gray-600 rounded-full">
-                          <Share2 className="w-4 h-4 text-gray-400" />
-                        </button>
-                        <button className="p-2 hover:bg-gray-600 rounded-full">
-                          <Download className="w-4 h-4 text-gray-400" />
-                        </button>
-                      </div>
-                    </div>
+                    <div className="text-2xl font-bold text-cyan-400">{value}</div>
+                    <div className="text-gray-400 capitalize">{key}</div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         </div>
+
+        {/* Files Section */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50 overflow-hidden">
+          <div className="border-b border-gray-700/50">
+            <div className="p-6 flex flex-col md:flex-row gap-4 justify-between">
+              <div className="flex items-center gap-4">
+                <h2 className="text-2xl font-bold text-white">Files</h2>
+                <div className="flex bg-gray-700/50 rounded-xl p-1">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-lg transition-colors ${
+                      viewMode === "grid" ? "bg-cyan-500/20 text-cyan-400" : "text-gray-400"
+                    }`}
+                  >
+                    <Grid size={18} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-lg transition-colors ${
+                      viewMode === "list" ? "bg-cyan-500/20 text-cyan-400" : "text-gray-400"
+                    }`}
+                  >
+                    <List size={18} />
+                  </button>
+                </div>
+                <select
+                  onChange={(e) =>
+                    setSortBy(e.target.value as "name" | "date" | "size")
+                  }
+                  className="bg-gray-700 text-gray-200 rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="name">Sort by Name</option>
+                  <option value="size">Sort by Size</option>
+                </select>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-2.5 text-cyan-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder="Search files..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 pr-4 py-2 bg-gray-700/50 rounded-xl text-white 
+                      placeholder-gray-400 border border-gray-600/50 
+                      focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20"
+                  />
+                </div>
+
+                <Link to="/upload">
+                  <button
+                    className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-400 
+                      text-white rounded-xl hover:from-cyan-600 hover:to-cyan-500"
+                  >
+                    <Upload size={18} className="inline mr-2" />
+                    Upload
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Files Grid/List */}
+          <div className="p-6">
+            <div
+              className={`grid gap-4 ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1"}`}
+            >
+              {filteredFolders.map((folder) => (
+                <div
+                  key={folder.id}
+                  className="bg-gray-700/50 rounded-xl p-4 border border-gray-600/50 
+                    hover:border-cyan-500/50 transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="p-2 bg-gray-600 rounded-lg group-hover:bg-gray-650">
+                        <Folder className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <h3 className="font-medium text-gray-100">
+                            {folder.name}
+                          </h3>
+                        </div>
+                        <div className="flex items-center space-x-4 mt-1 text-sm text-gray-400">
+                          <span>{folder.files} files</span>
+                          <span>{folder.size}</span>
+                          <span>
+                            {new Date(folder.lastModified).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-all">
+                      <button className="p-2 hover:bg-gray-600 rounded-full">
+                        <Share2 className="w-4 h-4 text-gray-400" />
+                      </button>
+                      <button className="p-2 hover:bg-gray-600 rounded-full">
+                        <Download className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
