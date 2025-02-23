@@ -46,7 +46,7 @@ const Profile = () => {
   const [isEditingAbout, setIsEditingAbout] = useState(false);
   const [aboutText, setAboutText] = useState(
     localStorage.getItem("userAbout") ||
-    "Creative professional with over 8 years of experience in digital design and art direction..."
+    "About me..."
   );
   const [selectedAvatar, setSelectedAvatar] = useState(
     localStorage.getItem("userAvatar") ||
@@ -179,7 +179,7 @@ const Profile = () => {
                   <h1 className="text-3xl font-bold text-gray-100">
                     {userName}
                   </h1>
-                  <span className="text-gray-400 text-sm mt-1">@{displayUsername}</span>
+                 
                 </div>
                 <p className="text-gray-400 mt-2">{aboutText}</p>
                 <div className="flex items-center space-x-6 mt-4">
