@@ -80,3 +80,16 @@ export const uploadDataset = async (
     throw error;
   }
 };
+
+export const sendFirebaseUid = async (uid: string) => {
+  try {
+    const response = await axios.post(`${API_URL}/register-uid`, { uid });
+    console.log("UID sent successfully:", response.data);
+  } catch (error) {
+    console.error("Error sending UID:", error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.detail || "Failed to send UID");
+    }
+    throw error;
+  }
+};

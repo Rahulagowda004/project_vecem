@@ -38,6 +38,15 @@ async def register_user(user_data: UserRequest):
 
     return {"message": "User registered successfully", "email": email}
 
+class UidRequest(BaseModel):
+    uid: str
+
+@app.post("/register-uid")
+async def register_uid(uid_request: UidRequest):
+    uid = uid_request.uid
+    print(f"Received UID: {uid}")
+    return {"message": "UID received successfully"}
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
