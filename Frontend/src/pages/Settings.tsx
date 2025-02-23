@@ -11,7 +11,7 @@ const Settings = () => {
   const [name, setName] = useState(localStorage.getItem("userName") || user?.displayName || "Guest");
   const [about, setAbout] = useState(
     localStorage.getItem("userAbout") || 
-    "Creative professional with over 8 years of experience in digital design and art direction."
+    "About me..."
   );
   const [selectedAvatar, setSelectedAvatar] = useState(
     localStorage.getItem("userAvatar") ||
@@ -112,12 +112,12 @@ const Settings = () => {
                         onChange={(e) => setName(e.target.value)}
                         className="text-2xl bg-gray-700 text-gray-100 rounded px-2 py-1 mb-1"
                       />
-                      <span className="text-gray-400 text-sm ml-2">@{displayUsername}</span>
+                      
                     </>
                   ) : (
                     <>
                       <h1 className="text-3xl font-bold text-gray-100">{name}</h1>
-                      <span className="text-gray-400 text-sm mt-1">@{displayUsername}</span>
+                      
                     </>
                   )}
                 </div>
