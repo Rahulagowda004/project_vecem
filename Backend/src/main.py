@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
 from src.database.mongodb import close_db_client, user_profile_collection
-from src.models.models import UserProfile,UidRequest
+from src.models.models import UserProfile,UidRequest,UserRequest
 from fastapi.encoders import jsonable_encoder
 from bson import ObjectId
 
@@ -31,20 +31,13 @@ app.include_router(upload_router)
 async def root():
     return {"message": "File Upload API is running"}
 
-class UserRequest(BaseModel):
-    uid: str
-    email: str
-    username: str
-
 @app.post("/register-user")
 async def register_user(user_data: UserRequest):
     uid = user_data.uid
     email = user_data.email
     username = user_data.username
-
     user_profile = UserProfile(uid=uid, email=email, username=username)
     user_profile_collection.insert_one(user_profile.dict())
-
     return {"message": "User registered successfully", "email": email}
 
 def user_profile_serializer(user_profile):

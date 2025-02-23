@@ -17,12 +17,6 @@ class UidRequest(BaseModel):
     email: str
     name: str
 
-# Dataset Models
-class Dataset(BaseModel):
-    id: str
-    name: str
-    description: str
-
 class DatasetInfo(BaseModel):
     name: str
     description: Optional[str] = None
@@ -40,4 +34,4 @@ class UserProfile(BaseModel):
     name: Optional[str] = None
     bio: Optional[str] = None
     profilePicture: Optional[str] = None
-    datasets: List[Dataset] = Field(default_factory=list)
+    datasets: List[DatasetInfo] = Field(default_factory=list)
