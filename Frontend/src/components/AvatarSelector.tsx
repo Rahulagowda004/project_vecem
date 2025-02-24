@@ -9,7 +9,8 @@ interface AvatarSelectorProps {
   user: User;
   selectedAvatar: string;
   setSelectedAvatar: Dispatch<SetStateAction<string>>;
-  isEditing: boolean;
+  isEditing?: boolean;
+  onAvatarClick?: () => void;
   className?: string;
 }
 
@@ -18,46 +19,46 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
   selectedAvatar,
   setSelectedAvatar,
   isEditing = false,
+  onAvatarClick
 }) => {
   const [showAvatars, setShowAvatars] = useState(false);
   const [avatars, setAvatars] = useState<string[]>([]);
 
+  const handleAvatarClick = () => {
+    if (isEditing) {
+      setShowAvatars(true);
+    }
+  };
+
   useEffect(() => {
     // Load all avatars from public/avatars directory
     const importAvatars = async () => {
-      const avatars = [];
+      const avatarPaths = [];
       for (let i = 1; i <= 6; i++) {
-        avatars.push(`/avatars/avatar${i}.png`);
+        avatarPaths.push(`/avatars/avatar${i}.png`);
       }
-      setAvatars(avatars);
+      setAvatars(avatarPaths);
     };
 
     importAvatars();
   }, []);
 
-  if (!isEditing) {
-    return (
-      <div className="relative">
-        <img
-          src={selectedAvatar}
-          alt={user?.displayName || "Profile"}
-          className="w-32 h-32 rounded-full object-cover border-2 border-gray-700/50 shadow-xl"
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="relative z-0">
-      <div className="relative cursor-pointer" onClick={() => setShowAvatars(true)}>
+      <div 
+        className="relative cursor-pointer" 
+        onClick={handleAvatarClick}
+      >
         <img
           src={selectedAvatar}
           alt={user?.displayName || "Profile"}
           className="w-32 h-32 rounded-full object-cover border-2 border-gray-700/50 shadow-xl"
         />
-        <button className="absolute bottom-2 right-2 bg-gray-800/90 p-2 rounded-full hover:bg-gray-700 transition-all border border-gray-600/50">
-          <Camera size={16} className="text-cyan-400" />
-        </button>
+        {isEditing && (
+          <button className="absolute bottom-2 right-2 bg-gray-800/90 p-2 rounded-full hover:bg-gray-700 transition-all border border-gray-600/50">
+            <Camera size={16} className="text-cyan-400" />
+          </button>
+        )}
       </div>
 
       {showAvatars && (

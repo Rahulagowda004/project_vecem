@@ -2,7 +2,6 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import HomePage from "./pages/HomePage";
-import Profile from "./pages/Profile";
 import UploadFile from "./pages/UploadFile";
 import Community from "./pages/Community";
 import UserProfile from "./pages/UserProfile";
@@ -11,6 +10,7 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import { useAuth } from './contexts/AuthContext';
+import DatasetEdit from './pages/DatasetEdit';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -43,12 +43,13 @@ function App() {
           user ? <Navigate to="/home" replace /> : <Signup />
         } />
         <Route path="/home" element={<HomePage />} />
-        <Route path="/profile" element={<Profile />} />
+
         <Route path="/upload" element={<UploadFile />} />
         <Route path="/community" element={<Community />} />
         <Route path="/profile/:userId" element={<UserProfile />} />
-        <Route path="/datasets/:id" element={<DatasetDetail />} />
+        <Route path="/datasets/:datasetId" element={<DatasetDetail />} /> {/* Changed from :Id to :datasetId */}
         <Route path="/settings" element={<Settings />} />
+        <Route path="/datasets/:datasetId/edit" element={<DatasetEdit />} />
 
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />

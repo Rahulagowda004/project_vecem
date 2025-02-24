@@ -104,7 +104,7 @@ const DashboardLayout = () => {
                   <div className="absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-gray-900 ring-1 ring-cyan-400/10">
                     <div className="py-1 divide-y divide-gray-800">
                       <Link
-                        to="/profile"
+                        to="/profile/:userId"
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
                       >
                         <User className="h-4 w-4 mr-3 text-cyan-400" />

@@ -76,6 +76,13 @@ const DatasetDetail = () => {
     },
   };
 
+  interface PythonExamples {
+    basic: {
+      label: string;
+      code: string;
+    };
+  }
+  
   const pythonExamples: PythonExamples = {
     basic: {
       label: "Basic Usage",
