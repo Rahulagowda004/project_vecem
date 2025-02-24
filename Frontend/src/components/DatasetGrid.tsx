@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Image, Music, Video, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Dataset {
   id: number;
@@ -12,6 +13,7 @@ interface Dataset {
   datasetType: 'Raw' | 'Vectorized';
   dimensions?: string;
   domain: string;
+  username: string;
 }
 
 interface DatasetGridProps {
@@ -22,6 +24,7 @@ interface DatasetGridProps {
 const DatasetGrid = ({ searchQuery, category }: DatasetGridProps) => {
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const domains = [
     'Health', 'Education', 'Automobile', 'Finance', 'Business', 
@@ -40,7 +43,8 @@ const DatasetGrid = ({ searchQuery, category }: DatasetGridProps) => {
       description: 'High-quality speech samples are essential for machine learning applications, enabling accurate speech recognition, text-to-speech synthesis, and language modeling. Clean, noise-free audio with diverse accents, tones, and speaking styles enhances model performance. Properly labeled datasets improve training efficiency and accuracy. Applications include voice assistants, transcription services, and AI-driven customer support. Sampling rates of at least 16 kHz and lossless formats ensure clarity. Ethical considerations, including user consent and data privacy, are crucial when collecting speech samples. Open-source datasets help researchers and developers build innovative solutions. High-quality speech data ultimately leads to more natural and responsive AI-driven voice applications.High-quality speech samples are essential for machine learning applications, enabling accurate speech recognition, text-to-speech synthesis, and language modeling. Clean, noise-free audio with diverse accents, tones, and speaking styles enhances model performance. Properly labeled datasets improve training efficiency and accuracy. Applications include voice assistants, transcription services, and AI-driven customer support. Sampling rates of at least 16 kHz and lossless formats ensure clarity. Ethical considerations, including user consent and data privacy, are crucial when collecting speech samples. Open-source datasets help researchers and developers build innovative solutions. High-quality speech data ultimately leads to more natural and responsive AI-driven voice applications.',
       datasetType: 'Vectorized',
       dimensions: '512 x 1',
-      domain: 'Education'
+      domain: 'Education',
+      username: 'john.doe'
     },
     {
       id: 2,
@@ -51,7 +55,8 @@ const DatasetGrid = ({ searchQuery, category }: DatasetGridProps) => {
       icon: Image,
       description: 'Comprehensive image dataset for object detection training',
       datasetType: 'Raw',
-      domain: 'Automobile'
+      domain: 'Automobile',
+      username: 'alice.smith'
     },
     {
       id: 3,
@@ -63,7 +68,8 @@ const DatasetGrid = ({ searchQuery, category }: DatasetGridProps) => {
       description: 'Video clips for action recognition models',
       datasetType: 'Vectorized',
       dimensions: '1024 x 768',
-      domain: 'Sports'
+      domain: 'Sports',
+      username: 'bob.wilson'
     },
     {
       id: 4,
@@ -75,7 +81,8 @@ const DatasetGrid = ({ searchQuery, category }: DatasetGridProps) => {
       description: 'Large-scale text corpus for natural language processing',
       datasetType: 'Vectorized',
       dimensions: '768 x 1',
-      domain: 'Business'
+      domain: 'Business',
+      username: 'emma.brown'
     }
   ];
 
@@ -206,18 +213,27 @@ const DatasetGrid = ({ searchQuery, category }: DatasetGridProps) => {
                   </ul>
                 </div>
 
-                <div className="p-4 bg-gray-800/30 rounded-xl">
-                  <h3 className="text-lg font-medium text-white mb-3">Actions</h3>
-                  <div className="space-y-2">
-                    <button className="w-full px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-lg transition-colors">
-                      Download Dataset
-                    </button>
-                    <button className="w-full px-4 py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors">
-                      View Documentation
+                <div className="p-4 bg-gray-800/30 rounded-xl flex flex-col h-full">
+                  <h3 className="text-lg font-medium text-white mb-4">Actions</h3>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div className="flex flex-col p-2 bg-gray-800/30 rounded-lg">
+                      <span className="text-gray-300 font-medium">{selectedDataset.username}</span>
+                      <span className="text-xs text-gray-500">Dataset Owner</span>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        navigate(`/datasets/${selectedDataset.id}`);
+                      }}
+                      className="w-full px-4 py-3 mt-4 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors font-medium"
+                    >
+                      View Dataset
                     </button>
                   </div>
                 </div>
+
               </div>
+
             </div>
           </div>
         </div>
