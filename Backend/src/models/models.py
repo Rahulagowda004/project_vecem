@@ -27,6 +27,13 @@ class UploadResponse(BaseModel):
     message: str
     files: List[str]
 
+class SettingProfile(BaseModel):
+    uid: str
+    displayName: str
+    about: str
+    githubUrl: str
+    photoURL: str
+
 # Profile Models
 class UserProfile(BaseModel):
     uid: str
@@ -34,4 +41,7 @@ class UserProfile(BaseModel):
     name: Optional[str] = None
     bio: Optional[str] = "About me..."
     profilePicture: Optional[str] = None
+    githubUrl: Optional[str] = None
+    number_of_raw_datasets: Optional[int] = 0
+    number_of_vectorized_datasets: Optional[int] = 0
     datasets: List[DatasetInfo] = Field(default_factory=list)

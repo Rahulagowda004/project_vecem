@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
-from src.database.mongodb import close_db_client, user_profile_collection
-from src.models.models import UserProfile,UidRequest,UserRequest
+from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile
+from src.models.models import UserProfile,UidRequest,UserRequest,SettingProfile
 from fastapi.encoders import jsonable_encoder
 from bson import ObjectId
 
@@ -67,23 +67,25 @@ async def get_user_profile(uid: str):
         return jsonable_encoder(user_profile_serializer(user_profile))
     raise HTTPException(status_code=404, detail="User profile not found")
 
-class UserProfile(BaseModel):
-    uid: str
-    displayName: str
-    about: str
-    githubUrl: str
-    photoURL: str
-
 @app.post("/update-profile")
-async def update_profile(user: UserProfile):
-    print("Received user update:")
-    print(f"UID: {user.uid}")
-    print(f"Display Name: {user.displayName}")
-    print(f"About: {user.about}")
-    print(f"GitHub URL: {user.githubUrl}")
-    print(f"Photo URL: {user.photoURL}")
-    
-    return {"message": "Profile updated successfully"}
+async def update_profile(user: SettingProfile):
+    success = await update_user_profile(
+        uid=user.uid,
+        new_bio=user.about,
+        new_profile_picture=user.photoURL,
+        new_name=user.displayName,
+        new_github_url=user.githubUrl
+    )
+    if success:
+        print("Received user update:")
+        print(f"UID: {user.uid}")
+        print(f"Display Name: {user.displayName}")
+        print(f"About: {user.about}")
+        print(f"GitHub URL: {user.githubUrl}")
+        print(f"Photo URL: {user.photoURL}")
+        return {"message": "Profile updated successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="User profile not found")
 
 # Shutdown event
 @app.on_event("shutdown")

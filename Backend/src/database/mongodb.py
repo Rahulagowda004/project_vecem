@@ -27,5 +27,29 @@ async def save_metadata(metadata: dict) -> str:
         logging.error(f"MongoDB error: {str(e)}")
         raise
 
+
+async def update_user_profile(uid: str, new_bio: str, new_profile_picture: str, new_name: str, new_github_url: str) -> bool:
+    try:
+        result = await user_profile_collection.update_one(
+            {"uid": uid},
+            {
+                "$set": {
+                    "bio": new_bio,
+                    "profilePicture": new_profile_picture,
+                    "name": new_name,
+                    "githubUrl": new_github_url
+                }
+            }
+        )
+        if result.modified_count > 0:
+            logging.info(f"User profile updated for UID: {uid}")
+            return True
+        else:
+            logging.warning(f"No user profile found for UID: {uid}")
+            return False
+    except Exception as e:
+        logging.error(f"MongoDB error: {str(e)}")
+        raise
+
 async def close_db_client():
     client.close()
