@@ -7,11 +7,6 @@ class User(BaseModel):
     email: str
     username: str
 
-class UserRequest(BaseModel):
-    uid: str
-    email: str
-    username: str
-
 class UidRequest(BaseModel):
     uid: str
     email: str
