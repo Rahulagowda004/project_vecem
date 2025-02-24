@@ -281,7 +281,7 @@ const Settings = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Danger Zone */}
         <motion.div
@@ -380,7 +380,7 @@ const Settings = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 
