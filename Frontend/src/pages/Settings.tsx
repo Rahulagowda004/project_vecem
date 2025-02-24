@@ -15,7 +15,7 @@ const Settings = () => {
   const [name, setName] = useState(localStorage.getItem("userName") || user?.displayName || "Guest");
   const [about, setAbout] = useState(
     localStorage.getItem("userAbout") || 
-    "Creative professional with over 8 years of experience in digital design and art direction."
+    "About me..."
   );
   const [selectedAvatar, setSelectedAvatar] = useState(
     localStorage.getItem("userAvatar") ||
@@ -192,67 +192,52 @@ const Settings = () => {
   }
 
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageVariants}
-      className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900"
-    >
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 w-full">
-        {/* Profile Settings Card */}
-        <motion.div
-          variants={cardVariants}
-          whileHover={{ y: -5 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-8 shadow-xl w-full"
-        >
-          <h1 className="text-4xl text-center font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 
-            bg-clip-text text-transparent mb-8 animate-slideDown">
-            Profile Configuration
-          </h1>
-          
-          <div className="flex flex-col md:flex-row gap-8 w-full">
-            <div className="relative transition-transform duration-300 ease-out hover:scale-102">
-              <AvatarSelector
-                user={user}
-                selectedAvatar={selectedAvatar}
-                setSelectedAvatar={setSelectedAvatar}
-                isEditing={isEditing}
-                className="w-32 h-32 rounded-full border-2 border-cyan-400 shadow-xl object-cover"
-
-              />
-            </div>
-
-            <div className="flex-1 space-y-6 animate-slideIn">
-              <div className="flex justify-between items-start">
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="text-3xl bg-gray-700/50 text-white rounded-xl px-4 py-2 
-                      border border-gray-600/50 focus:border-cyan-500/50 focus:ring-2 
-                      focus:ring-cyan-500/20 outline-none w-full max-w-md"
-                  />
-                ) : (
-                  <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent">
-                      {name}
-                    </h1>
-                    <p className="text-gray-400">@{displayUsername}</p>
-                  </div>
-                )}
-
-                <button
-                  onClick={isEditing ? handleSave : () => setIsEditing(true)}
-                  className={`px-4 py-2 rounded-xl transition-colors ${
-                    isEditing
-                      ? "bg-gradient-to-r from-cyan-500 to-cyan-400 text-white hover:from-cyan-600 hover:to-cyan-500"
-                      : "bg-gray-700/50 text-gray-300 hover:bg-gray-700"
-                  }`}
-                >
-                  {isEditing ? "Save Changes" : <Edit2 size={18} />}
-                </button>
+    <div className="min-h-screen bg-gray-900">
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="bg-gray-800 rounded-lg p-6">
+          <div className="flex items-start space-x-8">
+            <AvatarSelector
+              user={user}
+              selectedAvatar={selectedAvatar}
+              setSelectedAvatar={setSelectedAvatar}
+            />
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col flex-1">
+                  {isEditing ? (
+                    <>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="text-2xl bg-gray-700 text-gray-100 rounded px-2 py-1 mb-1"
+                      />
+                      <span className="text-gray-400 text-sm ml-2">@{displayUsername}</span>
+                    </>
+                  ) : (
+                    <>
+                      <h1 className="text-3xl font-bold text-gray-100">{name}</h1>
+                      <span className="text-gray-400 text-sm mt-1">@{displayUsername}</span>
+                    </>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  {isEditing ? (
+                    <button
+                      onClick={handleSave}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+                    >
+                      <Edit2 size={16} className="text-gray-400" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {isEditing ? (

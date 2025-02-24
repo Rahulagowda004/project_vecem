@@ -6,7 +6,7 @@ from datetime import datetime
 from config.settings import UPLOAD_DIR, logger
 from models.uploads import DatasetInfo, UploadResponse
 from utils.file_handlers import ensure_directories, save_uploaded_file
-from database.mongodb import save_to_mongodb
+from database.mongodb import save_metadata
 
 router = APIRouter()
 
@@ -62,8 +62,8 @@ async def upload_files(
             "base_directory": dataset_dir
         }
 
-        # Save metadata to MongoDB
-        await save_to_mongodb(metadata)
+        # Save metadata to MongoDBs
+        await save_metadata(metadata)
 
         all_files = uploaded_files.get("raw", []) + uploaded_files.get("vectorized", [])
         return UploadResponse(

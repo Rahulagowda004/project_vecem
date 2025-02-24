@@ -1,11 +1,11 @@
-import React from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { validateEmail, validatePassword } from '../utils/validation';
-import PageBackground from '../components/layouts/PageBackground';
-import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../firebase/firebase';
+import React from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { validateEmail, validatePassword } from "../utils/validation";
+import PageBackground from "../components/layouts/PageBackground";
+import { motion, AnimatePresence } from "framer-motion";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../firebase/firebase";
 
 interface SignupProps {
   onClose?: () => void;
@@ -25,30 +25,31 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
   constructor(props: SignupProps) {
     super(props);
     this.state = {
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      error: '',
-      loading: false
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      error: "",
+      loading: false,
     };
   }
 
   handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       ...prevState,
       [name]: value,
-      error: ''
+      error: "",
     }));
 
     // Password match validation
-    if (name === 'confirmPassword' || name === 'password') {
-      const password = name === 'password' ? value : this.state.password;
-      const confirmPassword = name === 'confirmPassword' ? value : this.state.confirmPassword;
-      
+    if (name === "confirmPassword" || name === "password") {
+      const password = name === "password" ? value : this.state.password;
+      const confirmPassword =
+        name === "confirmPassword" ? value : this.state.confirmPassword;
+
       if (password && confirmPassword && password !== confirmPassword) {
-        this.setState({ error: 'Passwords do not match' });
+        this.setState({ error: "Passwords do not match" });
       }
     }
   };
@@ -57,12 +58,12 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
     const { username, email, password, confirmPassword } = this.state;
 
     if (password !== confirmPassword) {
-      this.setState({ error: 'Passwords do not match' });
+      this.setState({ error: "Passwords do not match" });
       return false;
     }
 
     if (username.length < 3) {
-      this.setState({ error: 'Username must be at least 3 characters' });
+      this.setState({ error: "Username must be at least 3 characters" });
       return false;
     }
 
@@ -81,47 +82,68 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
     return true;
   };
 
+  registerUser = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      const token = await user.getIdToken();
+      await fetch("http://localhost:5000/register-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: user.email,
+          username: this.state.username, // Include username
+        }),
+      });
+    }
+  };
+
   handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!this.validateForm()) return;
 
-    this.setState({ loading: true, error: '' });
+    this.setState({ loading: true, error: "" });
 
     try {
-      await this.props.auth.signup( // Use auth from props
+      await this.props.auth.signup(
+        // Use auth from props
         this.state.username,
         this.state.email,
         this.state.password
       );
+      await this.registerUser(); // Register user with backend
       if (this.props.onClose) {
         this.props.onClose();
       }
       // Redirect to login page after successful signup
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error: any) {
       this.setState({
-        error: error.message || 'Failed to create account',
-        loading: false
+        error: error.message || "Failed to create account",
+        loading: false,
       });
     }
   };
 
   handleGoogleSignIn = async () => {
-    this.setState({ loading: true, error: '' });
+    this.setState({ loading: true, error: "" });
 
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
+      await this.registerUser(); // Register user with backend
       if (this.props.onClose) {
         this.props.onClose();
       }
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (err: any) {
       this.setState({
-        error: err.message || 'Failed to sign in with Google',
-        loading: false
+        error: err.message || "Failed to sign in with Google",
+        loading: false,
       });
-      console.error('Google sign-in error:', err);
+      console.error("Google sign-in error:", err);
     }
   };
 
@@ -142,24 +164,24 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
         >
           <motion.div
             initial={{ opacity: 0.95, y: 20 }}
-            animate={{ 
-              opacity: 1, 
+            animate={{
+              opacity: 1,
               y: 0,
               transition: {
                 duration: 0.5,
-                repeat: 0
-              }
+                repeat: 0,
+              },
             }}
             className="bg-slate-800/50 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700/50"
           >
             <motion.h2
               initial={{ opacity: 0.9 }}
-              animate={{ 
+              animate={{
                 opacity: 1,
                 transition: {
                   duration: 0.3,
-                  repeat: 0
-                }
+                  repeat: 0,
+                },
               }}
               className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent mb-2 text-center"
             >
@@ -195,15 +217,15 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
                   transition: {
                     staggerChildren: 0.1,
                     when: "beforeChildren",
-                    repeat: 0
-                  }
-                }
+                    repeat: 0,
+                  },
+                },
               }}
             >
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
                 className="space-y-2"
               >
@@ -221,7 +243,7 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
                 className="space-y-2"
               >
@@ -239,7 +261,7 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
                 className="space-y-2"
               >
@@ -257,7 +279,7 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 }
+                  visible: { opacity: 1, y: 0 },
                 }}
                 className="space-y-2"
               >
@@ -283,14 +305,30 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Creating Account...
                   </span>
                 ) : (
-                  'Sign Up'
+                  "Sign Up"
                 )}
               </motion.button>
             </motion.form>
@@ -307,15 +345,35 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
             >
               {loading ? (
                 <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-700"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Signing in...
                 </span>
               ) : (
                 <>
-                  <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNC0xMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=" alt="Google logo" className="h-5 w-5 mr-2" />
+                  <img
+                    src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNC0xMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4="
+                    alt="Google logo"
+                    className="h-5 w-5 mr-2"
+                  />
                   Sign in with Google
                 </>
               )}
@@ -324,12 +382,15 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
             <motion.p
               variants={{
                 hidden: { opacity: 0 },
-                visible: { opacity: 1 }
+                visible: { opacity: 1 },
               }}
               className="text-gray-400 text-center text-sm mt-6"
             >
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-400 hover:text-cyan-300 transition-colors duration-200 font-medium">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-blue-400 hover:text-cyan-300 transition-colors duration-200 font-medium"
+              >
                 Login
               </Link>
             </motion.p>
@@ -341,7 +402,7 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
 }
 
 // Proper HOC wrapper
-const WithAuthSignup = (props: Omit<SignupProps, 'auth'>) => {
+const WithAuthSignup = (props: Omit<SignupProps, "auth">) => {
   const auth = useAuth();
   return <SignupComponent {...props} auth={auth} />;
 };

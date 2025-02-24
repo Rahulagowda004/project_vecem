@@ -1,8 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from config.settings import CORS_ORIGINS
 from routes.upload_router import router as upload_router
-from database.mongodb import close_db_client
+from database.mongodb import close_db_client, user_profile_collection
+from schemas.user_profile import UserProfile, Dataset
+from fastapi.encoders import jsonable_encoder
+from bson import ObjectId
 
 app = FastAPI()
 
@@ -21,6 +25,46 @@ app.include_router(upload_router)
 @app.get("/")
 async def root():
     return {"message": "File Upload API is running"}
+
+class UserRequest(BaseModel):
+    uid: str
+    email: str
+    username: str
+
+@app.post("/register-user")
+async def register_user(user_data: UserRequest):
+    uid = user_data.uid
+    email = user_data.email
+    username = user_data.username
+
+    user_profile = UserProfile(uid=uid, email=email, username=username)
+    user_profile_collection.insert_one(user_profile.dict())
+
+    return {"message": "User registered successfully", "email": email}
+
+class UidRequest(BaseModel):
+    uid: str
+    email: str
+
+def user_profile_serializer(user_profile):
+    user_profile["_id"] = str(user_profile["_id"])
+    return user_profile
+
+@app.post("/register-uid")
+async def register_uid(uid_request: UidRequest):
+    uid = uid_request.uid
+    email = uid_request.email
+
+    user_profile = await user_profile_collection.find_one({"uid": uid})
+
+    if user_profile:
+        print(f"User profile found for UID: {uid}")
+        return jsonable_encoder(user_profile_serializer(user_profile))
+    else:
+        new_user_profile = UserProfile(uid=uid, email=email)
+        user_profile_collection.insert_one(new_user_profile.dict())
+        print(f"New user profile created for UID: {uid}")
+        return jsonable_encoder(new_user_profile.dict())
 
 # Shutdown event
 @app.on_event("shutdown")
