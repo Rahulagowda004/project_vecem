@@ -1,50 +1,66 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Github, Edit2, Trash2 } from "lucide-react";
-import { useAuth } from '../contexts/AuthContext';
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { firestore } from '../firebase/firebase';
+import { useAuth } from "../contexts/AuthContext";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { firestore } from "../firebase/firebase";
 import AvatarSelector from "../components/AvatarSelector";
 
 const Settings = () => {
   const { user, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(localStorage.getItem("userName") || user?.displayName || "Guest");
+  const [name, setName] = useState(
+    localStorage.getItem("userName") || user?.displayName || "Guest"
+  );
   const [about, setAbout] = useState(
-    localStorage.getItem("userAbout") || 
-    "About me..."
+    localStorage.getItem("userAbout") || "About me..."
   );
   const [selectedAvatar, setSelectedAvatar] = useState(
     localStorage.getItem("userAvatar") ||
-    user?.photoURL ||
-    "/avatars/avatar1.png"
+      user?.photoURL ||
+      "/avatars/avatar1.png"
   );
   const [githubUrl, setGithubUrl] = useState(
-    localStorage.getItem("githubUrl") || 
-    `https://github.com/${user?.displayName || 'username'}`
+    localStorage.getItem("githubUrl") ||
+      `https://github.com/${user?.displayName || "username"}`
   );
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.uid) return;
-      
+
       try {
-        const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+        const userDoc = await getDoc(doc(firestore, "users", user.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setName(data.displayName || localStorage.getItem("userName") || user.displayName || "Guest");
+          setName(
+            data.displayName ||
+              localStorage.getItem("userName") ||
+              user.displayName ||
+              "Guest"
+          );
           setAbout(data.about || localStorage.getItem("userAbout") || about);
-          setSelectedAvatar(data.photoURL || localStorage.getItem("userAvatar") || user.photoURL || "/avatars/avatar1.png");
-          setGithubUrl(data.githubUrl || localStorage.getItem("githubUrl") || `https://github.com/${user.displayName || 'username'}`);
+          setSelectedAvatar(
+            data.photoURL ||
+              localStorage.getItem("userAvatar") ||
+              user.photoURL ||
+              "/avatars/avatar1.png"
+          );
+          setGithubUrl(
+            data.githubUrl ||
+              localStorage.getItem("githubUrl") ||
+              `https://github.com/${user.displayName || "username"}`
+          );
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
 
     fetchUserData();
   }, [user]);
 
-  const displayUsername = user?.displayName || user?.email?.split('@')[0] || 'username';
+  const displayUsername =
+    user?.displayName || user?.email?.split("@")[0] || "username";
 
   const handleSave = async () => {
     setIsEditing(false);
@@ -55,31 +71,55 @@ const Settings = () => {
 
     if (user?.uid) {
       try {
-        await updateDoc(doc(firestore, 'users', user.uid), {
+        const response = await fetch("http://localhost:5000/update-profile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uid: user.uid,
+            displayName: name,
+            about,
+            githubUrl,
+            photoURL: selectedAvatar,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to update profile");
+        }
+
+        await updateDoc(doc(firestore, "users", user.uid), {
           displayName: name,
           about,
           githubUrl,
-          photoURL: selectedAvatar
+          photoURL: selectedAvatar,
         });
+
+        console.log("Profile updated successfully in FastAPI and Firestore");
       } catch (error) {
-        console.error('Error updating profile:', error);
+        console.error("Error updating profile:", error);
       }
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete your account? This action cannot be undone."
+      )
+    ) {
       return;
     }
 
     try {
       if (user?.uid) {
-        await deleteDoc(doc(firestore, 'users', user.uid));
+        await deleteDoc(doc(firestore, "users", user.uid));
       }
       await logout();
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error) {
-      console.error('Error deleting account:', error);
+      console.error("Error deleting account:", error);
     }
   };
 
@@ -112,12 +152,12 @@ const Settings = () => {
                         onChange={(e) => setName(e.target.value)}
                         className="text-2xl bg-gray-700 text-gray-100 rounded px-2 py-1 mb-1"
                       />
-                      
                     </>
                   ) : (
                     <>
-                      <h1 className="text-3xl font-bold text-gray-100">{name}</h1>
-                      
+                      <h1 className="text-3xl font-bold text-gray-100">
+                        {name}
+                      </h1>
                     </>
                   )}
                 </div>
@@ -167,13 +207,13 @@ const Settings = () => {
                       className="bg-gray-700 text-gray-100 rounded px-2 py-1 text-sm w-64"
                     />
                   ) : (
-                    <a 
+                    <a
                       href={githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-blue-400"
                     >
-                      @{user?.displayName || 'username'}
+                      @{user?.displayName || "username"}
                     </a>
                   )}
                 </div>

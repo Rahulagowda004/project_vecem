@@ -67,6 +67,24 @@ async def get_user_profile(uid: str):
         return jsonable_encoder(user_profile_serializer(user_profile))
     raise HTTPException(status_code=404, detail="User profile not found")
 
+class UserProfile(BaseModel):
+    uid: str
+    displayName: str
+    about: str
+    githubUrl: str
+    photoURL: str
+
+@app.post("/update-profile")
+async def update_profile(user: UserProfile):
+    print("Received user update:")
+    print(f"UID: {user.uid}")
+    print(f"Display Name: {user.displayName}")
+    print(f"About: {user.about}")
+    print(f"GitHub URL: {user.githubUrl}")
+    print(f"Photo URL: {user.photoURL}")
+    
+    return {"message": "Profile updated successfully"}
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
