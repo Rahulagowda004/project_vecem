@@ -12,10 +12,9 @@ interface Dataset {
   id: string;
   name: string;
   description: string;
-  tags: string[];
   visibility: 'public' | 'private';
+  updatedAt: string;
   createdAt: Date;
-  updatedAt: Date;
   size: number;
   format: string;
   owner: string;
@@ -75,14 +74,43 @@ const Settings = () => {
       if (!user?.uid) return;
       
       try {
-        const datasetsRef = collection(firestore, 'datasets');
-        const q = query(datasetsRef, where('owner', '==', user.uid));
-        const querySnapshot = await getDocs(q);
-        const fetchedDatasets = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Dataset[];
-        setDatasets(fetchedDatasets);
+        // For now, using mock data similar to UserProfile
+        const mockDatasets = [
+          {
+            id: "1",
+            name: "Medical Imaging Dataset",
+            description: "Collection of medical imaging data for AI training",
+            visibility: 'public',
+            updatedAt: '2d',
+            createdAt: new Date('2024-01-15'),
+            size: 2048576, // 2MB
+            format: 'DICOM',
+            owner: user?.uid || ''
+          },
+          {
+            id: "2",
+            name: "Patient Records Analysis",
+            description: "Anonymized patient records for pattern analysis",
+            visibility: 'private',
+            updatedAt: '5d',
+            createdAt: new Date('2024-01-20'),
+            size: 1048576, // 1MB
+            format: 'CSV',
+            owner: user?.uid || ''
+          },
+          {
+            id: "3",
+            name: "Clinical Trial Results",
+            description: "Results from recent clinical trials on new treatments",
+            visibility: 'public',
+            updatedAt: '10d',
+            createdAt: new Date('2024-02-01'),
+            size: 3145728, // 3MB
+            format: 'XLS',
+            owner: user?.uid || ''
+          }
+        ];
+        setDatasets(mockDatasets);
       } catch (error) {
         console.error('Error fetching datasets:', error);
       }
@@ -90,51 +118,6 @@ const Settings = () => {
 
     fetchUserDatasets();
   }, [user]);
-
-  // Add sample datasets if none exist
-  useEffect(() => {
-    if (datasets.length === 0) {
-      const sampleDatasets: Dataset[] = [
-        {
-          id: '1',
-          name: 'Medical Imaging Dataset',
-          description: 'A collection of MRI and CT scan images for research purposes',
-          tags: ['medical', 'imaging', 'healthcare'],
-          visibility: 'public',
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-02-01'),
-          size: 2048576, // 2MB
-          format: 'DICOM',
-          owner: user?.uid || ''
-        },
-        {
-          id: '2',
-          name: 'Patient Records Analysis',
-          description: 'Anonymized patient records for pattern analysis',
-          tags: ['analytics', 'healthcare', 'records'],
-          visibility: 'private',
-          createdAt: new Date('2024-01-20'),
-          updatedAt: new Date('2024-02-05'),
-          size: 1048576, // 1MB
-          format: 'CSV',
-          owner: user?.uid || ''
-        },
-        {
-          id: '3',
-          name: 'Clinical Trial Results',
-          description: 'Results from recent clinical trials on new treatments',
-          tags: ['clinical', 'research', 'trials'],
-          visibility: 'public',
-          createdAt: new Date('2024-02-01'),
-          updatedAt: new Date('2024-02-10'),
-          size: 3145728, // 3MB
-          format: 'XLS',
-          owner: user?.uid || ''
-        }
-      ];
-      setDatasets(sampleDatasets);
-    }
-  }, []);
 
   const displayUsername = user?.displayName || user?.email?.split('@')[0] || 'username';
 
@@ -320,6 +303,21 @@ const Settings = () => {
     if (days === 1) return 'Yesterday';
     if (days < 7) return `${days} days ago`;
     return date.toLocaleDateString();
+  };
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
   };
 
   if (!user) {
@@ -518,91 +516,50 @@ const Settings = () => {
           </div>
 
           {/* Dataset Grid */}
-          <div className="p-6">
-            {filteredAndSortedDatasets.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-400">No datasets found</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredAndSortedDatasets.map((dataset) => (
-                  <motion.div
-                    key={dataset.id}
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 
-                      hover:border-cyan-500/50 transition-all relative group"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-cyan-400 mb-1">
-                          {dataset.name}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <span className={`w-2 h-2 rounded-full ${
-                              dataset.visibility === 'public' ? 'bg-green-400' : 'bg-yellow-400'
-                            }`} />
-                            {dataset.visibility}
-                          </span>
-                          <span>•</span>
-                          <span>{formatFileSize(dataset.size)}</span>
-                          <span>•</span>
-                          <span>{dataset.format}</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleEditDataset(dataset)}
-                        className="p-2 rounded-lg bg-gray-700/50 text-cyan-400 opacity-0 
-                          group-hover:opacity-100 transition-opacity hover:bg-gray-600/50"
-                      >
-                        <PenSquare size={16} />
-                      </button>
-                    </div>
-                    <p className="text-gray-300 mb-3 line-clamp-2">{dataset.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {dataset.tags?.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 text-xs rounded-full bg-cyan-500/10 
-                            text-cyan-400 border border-cyan-500/20"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-end text-sm text-gray-400">
-                      <span>Updated {formatDate(new Date(dataset.updatedAt))}</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Pagination if needed */}
-          {filteredAndSortedDatasets.length > 0 && (
-            <div className="border-t border-gray-700/50 p-4">
-              <div className="flex items-center justify-between">
-                <button className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  <span>Previous</span>
-                </button>
-                <div className="flex items-center space-x-2">
-                  <button className="px-3 py-1 rounded-lg bg-cyan-500/10 text-cyan-400">1</button>
-                  <button className="px-3 py-1 rounded-lg hover:bg-gray-700 text-gray-400">2</button>
-                  <button className="px-3 py-1 rounded-lg hover:bg-gray-700 text-gray-400">3</button>
+          <motion.ul 
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
+          >
+            {filteredAndSortedDatasets.map((dataset) => (
+              <motion.li
+                key={dataset.id}
+                variants={item}
+                whileHover={{ scale: 1.02 }}
+                className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300"
+              >
+                <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                  {dataset.name}
+                </h3>
+                <p className="text-gray-300 mb-4">
+                  {dataset.description}
+                </p>
+                <div className="flex items-center space-x-4 text-sm text-gray-400">
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                    </svg>
+                    {dataset.visibility}
+                  </span>
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+                    </svg>
+                    Updated {dataset.updatedAt}
+                  </span>
                 </div>
-                <button className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2">
-                  <span>Next</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                <button
+                  onClick={() => handleEditDataset(dataset)}
+                  className="absolute top-4 right-4 p-2 rounded-lg bg-gray-700/50 text-cyan-400 opacity-0 
+                    group-hover:opacity-100 transition-opacity hover:bg-gray-600/50"
+                >
+                  <PenSquare size={16} />
                 </button>
-              </div>
-            </div>
-          )}
+              </motion.li>
+            ))}
+          </motion.ul>
         </motion.div>
 
         {/* Danger Zone */}

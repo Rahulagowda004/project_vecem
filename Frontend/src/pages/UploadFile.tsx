@@ -34,6 +34,10 @@ const UploadFile = () => {
     description: "",
     domain: "",
   });
+  const [totalSize, setTotalSize] = useState<{ raw: number; vectorized: number }>({
+    raw: 0,
+    vectorized: 0
+  });
 
   const domains = [
     "Health",
@@ -76,8 +80,8 @@ const UploadFile = () => {
 
     if (!files || files.length === 0) return;
 
-    const allowedTypes = fileTypeMap[fileType];
     const filesArray = Array.from(files);
+    const allowedTypes = fileTypeMap[fileType];
     const invalidFiles = filesArray.filter(
       (file) => !allowedTypes.includes(file.type)
     );
@@ -92,10 +96,15 @@ const UploadFile = () => {
       return;
     }
 
+    // Calculate total size of selected files
+    const totalBytes = filesArray.reduce((acc, file) => acc + file.size, 0);
+    setTotalSize(prev => ({
+      ...prev,
+      [type]: totalBytes
+    }));
+
     // Initialize progress tracking for the folder
     setUploadProgress({ progress: 0, status: "uploading" });
-
-    // Simulate upload progress for demo
     simulateFolderUpload(filesArray.length);
   };
 
@@ -196,6 +205,15 @@ const UploadFile = () => {
     }
   };
 
+  // Add helper function to format file size
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+  };
+
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
@@ -239,6 +257,28 @@ const UploadFile = () => {
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition h-32"
                 placeholder="Enter dataset description"
               />
+            </div>
+
+            {/* Domain Selection */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-white">
+                Domain
+              </label>
+              <select
+                name="domain"
+                value={formData.domain}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                  text-white placeholder-gray-400
+                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+              >
+                <option value="">Select a domain</option>
+                {domains.map((domain) => (
+                  <option key={domain} value={domain}>
+                    {domain}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Dataset Type */}
@@ -432,6 +472,24 @@ const UploadFile = () => {
               <p className="mt-2 text-sm text-gray-400">
                 Select a folder containing only {fileType.toLowerCase()} files
               </p>
+            </div>
+
+            {/* Display file size */}
+            <div className="mt-4 space-y-2">
+              {datasetType === "Both" ? (
+                <>
+                  <p className="text-sm text-gray-400">
+                    Raw Data Size: {formatFileSize(totalSize.raw)}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Vectorized Data Size: {formatFileSize(totalSize.vectorized)}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-gray-400">
+                  Total Size: {formatFileSize(totalSize[datasetType.toLowerCase() as 'raw' | 'vectorized'])}
+                </p>
+              )}
             </div>
 
             <button

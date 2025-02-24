@@ -128,7 +128,6 @@ data = dataset.get_files()  # For raw files`,
               <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-white bg-clip-text text-transparent">
                 {dataset.name}
               </h1>
-              <p className="text-cyan-100">{dataset.description}</p>
               <div className="flex gap-2">
                 <motion.span 
                   whileHover={{ scale: 1.05 }}
@@ -144,7 +143,6 @@ data = dataset.get_files()  # For raw files`,
                 </motion.span>
               </div>
             </motion.div>
-
             <motion.div 
               initial={{ x: 20 }}
               animate={{ x: 0 }}
@@ -210,36 +208,9 @@ data = dataset.get_files()  # For raw files`,
               className="bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-xl"
             >
               <h2 className="text-xl font-semibold text-white mb-4">About This Dataset</h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium text-cyan-200 mb-2">Overview</h3>
-                  <p className="text-white">
-                    {dataset.detailedDescription.overview}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-cyan-200 mb-2">Data Structure</h3>
-                  <p className="text-white">
-                    {dataset.detailedDescription.dataStructure}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-cyan-200 mb-2">Contents</h3>
-                  <ul className="list-disc list-inside text-white">
-                    {dataset.detailedDescription.contents.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-cyan-200 mb-2">Use Cases</h3>
-                  <ul className="list-disc list-inside text-white">
-                    {dataset.detailedDescription.useCases.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              <p className="text-white text-lg leading-relaxed min-h-[270px]">
+                {dataset.description}
+              </p>
             </motion.div>
           </motion.div>
 

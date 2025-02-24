@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Add useNavigate
 import { motion } from "framer-motion";
+import { Upload } from "lucide-react"; // Add Upload icon
 
 const UserProfile = () => {
   const { userId } = useParams();
+  const navigate = useNavigate(); // Add navigate
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("latest");
 
@@ -186,6 +188,16 @@ const UserProfile = () => {
                     </span>
                   </motion.div>
                 </div>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => navigate('/upload')}
+                  className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
+                    hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
+                >
+                  <Upload size={18} />
+                  Upload Dataset
+                </motion.button>
               </div>
             </div>
 
