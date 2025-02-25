@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Folder,
   Mail,
@@ -16,6 +16,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "../firebase/firebase";
 import AvatarSelector from "../components/AvatarSelector";
 import axios from "axios";
+import { motion } from "framer-motion";
 
 interface ProfileStats {
   projects: number;
@@ -43,6 +44,7 @@ interface FolderItem {
 const API_URL = "http://localhost:5000";
 
 const Profile = () => {
+  const navigate = useNavigate();
   const { user } = useAuth(); // Replace Auth0 hook with Firebase auth context
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditing, setIsEditing] = useState(false);
@@ -216,6 +218,19 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
+              <button
+                onClick={() => {
+                  try {
+                    navigate("/settings");
+                  } catch (error) {
+                    console.error("Navigation error:", error);
+                  }
+                }}
+                className="ml-4 px-5 py-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 
+                  hover:bg-cyan-500/20 border border-cyan-500/20 font-medium"
+              >
+                Settings
+              </button>
             </div>
 
             {/* Stats Grid */}

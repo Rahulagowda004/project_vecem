@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Download,
   Share2,
@@ -9,16 +10,16 @@ import {
   Copy,
   Check,
   Code,
+  ChevronRight,
+  ExternalLink,
 } from "lucide-react";
 
-type ExampleType = "basic";
-
-interface PythonExample {
-  label: string;
-  code: string;
-}
-
-type PythonExamples = Record<ExampleType, PythonExample>;
+// Animation variants
+const fadeIn = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 10 }
+};
 
 const DatasetDetail = () => {
   const { id } = useParams();
@@ -75,6 +76,13 @@ const DatasetDetail = () => {
     },
   };
 
+  interface PythonExamples {
+    basic: {
+      label: string;
+      code: string;
+    };
+  }
+  
   const pythonExamples: PythonExamples = {
     basic: {
       label: "Basic Usage",
@@ -95,90 +103,134 @@ data = dataset.get_files()  # For raw files`,
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header Block with Key Information */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-blue-400">
+    <div className="min-h-screen bg-gray-900">
+      {/* Sticky Header */}
+      <motion.header 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800"
+      >
+        <div className="max-w-6xl mx-auto px-4">
+          {/* Breadcrumb */}
+          <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
+            <Link to="/datasets" className="hover:text-white transition-colors">Datasets</Link>
+            <ChevronRight className="w-4 h-4" />
+            <span className="text-white font-medium">{dataset.name}</span>
+          </div>
+          
+          {/* Title and Actions */}
+          <div className="py-4 flex justify-between items-start">
+            <motion.div
+              initial={{ x: -20 }}
+              animate={{ x: 0 }}
+              className="space-y-2"
+            >
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-white bg-clip-text text-transparent">
                 {dataset.name}
               </h1>
-              <p className="text-gray-300 mt-2">{dataset.description}</p>
-              <div className="flex gap-2 mt-3">
-                <span className="px-3 py-1 bg-blue-600 rounded-full text-sm">
+              <div className="flex gap-2">
+                <motion.span 
+                  whileHover={{ scale: 1.05 }}
+                  className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                >
                   {dataset.domain}
-                </span>
-                <span className="px-3 py-1 bg-purple-600 rounded-full text-sm">
+                </motion.span>
+                <motion.span 
+                  whileHover={{ scale: 1.05 }}
+                  className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                >
                   {dataset.fileType}
-                </span>
+                </motion.span>
               </div>
-            </div>
-            {/* Download Buttons */}
-            <div className="flex gap-2">
-              <button className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
+            </motion.div>
+            <motion.div 
+              initial={{ x: 20 }}
+              animate={{ x: 0 }}
+              className="flex gap-2"
+            >
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-4 py-2 bg-cyan-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-blue-600/20"
+              >
                 <Download className="w-4 h-4" />
-                Raw ({dataset.size.raw})
-              </button>
-              {dataset.datasetType !== "Raw" && (
-                <button className="bg-purple-600 px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2">
-                  <Download className="w-4 h-4" />
-                  Vectors ({dataset.size.vectorized})
-                </button>
-              )}
-            </div>
+                Download Dataset
+              </motion.button>
+            </motion.div>
           </div>
         </div>
+      </motion.header>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-6">
-            {/* Description Section */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">About This Dataset</h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Overview</h3>
-                  <p className="text-gray-300">
-                    {dataset.detailedDescription.overview}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Data Structure</h3>
-                  <p className="text-gray-300">
-                    {dataset.detailedDescription.dataStructure}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Contents</h3>
-                  <ul className="list-disc list-inside text-gray-300">
-                    {dataset.detailedDescription.contents.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Use Cases</h3>
-                  <ul className="list-disc list-inside text-gray-300">
-                    {dataset.detailedDescription.useCases.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+      {/* Main Content */}
+      <motion.div
+        variants={fadeIn}
+        initial="initial"
+        animate="animate"
+        className="max-w-6xl mx-auto px-4 py-8"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content Area */}
+          <motion.div 
+            className="lg:col-span-2 space-y-6"
+            variants={{
+              initial: { opacity: 0 },
+              animate: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+          >
+            {/* Stats Cards */}
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: 'Size', value: dataset.size.raw, icon: Database },
+                { label: 'Type', value: dataset.fileType, icon: FileType },
+                { label: 'Domain', value: dataset.domain, icon: Box },
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  variants={fadeIn}
+                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                  className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-cyan-700 transition-colors shadow-lg"
+                >
+                  <stat.icon className="w-5 h-5 text-cyan-400 mb-2" />
+                  <div className="text-sm text-cyan-200">{stat.label}</div>
+                  <div className="text-lg font-semibold text-white mt-1">{stat.value}</div>
+                </motion.div>
+              ))}
             </div>
-          </div>
 
-          {/* Right Sidebar */}
-          <div className="space-y-6">
-            {/* Python Usage Section */}
-            <div className="bg-gray-800 rounded-lg overflow-hidden">
-              <button
+            {/* Description Section */}
+            <motion.div
+              variants={fadeIn}
+              className="bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-xl"
+            >
+              <h2 className="text-xl font-semibold text-white mb-4">About This Dataset</h2>
+              <p className="text-white text-lg leading-relaxed min-h-[270px]">
+                {dataset.description}
+              </p>
+            </motion.div>
+          </motion.div>
+
+          {/* Sidebar */}
+          <motion.div
+            variants={fadeIn}
+            className="space-y-6"
+          >
+            {/* Code Usage Section */}
+            <motion.div
+              layout
+              className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 shadow-xl"
+            >
+              <motion.button
+                whileHover={{ backgroundColor: "rgba(75, 85, 99, 0.3)" }}
                 onClick={() => setIsCodeOpen(!isCodeOpen)}
-                className="w-full p-6 flex items-center justify-between text-left hover:bg-gray-750 transition-colors"
+                className="w-full p-4 flex items-center justify-between text-left text-white"
               >
                 <div className="flex items-center gap-2">
-                  <Code className="w-5 h-5 text-blue-400" />
+                  <Code className="w-5 h-5 text-cyan-400" />
                   <h2 className="text-xl font-semibold">Python Usage</h2>
                 </div>
                 <svg
@@ -196,49 +248,62 @@ data = dataset.get_files()  # For raw files`,
                     d="M19 9l-7 7-7-7"
                   />
                 </svg>
-              </button>
+              </motion.button>
 
-              {isCodeOpen && (
-                <div className="p-6 pt-0">
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-medium">
-                        {pythonExamples.basic.label}
-                      </h3>
-                      <button
-                        onClick={() => handleCopy(pythonExamples.basic.code)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        {copied ? (
-                          <Check className="w-4 h-4 text-green-400" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
+              <AnimatePresence>
+                {isCodeOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                    className="border-t border-gray-700 p-4"
+                  >
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-medium text-cyan-200">
+                          {pythonExamples.basic.label}
+                        </h3>
+                        <button
+                          onClick={() => handleCopy(pythonExamples.basic.code)}
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          {copied ? (
+                            <Check className="w-4 h-4 text-green-400" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                      <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
+                        <code className="text-sm text-white">
+                          {pythonExamples.basic.code}
+                        </code>
+                      </pre>
                     </div>
-                    <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
-                      <code className="text-sm">
-                        {pythonExamples.basic.code}
-                      </code>
-                    </pre>
-                  </div>
-                </div>
-              )}
-            </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
             {/* About Section */}
             <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4">Uploaded User</h2>
-              <div className="space-y-3 text-gray-300">
-                <p>
+              <h2 className="text-lg font-semibold text-white mb-4">Uploaded User</h2>
+              <div className="space-y-3">
+                <p className="text-cyan-100">
                   Uploaded by:{" "}
-                  <Link to={`/user-profile/${dataset.owner}`} className="text-blue-400 hover:underline">
+                  <Link 
+                    to={`/profile/${encodeURIComponent(dataset.owner)}`} 
+                    className="text-cyan-400 hover:text-white transition-colors"
+                  >
                     {dataset.owner}
                   </Link>
                 </p>
-                <p>
+                <p className="text-cyan-100">
                   Upload Date:{" "}
-                  {new Date(dataset.uploadDate).toLocaleDateString()}
+                  <span className="text-white">
+                    {new Date(dataset.uploadDate).toLocaleDateString()}
+                  </span>
                 </p>
               </div>
             </div>
@@ -247,28 +312,28 @@ data = dataset.get_files()  # For raw files`,
             {(dataset.datasetType === "Vectorized" ||
               dataset.datasetType === "Both") && (
               <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-lg font-semibold mb-4">
+                <h2 className="text-lg font-semibold text-white mb-4">
                   Vectorized Settings
                 </h2>
                 <div className="space-y-3">
                   <div>
-                    <div className="text-gray-400 mb-1">Dimensions</div>
-                    <div className="bg-gray-700 p-2 rounded">
+                    <div className="text-cyan-200 mb-1">Dimensions</div>
+                    <div className="bg-gray-700 p-2 rounded text-white">
                       {dataset.vectorizedSettings.dimensions}
                     </div>
                   </div>
                   <div>
-                    <div className="text-gray-400 mb-1">Vector Database</div>
-                    <div className="bg-gray-700 p-2 rounded">
+                    <div className="text-cyan-200 mb-1">Vector Database</div>
+                    <div className="bg-gray-700 p-2 rounded text-white">
                       {dataset.vectorizedSettings.vectorDatabase}
                     </div>
                   </div>
                 </div>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

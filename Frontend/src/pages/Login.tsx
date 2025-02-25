@@ -102,10 +102,13 @@ const Login = () => {
                 repeat: 0
               }
             }}
-            className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent mb-8 text-center"
+            className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent mb-2 text-center"
           >
-            Login
+            Welcome to Vecem!
           </motion.h2>
+          <p className="text-gray-300 text-sm mb-8 text-center">
+            Log in to Vecem and bring your ideas to the community!
+          </p>
         
           <AnimatePresence mode="wait">
             {error && (
