@@ -1,5 +1,8 @@
 import { firestore } from "../firebase/firebase";
 import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import axios from "axios";
+
+const API_URL = "http://localhost:5000";
 
 interface UserData {
   username: string;
@@ -8,6 +11,22 @@ interface UserData {
   lastLogin?: string;
   displayName?: string;
   photoURL?: string;
+}
+
+export interface UserProfileData {
+  uid: string;
+  name: string;
+  email: string;
+  bio?: string;
+  githubUrl?: string;
+  profilePicture?: string;
+  datasets?: Array<{
+    id: string;
+    name: string;
+    description: string;
+    visibility?: string;
+    updatedAt?: string;
+  }>;
 }
 
 export const createUserDocument = async (
@@ -59,6 +78,20 @@ export const deleteUserDocument = async (userId: string) => {
     await deleteDoc(doc(firestore, "users", userId));
   } catch (error) {
     console.error("Error deleting user document:", error);
+    throw error;
+  }
+};
+
+export const getUserProfile = async (uid: string): Promise<UserProfileData> => {
+  try {
+    const response = await axios.get(`${API_URL}/user-profile/${uid}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.detail || "Failed to fetch user profile"
+      );
+    }
     throw error;
   }
 };
