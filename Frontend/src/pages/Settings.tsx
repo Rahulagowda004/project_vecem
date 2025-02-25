@@ -7,6 +7,19 @@ import AvatarSelector from "../components/AvatarSelector";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Add these animation variants before the Dataset interface
+const cardVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+const modalVariants = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 },
+};
+
 interface Dataset {
   id: string;
   name: string;
@@ -50,7 +63,10 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user?.uid) return;
+      if (!user?.uid) {
+        navigate("/login");
+        return;
+      }
 
       try {
         const userDoc = await getDoc(doc(firestore, "users", user.uid));
@@ -77,11 +93,13 @@ const Settings = () => {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        // Show a more user-friendly error message
+        alert("Failed to load user data. Please try refreshing the page.");
       }
     };
 
     fetchUserData();
-  }, [user]);
+  }, [user, navigate]);
 
   useEffect(() => {
     const fetchUserDatasets = async () => {
@@ -175,6 +193,24 @@ const Settings = () => {
       } catch (error) {
         console.error("Error updating profile:", error);
       }
+    }
+  };
+
+  // Add this function before the handleSave function
+  const confirmDelete = async () => {
+    setConfirmLoading(true);
+    try {
+      if (user?.uid) {
+        await deleteDoc(doc(firestore, "users", user.uid));
+      }
+      await logout();
+      navigate("/");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      alert("Failed to delete account. Please try again.");
+    } finally {
+      setConfirmLoading(false);
+      setShowDeleteModal(false);
     }
   };
 
