@@ -6,6 +6,7 @@ import PageBackground from "../components/layouts/PageBackground";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase/firebase";
+import { createUserDocument } from "../services/apiService";
 
 interface SignupProps {
   onClose?: () => void;
@@ -114,6 +115,14 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
         this.state.password
       );
       await this.registerUser(); // Register user with backend
+      const user = auth.currentUser;
+      if (user) {
+        await createUserDocument(user.uid, {
+          username: this.state.username,
+          email: this.state.email,
+          createdAt: new Date().toISOString(),
+        });
+      }
       if (this.props.onClose) {
         this.props.onClose();
       }
