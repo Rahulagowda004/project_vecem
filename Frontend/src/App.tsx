@@ -51,6 +51,10 @@ function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/datasets/:datasetId/edit" element={<DatasetEdit />} />
 
+        {/* Update the profile route to handle username */}
+        <Route path="/profile" element={<UserProfile />} /> {/* Default profile route */}
+        <Route path="/profile/:username" element={<UserProfile />} /> {/* Profile with username parameter */}
+
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

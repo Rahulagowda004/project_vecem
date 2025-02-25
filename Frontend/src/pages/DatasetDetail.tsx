@@ -292,7 +292,10 @@ data = dataset.get_files()  # For raw files`,
               <div className="space-y-3">
                 <p className="text-cyan-100">
                   Uploaded by:{" "}
-                  <Link to={`/user-profile/${dataset.owner}`} className="text-cyan-400 hover:text-white transition-colors">
+                  <Link 
+                    to={`/profile/${encodeURIComponent(dataset.owner)}`} 
+                    className="text-cyan-400 hover:text-white transition-colors"
+                  >
                     {dataset.owner}
                   </Link>
                 </p>

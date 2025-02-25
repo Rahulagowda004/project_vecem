@@ -1,17 +1,31 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom"; // Add useNavigate
 import { motion } from "framer-motion";
 import { Upload } from "lucide-react"; // Add Upload icon
 
 const UserProfile = () => {
-  const { userId } = useParams();
+  const { username } = useParams();
   const navigate = useNavigate(); // Add navigate
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("latest");
 
+  // If no username is provided, it means it's the current user's profile
+  const isOwnProfile = !username;
+
+  // Use the username parameter to fetch the correct user's data
+  useEffect(() => {
+    if (username) {
+      // Fetch user data based on username
+      console.log(`Fetching profile for user: ${username}`);
+    } else {
+      // Fetch current user's profile
+      console.log('Fetching own profile');
+    }
+  }, [username]);
+
   // Mock user data
   const user = {
-    id: userId,
+    id: username,
     name: "John Doe",
     username: "@johndoe",
     githubUrl: "https://github.com/johndoe",
