@@ -19,15 +19,15 @@ interface Message {
 
 const messageTagConfig = {
   general: {
-    color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/20',
+    color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/20',
     label: 'General'
   },
   issue: {
-    color: 'bg-rose-500/20 text-rose-400 border-rose-500/20',
+    color: 'bg-rose-400/20 text-rose-300 border-rose-400/20',
     label: 'Issue'
   },
   answer: {
-    color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20',
+    color: 'bg-teal-500/20 text-teal-400 border-teal-500/20',
     label: 'Answer'
   }
 };
@@ -273,7 +273,7 @@ const Community = () => {
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="px-6 py-4 bg-gray-900/50 border-b border-white/5 backdrop-blur-xl"
+          className="px-6 py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
         >
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
@@ -328,9 +328,9 @@ const Community = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowGuidelines(true)}
-                className="group relative px-4 py-2 rounded-xl overflow-hidden bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 hover:from-indigo-500/30 hover:via-purple-500/30 hover:to-pink-500/30 text-indigo-400 transition-all duration-300"
+                className="group relative px-4 py-2 rounded-xl overflow-hidden bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-emerald-500/20 hover:from-cyan-500/30 hover:via-teal-500/30 hover:to-emerald-500/30 text-cyan-400 transition-all duration-300"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative flex items-center space-x-2">
                   <HelpCircle className="w-4 h-4" />
                   <span>Guidelines</span>
@@ -375,8 +375,8 @@ const Community = () => {
                   whileHover={{ scale: 1.01 }}
                   className={`max-w-md rounded-2xl p-4 ${
                     message.userId === user?.uid
-                      ? 'bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10'
-                      : 'bg-white/5'
+                      ? 'bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10'
+                      : 'bg-white/5 hover:bg-cyan-900/20'
                   }`}
                 >
                   <div className="flex items-center space-x-2 mb-2">
@@ -403,7 +403,7 @@ const Community = () => {
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="p-6 bg-gray-900/50 border-t border-white/5 backdrop-blur-xl"
+          className="p-6 bg-gray-900/50 border-t border-cyan-500/10 backdrop-blur-xl"
         >
           {replyingTo && (
             <div className="mb-2 p-2 bg-gray-700 rounded flex justify-between items-center">
@@ -441,7 +441,7 @@ const Community = () => {
               </div>
             </div>
 
-            <div className="flex-1 flex items-center space-x-4 bg-black/20 rounded-xl p-2">
+            <div className="flex-1 flex items-center space-x-4 bg-cyan-950/20 rounded-xl p-2">
               <input
                 type="text"
                 value={newMessage}
@@ -455,7 +455,7 @@ const Community = () => {
                 whileTap={{ scale: 0.9 }}
                 onClick={replyingTo ? () => handleReply(replyingTo) : handleSendMessage}
                 disabled={!newMessage.trim()}
-                className="p-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white disabled:opacity-50"
+                className="p-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white disabled:opacity-50 disabled:hover:bg-opacity-50"
               >
                 <Send className="w-5 h-5" />
               </motion.button>
