@@ -27,6 +27,37 @@ async def save_metadata(metadata: dict) -> str:
         logging.error(f"MongoDB error: {str(e)}")
         raise
 
+async def save_metadata_and_update_user(metadata: dict) -> str:
+    try:
+        # Save to datasets collection
+        dataset_id = await save_metadata(metadata)
+        
+        # Update user profile with dataset reference
+        uid = metadata["uid"]
+        dataset_summary = {
+            "dataset_id": metadata["dataset_id"],
+            "name": metadata["dataset_info"]["name"],
+            "upload_type": metadata["upload_type"],
+            "timestamp": metadata["timestamp"]
+        }
+        
+        update_result = await user_profile_collection.update_one(
+            {"uid": uid},
+            {
+                "$push": {"datasets": dataset_summary},
+                "$inc": {
+                    "number_of_raw_datasets": 1 if metadata["upload_type"] in ["raw", "both"] else 0,
+                    "number_of_vectorized_datasets": 1 if metadata["upload_type"] in ["vectorized", "both"] else 0
+                }
+            },
+            upsert=True
+        )
+        
+        logging.info(f"Updated user profile for UID {uid} with dataset {dataset_id}")
+        return dataset_id
+    except Exception as e:
+        logging.error(f"MongoDB error: {str(e)}")
+        raise
 
 async def update_user_profile(uid: str, new_bio: str, new_profile_picture: str, new_name: str, new_github_url: str) -> bool:
     try:

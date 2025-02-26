@@ -6,7 +6,7 @@ from datetime import datetime
 from src.utils.logger import logging
 from src.models.models import DatasetInfo, UploadResponse
 from src.utils.file_handlers import ensure_directories, save_uploaded_file
-from src.database.mongodb import save_metadata
+from src.database.mongodb import save_metadata_and_update_user
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
@@ -19,9 +19,13 @@ async def upload_files(
     raw_files: List[UploadFile] = File(None),
     vectorized_files: List[UploadFile] = File(None),
     type: str = Form(...),
-    datasetInfo: str = Form(...)
+    datasetInfo: str = Form(...),
+    uid: str = Form(...)
 ):
     try:
+        if not uid:
+            raise HTTPException(status_code=400, detail="User ID is required")
+
         # Parse dataset info
         dataset_info = DatasetInfo.parse_raw(datasetInfo)
         dataset_id = dataset_info.datasetId or f"{dataset_info.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -62,11 +66,12 @@ async def upload_files(
             "upload_type": type.lower(),
             "timestamp": datetime.now().isoformat(),
             "files": uploaded_files,
-            "base_directory": dataset_dir
+            "base_directory": dataset_dir,
+            "uid": uid
         }
 
-        # Save metadata to MongoDBs
-        await save_metadata(metadata)
+        # Save metadata and update user profile
+        await save_metadata_and_update_user(metadata)
 
         all_files = uploaded_files.get("raw", []) + uploaded_files.get("vectorized", [])
         return UploadResponse(

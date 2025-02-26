@@ -16,6 +16,15 @@ class DatasetInfo(BaseModel):
     name: str
     description: Optional[str] = None
     datasetId: Optional[str] = None
+    uid: str = Field(..., description="User ID is required")
+    domain: Optional[str] = None
+    file_type: Optional[str] = None
+
+class DatasetSummary(BaseModel):
+    dataset_id: str
+    name: str
+    upload_type: str
+    timestamp: str
 
 class UploadResponse(BaseModel):
     success: bool
@@ -32,11 +41,11 @@ class SettingProfile(BaseModel):
 # Profile Models
 class UserProfile(BaseModel):
     uid: str
-    email: str
+    email: Optional[str] = None
     name: Optional[str] = None
     bio: Optional[str] = "About me..."
     profilePicture: Optional[str] = None
     githubUrl: Optional[str] = None
-    number_of_raw_datasets: Optional[int] = 0
-    number_of_vectorized_datasets: Optional[int] = 0
-    datasets: List[DatasetInfo] = Field(default_factory=list)
+    number_of_raw_datasets: int = 0
+    number_of_vectorized_datasets: int = 0
+    datasets: List[DatasetSummary] = Field(default_factory=list)

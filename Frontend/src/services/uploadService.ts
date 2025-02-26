@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getAuth } from "firebase/auth";
 
 const API_URL = "http://localhost:5000";
 
@@ -22,9 +23,15 @@ export const uploadDataset = async (
   rawFiles: FileList | null,
   vectorizedFiles: FileList | null,
   type: "raw" | "vectorized" | "both",
-  datasetInfo: DatasetForm
+  datasetInfo: Omit<DatasetForm, "uid">
 ) => {
   try {
+    const auth = getAuth();
+    const uid = auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error("User must be authenticated to upload datasets");
+    }
+
     const formData = new FormData();
 
     // Add files based on type
@@ -52,9 +59,14 @@ export const uploadDataset = async (
       }
     }
 
-    // Add dataset info
+    // Add dataset info with uid
+    const datasetInfoWithUid = {
+      ...datasetInfo,
+      uid: uid,
+    };
     formData.append("type", type);
-    formData.append("datasetInfo", JSON.stringify(datasetInfo));
+    formData.append("datasetInfo", JSON.stringify(datasetInfoWithUid));
+    formData.append("uid", uid);
 
     const response = await axios.post(`${API_URL}/upload`, formData, {
       headers: {
