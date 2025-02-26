@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import { useAuth } from './contexts/AuthContext';
 import DatasetEdit from './pages/DatasetEdit';
+import Documentation from './pages/Documentation';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -50,6 +51,7 @@ function App() {
         <Route path="/datasets/:datasetId" element={<DatasetDetail />} /> {/* Changed from :Id to :datasetId */}
         <Route path="/settings" element={<Settings />} />
         <Route path="/datasets/:datasetId/edit" element={<DatasetEdit />} />
+        <Route path="/documentation" element={<Documentation />} />
 
         {/* Update the profile route to handle username */}
         <Route path="/profile" element={<UserProfile />} /> {/* Default profile route */}
