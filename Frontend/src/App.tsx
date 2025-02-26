@@ -10,11 +10,14 @@ import DatasetDetail from "./pages/DatasetDetail";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import { useAuth } from "./contexts/AuthContext";
-import DatasetEdit from "./pages/DatasetEdit";
+import { useAuth } from './contexts/AuthContext';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
-  return <div className="min-h-screen bg-gray-900">{children}</div>;
+  return (
+    <div className="min-h-screen bg-gray-900">
+      {children}
+    </div>
+  );
 };
 
 function App() {
@@ -33,48 +36,19 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
-        <Route
-          path="/login"
-          element={user ? <Navigate to="/home" replace /> : <Login />}
-        />
-        <Route
-          path="/signup"
-          element={user ? <Navigate to="/home" replace /> : <Signup />}
-        />
-
-        {/* Protected Routes */}
-        <Route
-          path="/home"
-          element={user ? <HomePage /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/profile"
-          element={user ? <Profile /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/upload"
-          element={user ? <UploadFile /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/community"
-          element={user ? <Community /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/profile/:userId"
-          element={user ? <UserProfile /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/datasets/:id"
-          element={user ? <DatasetDetail /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/datasets/:id/edit"
-          element={user ? <DatasetEdit /> : <Navigate to="/login" replace />}
-        />
-        <Route
-          path="/settings"
-          element={user ? <Settings /> : <Navigate to="/login" replace />}
-        />
+        <Route path="/login" element={
+          user ? <Navigate to="/home" replace /> : <Login />
+        } />
+        <Route path="/signup" element={
+          user ? <Navigate to="/home" replace /> : <Signup />
+        } />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/upload" element={<UploadFile />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/profile/:userId" element={<UserProfile />} />
+        <Route path="/datasets/:id" element={<DatasetDetail />} />
+        <Route path="/settings" element={<Settings />} />
 
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />

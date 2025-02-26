@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
-from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile, get_user_datasets
+from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile
 from src.models.models import UserProfile,UidRequest,SettingProfile
 from fastapi.encoders import jsonable_encoder
 from bson import ObjectId
@@ -63,9 +63,6 @@ async def get_user_profile(uid: str):
     try:
         user_profile = await user_profile_collection.find_one({"uid": uid})
         if user_profile:
-            # Fetch user's datasets
-            datasets = await get_user_datasets(uid)
-            user_profile['datasets'] = datasets
             return jsonable_encoder(user_profile_serializer(user_profile))
         raise HTTPException(status_code=404, detail="User profile not found")
     except Exception as e:

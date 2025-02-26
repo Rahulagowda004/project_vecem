@@ -82,23 +82,5 @@ async def update_user_profile(uid: str, new_bio: str, new_profile_picture: str, 
         logging.error(f"MongoDB error: {str(e)}")
         raise
 
-async def get_user_datasets(uid: str):
-    try:
-        datasets = await datasets_collection.find({"uid": uid}).to_list(length=None)
-        return [{
-            "id": str(dataset["_id"]),
-            "name": dataset["dataset_info"]["name"],
-            "description": dataset["dataset_info"].get("description", ""),
-            "visibility": "public",  # You can add this field to your schema
-            "updatedAt": dataset["timestamp"],
-            "createdAt": dataset["timestamp"],
-            "size": len(dataset.get("files", {}).get("raw", [])) + len(dataset.get("files", {}).get("vectorized", [])),
-            "format": dataset["upload_type"],
-            "owner": uid
-        } for dataset in datasets]
-    except Exception as e:
-        logging.error(f"Error fetching user datasets: {str(e)}")
-        return []
-
 async def close_db_client():
     client.close()
