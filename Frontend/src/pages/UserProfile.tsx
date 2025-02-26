@@ -261,7 +261,8 @@ const UserProfile = () => {
                   key={dataset.id}
                   variants={item}
                   whileHover={{ scale: 1.02 }}
-                  className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300"
+                  onClick={() => navigate(`/datasets/${dataset.id}`)}
+                  className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
                 >
                   <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
                     {dataset.name}
