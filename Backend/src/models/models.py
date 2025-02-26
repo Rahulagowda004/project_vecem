@@ -42,6 +42,7 @@ class SettingProfile(BaseModel):
 class UserProfile(BaseModel):
     uid: str
     email: Optional[str] = None
+    username : Optional[str] = None
     name: Optional[str] = None
     bio: Optional[str] = "About me..."
     profilePicture: Optional[str] = None
