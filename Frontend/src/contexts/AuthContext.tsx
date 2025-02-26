@@ -1,18 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
+import React, { createContext, useContext, useState, useEffect } from "react";
+import {
   User,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  GoogleAuthProvider
-} from 'firebase/auth';
-import { auth } from '../firebase/firebase';
-import { useNavigate } from 'react-router-dom';
-import { setDoc, doc } from 'firebase/firestore';
-import { firestore } from '../firebase/firebase';
-import { createUserDocument, updateUserData } from '../utils/userManagement';
+  GoogleAuthProvider,
+} from "firebase/auth";
+import { auth } from "../firebase/firebase";
+import { useNavigate } from "react-router-dom";
+import { setDoc, doc } from "firebase/firestore";
+import { firestore } from "../firebase/firebase";
+import { createUserDocument, updateUserData } from "../utils/userManagement";
 
 interface AuthContextType {
   user: User | null;
@@ -31,7 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   signup: async () => {},
   login: async () => {},
   loginWithGoogle: async () => {},
-  logout: async () => {}
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -41,21 +41,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('AuthProvider mounted'); // Debug log
+    console.log("AuthProvider mounted"); // Debug log
     let isMounted = true;
 
     setLoading(true); // Ensure loading is true when starting auth check
 
-    const unsubscribe = onAuthStateChanged(auth, 
+    const unsubscribe = onAuthStateChanged(
+      auth,
       (user) => {
-        console.log('Auth state changed:', user?.email); // Debug log
+        console.log("Auth state changed:", user?.email); // Debug log
         if (isMounted) {
           setUser(user);
           setLoading(false);
         }
       },
       (error) => {
-        console.error('Auth error:', error); // Debug log
+        console.error("Auth error:", error); // Debug log
         if (isMounted) {
           setError(error.message);
           setLoading(false);
@@ -71,8 +72,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signup = async (username: string, email: string, password: string) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       // Create user document in Firestore
       await createUserDocument(userCredential.user.uid, {
         username,
@@ -81,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         displayName: username,
       });
 
-      navigate('/home');
+      navigate("/home");
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -90,14 +95,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (emailOrUsername: string, password: string) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, emailOrUsername, password);
-      
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        emailOrUsername,
+        password
+      );
+
       // Update last login time
       await updateUserData(userCredential.user.uid, {
-        lastLogin: new Date().toISOString()
+        lastLogin: new Date().toISOString(),
       });
 
-      navigate('/home');
+      navigate("/home");
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -108,7 +117,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      navigate('/home');
+      navigate("/home");
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -118,7 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     try {
       await signOut(auth);
-      navigate('/');
+      navigate("/");
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -132,10 +141,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signup,
     login,
     loginWithGoogle,
-    logout
+    logout,
   };
 
-  console.log('Auth state:', { user: user?.email, loading, error }); // Debug log
+  console.log("Auth state:", { user: user?.email, loading, error }); // Debug log
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -143,7 +152,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
