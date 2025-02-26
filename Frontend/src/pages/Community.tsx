@@ -66,16 +66,6 @@ const Community = () => {
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
-  const onlineUsers = [
-    {
-      id: '1',
-      name: 'Alice Smith',
-      avatar: 'https://api.dicebear.com/6.x/avataaars/svg?seed=Alice',
-      lastSeen: new Date(),
-    },
-    // ... add more users as needed
-  ];
-
   const handleSendMessage = () => {
     if (!newMessage.trim() || !user) return;
 
@@ -282,12 +272,6 @@ const Community = () => {
                 <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
                   Community Chat
                 </h2>
-                <motion.span 
-                  whileHover={{ scale: 1.05 }}
-                  className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm"
-                >
-                  {onlineUsers.length} online
-                </motion.span>
               </div>
             </div>
             <div className="flex items-center space-x-4">
