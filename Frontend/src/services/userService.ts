@@ -82,16 +82,74 @@ export const deleteUserDocument = async (userId: string) => {
   }
 };
 
-export const getUserProfile = async (uid: string): Promise<UserProfileData> => {
+export const getUserProfile = async (uid: string) => {
   try {
-    const response = await axios.get(`${API_URL}/user-profile/${uid}`);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.detail || "Failed to fetch user profile"
-      );
+    const response = await fetch(`${API_URL}/user-profile/${uid}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};
+
+export const registerUser = async (
+  uid: string,
+  email: string,
+  name: string
+) => {
+  try {
+    const response = await fetch(`${API_URL}/register-uid`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ uid, email, name }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error registering user:", error);
+    throw error;
+  }
+};
+
+export const updateUserProfile = async (profileData: {
+  uid: string;
+  displayName?: string;
+  about?: string;
+  photoURL?: string;
+  githubUrl?: string;
+}) => {
+  try {
+    const response = await fetch(`${API_URL}/update-profile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(profileData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating profile:", error);
     throw error;
   }
 };

@@ -6,6 +6,7 @@ import { firestore } from "../firebase/firebase";
 import AvatarSelector from "../components/AvatarSelector";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { updateUserProfile } from "../services/userService";
 
 // Add these animation variants before the Dataset interface
 const cardVariants = {
@@ -164,32 +165,14 @@ const Settings = () => {
 
     if (user?.uid) {
       try {
-        const response = await fetch("http://localhost:5000/update-profile", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            uid: user.uid,
-            displayName: name,
-            about,
-            githubUrl,
-            photoURL: selectedAvatar,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update profile");
-        }
-
-        await updateDoc(doc(firestore, "users", user.uid), {
+        await updateUserProfile({
+          uid: user.uid,
           displayName: name,
           about,
           githubUrl,
           photoURL: selectedAvatar,
         });
-
-        console.log("Profile updated successfully in FastAPI and Firestore");
+        console.log("Profile updated successfully");
       } catch (error) {
         console.error("Error updating profile:", error);
       }

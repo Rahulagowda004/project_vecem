@@ -61,11 +61,15 @@ async def register_uid(uid_request: UidRequest):
 @app.get("/user-profile/{uid}")
 async def get_user_profile(uid: str):
     try:
+        print(f"Attempting to fetch user profile for UID: {uid}")  # Debug log
         user_profile = await user_profile_collection.find_one({"uid": uid})
         if user_profile:
+            print(f"Found user profile: {user_profile}")  # Debug log
             return jsonable_encoder(user_profile_serializer(user_profile))
+        print(f"No user profile found for UID: {uid}")  # Debug log
         raise HTTPException(status_code=404, detail="User profile not found")
     except Exception as e:
+        print(f"Error fetching user profile: {str(e)}")  # Debug log
         CustomException(e,sys)
 
 

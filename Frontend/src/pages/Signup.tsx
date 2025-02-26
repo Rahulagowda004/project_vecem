@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import { createUserDocument } from "../services/apiService";
+import { registerUser } from "../services/userService";
 
 interface SignupProps {
   onClose?: () => void;
@@ -84,20 +85,13 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
   };
 
   registerUser = async () => {
-    const user = auth.currentUser;
+    const { user } = this.props;
     if (user) {
-      const token = await user.getIdToken();
-      await fetch("http://localhost:5000/register-user", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          email: user.email,
-          username: this.state.username, // Include username
-        }),
-      });
+      try {
+        await registerUser(user.uid, user.email!, this.state.username);
+      } catch (error) {
+        console.error("Error during user registration:", error);
+      }
     }
   };
 
