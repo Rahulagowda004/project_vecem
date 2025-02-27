@@ -15,7 +15,6 @@ interface SignupProps {
 }
 
 interface SignupState {
-  username: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -27,7 +26,6 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
   constructor(props: SignupProps) {
     super(props);
     this.state = {
-      username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -57,15 +55,10 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
   };
 
   validateForm = (): boolean => {
-    const { username, email, password, confirmPassword } = this.state;
+    const { email, password, confirmPassword } = this.state;
 
     if (password !== confirmPassword) {
       this.setState({ error: "Passwords do not match" });
-      return false;
-    }
-
-    if (username.length < 3) {
-      this.setState({ error: "Username must be at least 3 characters" });
       return false;
     }
 
@@ -104,7 +97,6 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
     try {
       await this.props.auth.signup(
         // Use auth from props
-        this.state.username,
         this.state.email,
         this.state.password
       );
@@ -225,24 +217,6 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
                 },
               }}
             >
-              <motion.div
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-                className="space-y-2"
-              >
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  onChange={this.handleInputChange}
-                  className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700/50 text-white placeholder-gray-400 
-                    focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
-                  required
-                />
-              </motion.div>
-
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 20 },
