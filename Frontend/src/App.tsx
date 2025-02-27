@@ -42,14 +42,64 @@ function App() {
           path="/signup"
           element={user ? <Navigate to="/home" replace /> : <Signup />}
         />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/upload" element={<UploadFile />} />
-        <Route path="/community" element={<Community />} />
 
-        <Route path="/datasets/:id" element={<DatasetDetail />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/documentation" element={<Documentation />} />
-        <Route path="/datasets/:datasetId/edit" element={<DatasetEdit />} />
+        {/* Protected Routes */}
+        <Route
+          path="/home"
+          element={
+            <PrivateRoute>
+              <HomePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/upload"
+          element={
+            <PrivateRoute>
+              <UploadFile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <PrivateRoute>
+              <Community />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/datasets/:id"
+          element={
+            <PrivateRoute>
+              <DatasetDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <Settings />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/documentation"
+          element={
+            <PrivateRoute>
+              <Documentation />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/datasets/:datasetId/edit"
+          element={
+            <PrivateRoute>
+              <DatasetEdit />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/:username"
           element={
@@ -58,7 +108,7 @@ function App() {
             </PrivateRoute>
           }
         />
-        
+
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
