@@ -1,24 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Mail, Github, Edit2, Trash2, Camera, PenSquare } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
-import { firestore, auth } from "../firebase/firebase";
-import {
-  deleteUser,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
 import AvatarSelector from "../components/AvatarSelector";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,58 +21,41 @@ const Settings = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(
-    localStorage.getItem("userName") || user?.displayName || "Guest"
-  );
-  const [about, setAbout] = useState(
-    localStorage.getItem("userAbout") || "About me..."
-  );
+  const [name, setName] = useState(user?.displayName || "Guest");
+  const [about, setAbout] = useState("About me...");
   const [selectedAvatar, setSelectedAvatar] = useState(
-    localStorage.getItem("userAvatar") ||
-      user?.photoURL ||
-      "/avatars/avatar1.png"
+    user?.photoURL || "/avatars/avatar1.png"
   );
   const [githubUrl, setGithubUrl] = useState(
-    localStorage.getItem("githubUrl") ||
-      `https://github.com/${user?.displayName || "username"}`
+    `https://github.com/${user?.displayName || "username"}`
   );
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [editingDataset, setEditingDataset] = useState<Dataset | null>(null);
   const [showDatasetModal, setShowDatasetModal] = useState(false);
-
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("latest");
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user?.uid) return;
+      if (!user?.id) return;
 
       try {
-        const userDoc = await getDoc(doc(firestore, "users", user.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setName(
-            data.displayName ||
-              localStorage.getItem("userName") ||
-              user.displayName ||
-              "Guest"
-          );
-          setAbout(data.about || localStorage.getItem("userAbout") || about);
-          setSelectedAvatar(
-            data.photoURL ||
-              localStorage.getItem("userAvatar") ||
-              user.photoURL ||
-              "/avatars/avatar1.png"
-          );
-          setGithubUrl(
-            data.githubUrl ||
-              localStorage.getItem("githubUrl") ||
-              `https://github.com/${user.displayName || "username"}`
-          );
-        }
+        // Replace with your API call to fetch user data
+        const response = await fetch(`/api/users/${user.id}`);
+        const data = await response.json();
+
+        setName(data.displayName || user.displayName || "Guest");
+        setAbout(data.about || "About me...");
+        setSelectedAvatar(
+          data.photoURL || user.photoURL || "/avatars/avatar1.png"
+        );
+        setGithubUrl(
+          data.githubUrl ||
+            `https://github.com/${user.displayName || "username"}`
+        );
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -101,47 +66,13 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchUserDatasets = async () => {
-      if (!user?.uid) return;
+      if (!user?.id) return;
 
       try {
-        // For now, using mock data similar to UserProfile
-        const mockDatasets = [
-          {
-            id: "1",
-            name: "Medical Imaging Dataset",
-            description: "Collection of medical imaging data for AI training",
-            visibility: "public",
-            updatedAt: "2d",
-            createdAt: new Date("2024-01-15"),
-            size: 2048576, // 2MB
-            format: "DICOM",
-            owner: user?.uid || "",
-          },
-          {
-            id: "2",
-            name: "Patient Records Analysis",
-            description: "Anonymized patient records for pattern analysis",
-            visibility: "private",
-            updatedAt: "5d",
-            createdAt: new Date("2024-01-20"),
-            size: 1048576, // 1MB
-            format: "CSV",
-            owner: user?.uid || "",
-          },
-          {
-            id: "3",
-            name: "Clinical Trial Results",
-            description:
-              "Results from recent clinical trials on new treatments",
-            visibility: "public",
-            updatedAt: "10d",
-            createdAt: new Date("2024-02-01"),
-            size: 3145728, // 3MB
-            format: "XLS",
-            owner: user?.uid || "",
-          },
-        ];
-        setDatasets(mockDatasets);
+        // Replace with your API call to fetch datasets
+        const response = await fetch(`/api/users/${user.id}/datasets`);
+        const data = await response.json();
+        setDatasets(data);
       } catch (error) {
         console.error("Error fetching datasets:", error);
       }
@@ -155,19 +86,26 @@ const Settings = () => {
 
   const handleSave = async () => {
     setIsEditing(false);
-    localStorage.setItem("userName", name);
-    localStorage.setItem("userAbout", about);
-    localStorage.setItem("githubUrl", githubUrl);
-    localStorage.setItem("userAvatar", selectedAvatar);
 
-    if (user?.uid) {
+    if (user?.id) {
       try {
-        await updateDoc(doc(firestore, "users", user.uid), {
-          displayName: name,
-          about,
-          githubUrl,
-          photoURL: selectedAvatar,
+        // Replace with your API call to update user data
+        const response = await fetch(`/api/users/${user.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            displayName: name,
+            about,
+            githubUrl,
+            photoURL: selectedAvatar,
+          }),
         });
+
+        if (!response.ok) {
+          throw new Error("Failed to update profile");
+        }
       } catch (error) {
         console.error("Error updating profile:", error);
       }
@@ -180,56 +118,24 @@ const Settings = () => {
 
   const confirmDelete = async () => {
     try {
-      if (!user?.uid) return;
+      if (!user?.id) return;
       setConfirmLoading(true);
 
-      // Check if user is signed in with Google
-      const isGoogleUser = user.providerData[0]?.providerId === "google.com";
-
       try {
-        if (isGoogleUser) {
-          // Re-authenticate with Google
-          const provider = new GoogleAuthProvider();
-          await signInWithPopup(auth, provider);
-        } else {
-          // Re-authenticate with password
-          if (!password) {
-            throw new Error("Password is required");
-          }
-          const credential = EmailAuthProvider.credential(
-            user.email!,
-            password
-          );
-          await reauthenticateWithCredential(user, credential);
+        // Replace with your API call to delete user account
+        const response = await fetch(`/api/users/${user.id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete account");
         }
 
-        // Delete Firestore data first
-        const collections = ["users", "datasets", "profiles", "uploads"];
-        await Promise.all(
-          collections.map(async (collectionName) => {
-            const q = query(
-              collection(firestore, collectionName),
-              where("userId", "==", user.uid)
-            );
-            const querySnapshot = await getDocs(q);
-            return Promise.all(
-              querySnapshot.docs.map((doc) => deleteDoc(doc.ref))
-            );
-          })
-        );
-
-        // Delete user document
-        await deleteDoc(doc(firestore, "users", user.uid));
-
-        // Delete the authentication user
-        await user.delete();
-
-        // Clear local storage and states
-        localStorage.clear();
-        setShowDeleteModal(false);
-        setConfirmLoading(false);
-
-        // Navigate to home page
+        await logout();
         navigate("/", { replace: true });
       } catch (error: any) {
         console.error("Delete operation error:", error);
