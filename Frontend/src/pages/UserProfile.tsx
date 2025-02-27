@@ -145,7 +145,7 @@ const UserProfile = () => {
                     {userData.name}
                   </h1>
                   <p className="text-gray-400 text-lg font-medium">
-                    {userData.email}
+                    @{userData.username}
                   </p>
                 </div>
               </div>
@@ -289,9 +289,11 @@ const UserProfile = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      {dataset.dataType === 'both' ? 'Raw + Vectorized' :
-                       dataset.dataType === 'raw' ? 'Raw Data' :
-                       'Vectorized Data'}
+                      {dataset.dataType === "both"
+                        ? "Raw + Vectorized"
+                        : dataset.dataType === "raw"
+                        ? "Raw Data"
+                        : "Vectorized Data"}
                     </span>
                     <span className="flex items-center">
                       <svg

@@ -1,6 +1,5 @@
 import { firestore } from "../firebase/firebase";
 import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import axios from "axios";
 
 const API_URL = "http://127.0.0.1:5000";
 
@@ -20,12 +19,13 @@ export interface UserProfileData {
   bio?: string;
   githubUrl?: string;
   profilePicture?: string;
-  datasets?: Array<{
+  username: string;
+  datasets: Array<{
     id: string;
     name: string;
     description: string;
-    visibility?: string;
-    updatedAt?: string;
+    dataType: "raw" | "vectorized" | "both";
+    updatedAt: string;
   }>;
 }
 
