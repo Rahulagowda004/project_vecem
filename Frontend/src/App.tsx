@@ -9,8 +9,9 @@ import DatasetDetail from "./pages/DatasetDetail";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Documentation from './pages/Documentation';
+import Documentation from "./pages/Documentation";
 import { useAuth } from "./contexts/AuthContext";
+import DatasetEdit from "./pages/DatasetEdit";
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return <div className="min-h-screen bg-gray-900">{children}</div>;
@@ -45,6 +46,7 @@ function App() {
         <Route path="/upload" element={<UploadFile />} />
         <Route path="/community" element={<Community />} />
         <Route path="/profile/:userId" element={<UserProfile />} />
+        <Route path="/datasets/:datasetId/edit" element={<DatasetEdit />} />
         <Route path="/datasets/:id" element={<DatasetDetail />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/documentation" element={<Documentation />} />
