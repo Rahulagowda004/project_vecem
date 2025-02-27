@@ -192,6 +192,7 @@ const UploadFile = () => {
       if (result?.success) {
         setUploadProgress({ progress: 100, status: "completed" });
         // Optionally add success message or redirect
+        window.location.reload(); // Refresh the page after successful upload
       } else {
         setUploadProgress({ progress: 0, status: "error" });
         setError(result?.message || "Upload failed");
