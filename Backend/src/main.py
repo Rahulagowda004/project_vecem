@@ -1,5 +1,6 @@
 import sys
 import uuid
+import base64
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.routes.upload_router import router as upload_router
@@ -49,8 +50,7 @@ async def register_uid(uid_request: UidRequest):
             logging.info("User profile exists for UID: {uid, email,name}")
             return jsonable_encoder(user_profile_serializer(user_profile))
         else:
-            # Generate unique username
-            unique_id = str(uuid.uuid4())[:6]  # Get first 6 characters of UUID
+            unique_id = str("vecem" + base64.urlsafe_b64encode(uuid.uuid4().bytes).decode('utf-8').rstrip('=\n')[:6])
             username = f"{name.replace(' ', '')}{unique_id}"
             
             new_user_profile = UserProfile(
