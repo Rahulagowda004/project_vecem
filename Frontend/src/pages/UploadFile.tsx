@@ -69,6 +69,7 @@ const UploadFile = () => {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
       "application/msword", // .doc
     ],
+    Vectorized: ["*/*"] // Allow any file type for vectorized data
   };
 
   const handleFileChange = (
@@ -81,19 +82,23 @@ const UploadFile = () => {
     if (!files || files.length === 0) return;
 
     const filesArray = Array.from(files);
-    const allowedTypes = fileTypeMap[fileType];
-    const invalidFiles = filesArray.filter(
-      (file) => !allowedTypes.includes(file.type)
-    );
 
-    if (invalidFiles.length > 0) {
-      setError(
-        `Invalid file types detected. All files must be ${fileType.toLowerCase()} files.`
+    // Only validate file types for raw data uploads
+    if (type === "raw") {
+      const allowedTypes = fileTypeMap[fileType];
+      const invalidFiles = filesArray.filter(
+        (file) => !allowedTypes.includes(file.type)
       );
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+
+      if (invalidFiles.length > 0) {
+        setError(
+          `Invalid file types detected. All files must be ${fileType.toLowerCase()} files.`
+        );
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        return;
       }
-      return;
     }
 
     // Calculate total size of selected files
@@ -412,7 +417,7 @@ const UploadFile = () => {
                           text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
                           file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
                           hover:file:bg-cyan-700 file:transition-colors"
-                        accept={fileTypeMap[fileType].join(",")}
+                        accept={fileTypeMap.Vectorized.join(",")}
                         multiple
                         directory=""
                         webkitdirectory=""
@@ -434,37 +439,14 @@ const UploadFile = () => {
                       text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
                       file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
                       hover:file:bg-cyan-700 file:transition-colors"
-                    accept={fileTypeMap[fileType].join(",")}
+                    accept={datasetType === "Vectorized" ? fileTypeMap.Vectorized.join(",") : fileTypeMap[fileType].join(",")}
                     multiple
                     directory=""
                     webkitdirectory=""
                   />
                 )}
-
-                {/* Upload Progress Bars */}
-                {uploadProgress.progress > 0 && (
-                  <div className="space-y-2">
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>Upload Progress</span>
-                        <span>{uploadProgress.progress}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-300 ${
-                            uploadProgress.status === "completed"
-                              ? "bg-green-500"
-                              : uploadProgress.status === "error"
-                              ? "bg-red-500"
-                              : "bg-cyan-500"
-                          }`}
-                          style={{ width: `${uploadProgress.progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
+
               {error && (
                 <p className="text-sm text-red-400 mt-2">
                   {error}
@@ -474,6 +456,30 @@ const UploadFile = () => {
                 Select a folder containing only {fileType.toLowerCase()} files
               </p>
             </div>
+
+            {/* Upload Progress Bars */}
+            {uploadProgress.progress > 0 && (
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span>Upload Progress</span>
+                    <span>{uploadProgress.progress}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        uploadProgress.status === "completed"
+                          ? "bg-green-500"
+                          : uploadProgress.status === "error"
+                          ? "bg-red-500"
+                          : "bg-cyan-500"
+                      }`}
+                      style={{ width: `${uploadProgress.progress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Display file size */}
             <div className="mt-4 space-y-2">
