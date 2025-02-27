@@ -2,7 +2,11 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Upload } from "lucide-react";
-import { getUserProfile, getUserProfileByUsername, getUserData } from "../services/userService";
+import {
+  getUserProfile,
+  getUserProfileByUsername,
+  getUserData,
+} from "../services/userService";
 import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -79,6 +83,29 @@ const UserProfile = () => {
 
     return result;
   }, [userData?.datasets, searchQuery, sortOption]);
+
+  const handleDatasetClick = async (datasetId: string, datasetName: string) => {
+    try {
+      // Log the click to backend
+      await fetch("http://127.0.0.1:5000/dataset-click", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: userData?.uid,
+          datasetName: datasetName,
+        }),
+      });
+
+      // Navigate to dataset detail page
+      navigate(`/datasets/${datasetId}`);
+    } catch (error) {
+      console.error("Error logging dataset click:", error);
+      // Still navigate even if logging fails
+      navigate(`/datasets/${datasetId}`);
+    }
+  };
 
   if (loading) {
     return (
@@ -272,7 +299,7 @@ const UserProfile = () => {
                   key={dataset.id}
                   variants={item}
                   whileHover={{ scale: 1.02 }}
-                  onClick={() => navigate(`/datasets/${dataset.id}`)}
+                  onClick={() => handleDatasetClick(dataset.id, dataset.name)}
                   className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
                 >
                   <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">

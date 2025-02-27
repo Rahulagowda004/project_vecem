@@ -1,10 +1,11 @@
 import sys
 import uuid
 import base64
+from bson import ObjectId
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from src.routes.upload_router import router as upload_router
-from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile
+from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile,datasets_collection
 from src.models.models import UserProfile,UidRequest,SettingProfile
 from fastapi.encoders import jsonable_encoder
 from src.utils.exception import CustomException
@@ -122,11 +123,42 @@ async def delete_account(uid: str):
             raise HTTPException(status_code=404, detail="User profile not found")
             
         # Delete associated datasets
-        await dataset_collection.delete_many({"owner": uid})
+        await dataset_collection.delete_many({"uid": uid})
         
         return {"message": "Account deleted successfully"}
     except Exception as e:
         CustomException(e,sys)
+
+@app.post("/dataset-click")
+async def log_dataset_click(data: dict):
+    try:
+        uid = data.get('uid')
+        dataset_name = data.get('datasetName')
+
+        print(f"Dataset clicked - UID: {uid}, Dataset Name: {dataset_name}")
+
+        if not uid or not dataset_name:
+            raise ValueError("UID or datasetName is missing")
+
+        print(f"Querying dataset with: {{'uid': {uid}, 'dataset_info.name': {dataset_name}}}")
+
+        dataset = await datasets_collection.find_one(
+            {"uid": uid, "dataset_info.name": dataset_name}
+        )
+
+        if not dataset:
+            print("Dataset not found")
+            raise HTTPException(status_code=404, detail="Dataset not found")
+
+        # Convert ObjectId to string
+        dataset["_id"] = str(dataset["_id"])
+
+        print("Dataset found:", dataset)
+        return jsonable_encoder(dataset)
+
+    except Exception as e:
+        print(f"Error: {e}")  
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Shutdown event
 @app.on_event("shutdown")
