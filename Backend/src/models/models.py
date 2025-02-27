@@ -7,6 +7,7 @@ class User(BaseModel):
     email: str
     username: str = Field(..., description="Auto-generated unique username")
     name: Optional[str] = None
+    hasChangedUsername: bool = False
 
 class UidRequest(BaseModel):
     uid: str
@@ -38,6 +39,7 @@ class SettingProfile(BaseModel):
     about: str
     githubUrl: str
     photoURL: str
+    username: str
 
 # Profile Models
 class UserProfile(BaseModel):
@@ -48,6 +50,7 @@ class UserProfile(BaseModel):
     bio: Optional[str] = "About me..."
     profilePicture: Optional[str] = None
     githubUrl: Optional[str] = None
+    hasChangedUsername: bool = False
     number_of_raw_datasets: int = 0
     number_of_vectorized_datasets: int = 0
     datasets: List[DatasetSummary] = Field(default_factory=list)

@@ -57,7 +57,8 @@ async def register_uid(uid_request: UidRequest):
                 uid=uid, 
                 email=email,
                 name=name,
-                username=username
+                username=username,
+                hasChangedUsername=False
             )
             user_profile_collection.insert_one(new_user_profile.dict())
             logging.info(f"New user profile created for UID: {uid,email,name} with username: {username}")
@@ -88,18 +89,26 @@ async def get_user_profile_by_username(username: str):
 @app.post("/update-profile")
 async def update_profile(user: SettingProfile):
     try:
+        # Check if username is already taken (if username is being changed)
+        existing_user = await user_profile_collection.find_one({"username": user.username, "uid": {"$ne": user.uid}})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Username already taken")
+
         success = await update_user_profile(
             uid=user.uid,
             new_bio=user.about,
             new_profile_picture=user.photoURL,
             new_name=user.displayName,
-            new_github_url=user.githubUrl
+            new_github_url=user.githubUrl,
+            new_username=user.username
         )
         if success:
             logging.info(f"Profile updated successfully for UID: {user.uid}")
             return {"message": "Profile updated successfully"}
         else:
             raise HTTPException(status_code=404, detail="User profile not found")
+    except HTTPException as he:
+        raise he
     except Exception as e:
         CustomException(e,sys)
 

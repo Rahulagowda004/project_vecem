@@ -16,11 +16,15 @@ interface Dataset {
   size: number;
   format: string;
   owner: string;
+  tags: string[];
 }
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  
+  const displayUsername = user?.displayName || user?.email?.split("@")[0] || "username";
+
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.displayName || "Guest");
   const [about, setAbout] = useState("About me...");
@@ -38,6 +42,8 @@ const Settings = () => {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("latest");
+  const [username, setUsername] = useState(displayUsername);
+  const [hasChangedUsername, setHasChangedUsername] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -54,6 +60,8 @@ const Settings = () => {
           userProfile.githubUrl ||
             `https://github.com/${user.displayName || "username"}`
         );
+        setUsername(userProfile.username || displayUsername);
+        setHasChangedUsername(userProfile.hasChangedUsername || false);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -64,11 +72,11 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchUserDatasets = async () => {
-      if (!user?.id) return;
+      if (!user?.uid) return;
 
       try {
         // Replace with your API call to fetch datasets
-        const response = await fetch(`/api/users/${user.id}/datasets`);
+        const response = await fetch(`/api/users/${user.uid}/datasets`);
         const data = await response.json();
         setDatasets(data);
       } catch (error) {
@@ -79,9 +87,6 @@ const Settings = () => {
     fetchUserDatasets();
   }, [user]);
 
-  const displayUsername =
-    user?.displayName || user?.email?.split("@")[0] || "username";
-
   const handleSave = async () => {
     setIsEditing(false);
 
@@ -90,10 +95,13 @@ const Settings = () => {
         await updateUserProfile({
           uid: user.uid,
           displayName: name,
+          username: username,
           about: about,
           photoURL: selectedAvatar,
           githubUrl: githubUrl,
+          hasChangedUsername: true,
         });
+        setHasChangedUsername(true);
       } catch (error) {
         console.error("Error updating profile:", error);
       }
@@ -314,12 +322,27 @@ const Settings = () => {
                         <label className="block text-sm font-medium text-gray-400 mb-1">
                           Username
                         </label>
-                        <input
-                          type="text"
-                          value={`@${displayUsername}`}
-                          disabled
-                          className="w-full bg-gray-700/30 text-gray-500 rounded-lg px-4 py-2.5 border border-gray-600/30"
-                        />
+                        {hasChangedUsername ? (
+                          <input
+                            type="text"
+                            value={`@${username}`}
+                            disabled
+                            className="w-full bg-gray-700/30 text-gray-500 rounded-lg px-4 py-2.5 border border-gray-600/30"
+                          />
+                        ) : (
+                          <div className="relative">
+                            <span className="absolute left-4 top-2.5 text-gray-400">@</span>
+                            <input
+                              type="text"
+                              value={username}
+                              onChange={(e) => setUsername(e.target.value)}
+                              className="w-full pl-8 bg-gray-700/50 text-cyan-400 rounded-lg px-4 py-2.5 border border-gray-600/50 focus:border-cyan-500/50"
+                            />
+                            <span className="text-xs text-yellow-400 mt-1 block">
+                              Note: Username can only be set once
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -339,7 +362,7 @@ const Settings = () => {
                         {name}
                       </h1>
                       <p className="text-gray-400 text-lg">
-                        @{displayUsername}
+                        @{username}
                       </p>
                       <p className="text-gray-500 mt-2">{user?.email}</p>
                     </>

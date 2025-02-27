@@ -63,19 +63,30 @@ async def save_metadata_and_update_user(metadata: dict) -> str:
         logging.error(f"MongoDB error: {str(e)}")
         raise
 
-async def update_user_profile(uid: str, new_bio: str, new_profile_picture: str, new_name: str, new_github_url: str) -> bool:
+async def update_user_profile(uid: str, new_bio: str, new_profile_picture: str, new_name: str, new_github_url: str, new_username: str) -> bool:
     try:
+        # Get current user profile
+        current_profile = await user_profile_collection.find_one({"uid": uid})
+        
+        # Determine if this is the first username change
+        set_has_changed = {}
+        if current_profile and current_profile.get("username") != new_username:
+            set_has_changed = {"hasChangedUsername": True}
+
+        update_fields = {
+            "bio": new_bio,
+            "profilePicture": new_profile_picture,
+            "name": new_name,
+            "githubUrl": new_github_url,
+            "username": new_username,
+            **set_has_changed
+        }
+
         result = await user_profile_collection.update_one(
             {"uid": uid},
-            {
-                "$set": {
-                    "bio": new_bio,
-                    "profilePicture": new_profile_picture,
-                    "name": new_name,
-                    "githubUrl": new_github_url
-                }
-            }
+            {"$set": update_fields}
         )
+        
         if result.modified_count > 0:
             logging.info(f"User profile updated for UID: {uid}")
             return True
