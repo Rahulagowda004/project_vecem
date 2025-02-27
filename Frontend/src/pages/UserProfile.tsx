@@ -277,7 +277,6 @@ const UserProfile = () => {
                   <p className="text-gray-300 mb-4">{dataset.description}</p>
                   <div className="flex items-center space-x-4 text-sm text-gray-400">
                     <span className="flex items-center">
-<<<<<<< HEAD
                       <svg
                         className="w-4 h-4 mr-1"
                         fill="currentColor"
@@ -289,10 +288,6 @@ const UserProfile = () => {
                           d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
                           clipRule="evenodd"
                         />
-=======
-                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
->>>>>>> main
                       </svg>
                       {dataset.dataType === 'both' ? 'Raw + Vectorized' :
                        dataset.dataType === 'raw' ? 'Raw Data' :
