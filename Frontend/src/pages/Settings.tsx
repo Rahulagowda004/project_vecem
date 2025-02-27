@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import AvatarSelector from "../components/AvatarSelector";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { getUserProfile, updateUserProfile } from "../services/userService";
 
 interface Dataset {
   id: string;
@@ -40,20 +41,17 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user?.id) return;
+      if (!user?.uid) return;
 
       try {
-        // Replace with your API call to fetch user data
-        const response = await fetch(`/api/users/${user.id}`);
-        const data = await response.json();
-
-        setName(data.displayName || user.displayName || "Guest");
-        setAbout(data.about || "About me...");
+        const userProfile = await getUserProfile(user.uid);
+        setName(userProfile.name || user.displayName || "Guest");
+        setAbout(userProfile.bio || "About me...");
         setSelectedAvatar(
-          data.photoURL || user.photoURL || "/avatars/avatar1.png"
+          userProfile.profilePicture || user.photoURL || "/avatars/avatar1.png"
         );
         setGithubUrl(
-          data.githubUrl ||
+          userProfile.githubUrl ||
             `https://github.com/${user.displayName || "username"}`
         );
       } catch (error) {
@@ -87,25 +85,15 @@ const Settings = () => {
   const handleSave = async () => {
     setIsEditing(false);
 
-    if (user?.id) {
+    if (user?.uid) {
       try {
-        // Replace with your API call to update user data
-        const response = await fetch(`/api/users/${user.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            displayName: name,
-            about,
-            githubUrl,
-            photoURL: selectedAvatar,
-          }),
+        await updateUserProfile({
+          uid: user.uid,
+          displayName: name,
+          about: about,
+          photoURL: selectedAvatar,
+          githubUrl: githubUrl,
         });
-
-        if (!response.ok) {
-          throw new Error("Failed to update profile");
-        }
       } catch (error) {
         console.error("Error updating profile:", error);
       }
@@ -118,18 +106,20 @@ const Settings = () => {
 
   const confirmDelete = async () => {
     try {
-      if (!user?.id) return;
+      if (!user?.uid) return;
       setConfirmLoading(true);
 
       try {
-        // Replace with your API call to delete user account
-        const response = await fetch(`/api/users/${user.id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ password }),
-        });
+        const response = await fetch(
+          `http://127.0.0.1:5000/delete-account/${user.uid}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ password }),
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to delete account");

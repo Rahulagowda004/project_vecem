@@ -103,6 +103,22 @@ async def update_profile(user: SettingProfile):
     except Exception as e:
         CustomException(e,sys)
 
+@app.delete("/delete-account/{uid}")
+async def delete_account(uid: str):
+    try:
+        # Delete user profile from database
+        result = await user_profile_collection.delete_one({"uid": uid})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="User profile not found")
+            
+        # Delete associated datasets
+        await dataset_collection.delete_many({"owner": uid})
+        
+        return {"message": "Account deleted successfully"}
+    except Exception as e:
+        CustomException(e,sys)
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
