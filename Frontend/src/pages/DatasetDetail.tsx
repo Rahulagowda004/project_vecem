@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Download,
@@ -18,63 +18,94 @@ import {
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 10 }
+  exit: { opacity: 0, y: 10 },
 };
 
 const DatasetDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [dataset, setDataset] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [isCodeOpen, setIsCodeOpen] = useState(false);
 
-  // Dataset structure matching upload form fields
-  const dataset = {
-    name: "Medical Imaging Dataset",
-    description: "Collection of medical imaging data for AI training",
-    datasetType: "Both",
-    vectorizedSettings: {
-      dimensions: 768,
-      vectorDatabase: "Pinecone",
-    },
-    domain: "Health",
-    fileType: "Image",
-    size: {
-      raw: "2.3 GB",
-      vectorized: "1.1 GB",
-    },
-    uploadDate: "2024-02-20",
-    owner: "Medical Research Lab",
-    status: {
-      uploadComplete: true,
-      processingComplete: true,
-    },
-    detailedDescription: {
-      overview: "Collection of medical imaging data for AI training",
-      dataStructure:
-        "The dataset consists of MRI scans in DICOM format along with their vectorized representations.",
-      contents: [
-        "Raw Data: 10,000 MRI scan files in DICOM format",
-        "Metadata: Patient demographics and scan parameters",
-        "Vectorized Data: 768-dimensional vectors for each scan",
-      ],
-      useCases: [
-        "Medical image analysis",
-        "Disease detection",
-        "Machine learning model training",
-      ],
-    },
-    downloads: {
-      raw: {
-        url: "/api/datasets/raw/download",
-        size: "2.3 GB",
-        format: "ZIP (DICOM files)",
-      },
-      vectorized: {
-        url: "/api/datasets/vectorized/download",
-        size: "1.1 GB",
-        format: "Parquet",
-      },
-    },
-  };
+  useEffect(() => {
+    const fetchDataset = async () => {
+      try {
+        setLoading(true);
+
+        // Extract uid and dataset name from the URL parameter
+        const [uid, datasetName] = id?.split("_") || [];
+
+        if (!uid || !datasetName) {
+          throw new Error("Invalid dataset ID format");
+        }
+
+        const response = await fetch("http://127.0.0.1:5000/dataset-click", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uid,
+            datasetName,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch dataset");
+        }
+
+        const data = await response.json();
+        console.log("Fetched dataset:", data); // Debug log
+
+        setDataset({
+          name: data.dataset_info.name,
+          description: data.dataset_info.description,
+          datasetType: data.upload_type,
+          domain: data.dataset_info.domain,
+          fileType: data.dataset_info.file_type,
+          size: {
+            raw: `${data.files.raw?.length || 0} files`, // Update with actual size calculation
+            vectorized: `${data.files.vectorized?.length || 0} files`,
+          },
+          uploadDate: data.timestamp,
+          owner: data.uid,
+          files: data.files,
+          base_directory: data.base_directory,
+          vectorizedSettings: {
+            dimensions: 768, // Add if available in your data
+            vectorDatabase: "Pinecone", // Add if available in your data
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching dataset:", error);
+        navigate("/"); // Redirect on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchDataset();
+    }
+  }, [id, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-cyan-400">Loading dataset...</div>
+      </div>
+    );
+  }
+
+  if (!dataset) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-red-400">Dataset not found</div>
+      </div>
+    );
+  }
 
   interface PythonExamples {
     basic: {
@@ -82,7 +113,7 @@ const DatasetDetail = () => {
       code: string;
     };
   }
-  
+
   const pythonExamples: PythonExamples = {
     basic: {
       label: "Basic Usage",
@@ -105,7 +136,7 @@ data = dataset.get_files()  # For raw files`,
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Sticky Header */}
-      <motion.header 
+      <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800"
@@ -113,11 +144,16 @@ data = dataset.get_files()  # For raw files`,
         <div className="max-w-6xl mx-auto px-4">
           {/* Breadcrumb */}
           <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
-            <Link to="/profile/:userId" className="hover:text-white transition-colors">Datasets</Link>
+            <Link
+              to="/profile/:userId"
+              className="hover:text-white transition-colors"
+            >
+              Datasets
+            </Link>
             <ChevronRight className="w-4 h-4" />
             <span className="text-white font-medium">{dataset.name}</span>
           </div>
-          
+
           {/* Title and Actions */}
           <div className="py-4 flex justify-between items-start">
             <motion.div
@@ -129,13 +165,13 @@ data = dataset.get_files()  # For raw files`,
                 {dataset.name}
               </h1>
               <div className="flex gap-2">
-                <motion.span 
+                <motion.span
                   whileHover={{ scale: 1.05 }}
                   className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
                 >
                   {dataset.domain}
                 </motion.span>
-                <motion.span 
+                <motion.span
                   whileHover={{ scale: 1.05 }}
                   className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
                 >
@@ -143,7 +179,7 @@ data = dataset.get_files()  # For raw files`,
                 </motion.span>
               </div>
             </motion.div>
-            <motion.div 
+            <motion.div
               initial={{ x: 20 }}
               animate={{ x: 0 }}
               className="flex gap-2"
@@ -170,24 +206,24 @@ data = dataset.get_files()  # For raw files`,
       >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Area */}
-          <motion.div 
+          <motion.div
             className="lg:col-span-2 space-y-6"
             variants={{
               initial: { opacity: 0 },
               animate: {
                 opacity: 1,
                 transition: {
-                  staggerChildren: 0.1
-                }
-              }
+                  staggerChildren: 0.1,
+                },
+              },
             }}
           >
             {/* Stats Cards */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: 'Size', value: dataset.size.raw, icon: Database },
-                { label: 'Type', value: dataset.fileType, icon: FileType },
-                { label: 'Domain', value: dataset.domain, icon: Box },
+                { label: "Size", value: dataset.size.raw, icon: Database },
+                { label: "Type", value: dataset.fileType, icon: FileType },
+                { label: "Domain", value: dataset.domain, icon: Box },
               ].map((stat, index) => (
                 <motion.div
                   key={stat.label}
@@ -197,7 +233,9 @@ data = dataset.get_files()  # For raw files`,
                 >
                   <stat.icon className="w-5 h-5 text-cyan-400 mb-2" />
                   <div className="text-sm text-cyan-200">{stat.label}</div>
-                  <div className="text-lg font-semibold text-white mt-1">{stat.value}</div>
+                  <div className="text-lg font-semibold text-white mt-1">
+                    {stat.value}
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -207,7 +245,9 @@ data = dataset.get_files()  # For raw files`,
               variants={fadeIn}
               className="bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-xl"
             >
-              <h2 className="text-xl font-semibold text-white mb-4">About This Dataset</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">
+                About This Dataset
+              </h2>
               <p className="text-white text-lg leading-relaxed min-h-[270px]">
                 {dataset.description}
               </p>
@@ -215,10 +255,7 @@ data = dataset.get_files()  # For raw files`,
           </motion.div>
 
           {/* Sidebar */}
-          <motion.div
-            variants={fadeIn}
-            className="space-y-6"
-          >
+          <motion.div variants={fadeIn} className="space-y-6">
             {/* Code Usage Section */}
             <motion.div
               layout
@@ -288,12 +325,14 @@ data = dataset.get_files()  # For raw files`,
 
             {/* About Section */}
             <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">Uploaded User</h2>
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Uploaded User
+              </h2>
               <div className="space-y-3">
                 <p className="text-cyan-100">
                   Uploaded by:{" "}
-                  <Link 
-                    to={`/profile/${encodeURIComponent(dataset.owner)}`} 
+                  <Link
+                    to={`/profile/${encodeURIComponent(dataset.owner)}`}
                     className="text-cyan-400 hover:text-white transition-colors"
                   >
                     {dataset.owner}

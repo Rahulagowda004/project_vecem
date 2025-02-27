@@ -134,28 +134,16 @@ async def log_dataset_click(data: dict):
     try:
         uid = data.get('uid')
         dataset_name = data.get('datasetName')
-
-        print(f"Dataset clicked - UID: {uid}, Dataset Name: {dataset_name}")
-
         if not uid or not dataset_name:
             raise ValueError("UID or datasetName is missing")
-
-        print(f"Querying dataset with: {{'uid': {uid}, 'dataset_info.name': {dataset_name}}}")
-
         dataset = await datasets_collection.find_one(
             {"uid": uid, "dataset_info.name": dataset_name}
         )
-
         if not dataset:
-            print("Dataset not found")
             raise HTTPException(status_code=404, detail="Dataset not found")
-
         # Convert ObjectId to string
         dataset["_id"] = str(dataset["_id"])
-
-        print("Dataset found:", dataset)
         return jsonable_encoder(dataset)
-
     except Exception as e:
         print(f"Error: {e}")  
         raise HTTPException(status_code=500, detail=str(e))

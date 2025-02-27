@@ -87,7 +87,7 @@ const UserProfile = () => {
   const handleDatasetClick = async (datasetId: string, datasetName: string) => {
     try {
       // Log the click to backend
-      await fetch("http://127.0.0.1:5000/dataset-click", {
+      const response = await fetch("http://127.0.0.1:5000/dataset-click", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,12 +98,16 @@ const UserProfile = () => {
         }),
       });
 
-      // Navigate to dataset detail page
-      navigate(`/datasets/${datasetId}`);
+      if (!response.ok) {
+        throw new Error("Failed to log dataset click");
+      }
+
+      // Navigate to dataset detail page with uid_datasetname format
+      navigate(`/datasets/${userData?.uid}_${datasetName}`);
     } catch (error) {
       console.error("Error logging dataset click:", error);
       // Still navigate even if logging fails
-      navigate(`/datasets/${datasetId}`);
+      navigate(`/datasets/${userData?.uid}_${datasetName}`);
     }
   };
 
