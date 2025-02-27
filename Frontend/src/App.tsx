@@ -9,6 +9,7 @@ import DatasetDetail from "./pages/DatasetDetail";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Documentation from './pages/Documentation';
 import { useAuth } from "./contexts/AuthContext";
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
@@ -46,7 +47,7 @@ function App() {
         <Route path="/profile/:userId" element={<UserProfile />} />
         <Route path="/datasets/:id" element={<DatasetDetail />} />
         <Route path="/settings" element={<Settings />} />
-
+        <Route path="/documentation" element={<Documentation />} />
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
