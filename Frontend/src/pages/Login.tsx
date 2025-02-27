@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { firestore } from '../firebase/firebase';
-import { motion, AnimatePresence } from 'framer-motion';
-import PageBackground from '../components/layouts/PageBackground';
 import { GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../firebase/firebase'; // Adjust the import according to your firebase setup
+import { motion, AnimatePresence } from 'framer-motion';
+import PageBackground from '../components/layouts/PageBackground';
 
 const Login = () => {
   const { login, user } = useAuth();
-  const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,31 +21,6 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const isEmail = identifier.includes('@');
-      let email = identifier;
-
-      // If username is provided, find corresponding email from Firestore
-      if (!isEmail) {
-        const usersQuery = query(
-          collection(firestore, 'users'),
-          where('username', '==', identifier.toLowerCase())
-        );
-        
-        const querySnapshot = await getDocs(usersQuery);
-        
-        if (querySnapshot.empty) {
-          throw new Error('Username not found');
-        }
-        
-        // Get the first matching user's email
-        const userData = querySnapshot.docs[0].data();
-        if (!userData.email) {
-          throw new Error('User email not found');
-        }
-        
-        email = userData.email;
-      }
-
       await login(email, password);
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
@@ -78,44 +51,17 @@ const Login = () => {
     setResetSuccess('');
     setLoading(true);
 
-    if (!identifier) {
-      setError('Please enter an email address or username');
+    if (!email) {
+      setError('Please enter an email address');
       setLoading(false);
       return;
     }
 
     try {
-      const isEmail = identifier.includes('@');
-      let email = identifier;
-
-      // If username is provided, find corresponding email from Firestore
-      if (!isEmail) {
-        const usersQuery = query(
-          collection(firestore, 'users'),
-          where('username', '==', identifier.toLowerCase())
-        );
-        
-        const querySnapshot = await getDocs(usersQuery);
-        
-        if (querySnapshot.empty) {
-          throw new Error('No account found with this username');
-        }
-        
-        const userData = querySnapshot.docs[0].data();
-        if (!userData.email) {
-          throw new Error('No email associated with this account');
-        }
-        
-        email = userData.email;
-      }
-
       await sendPasswordResetEmail(auth, email);
-      setResetSuccess(`Password reset email sent to ${isEmail ? email : 'the email associated with your account'}!`);
+      setResetSuccess(`Password reset email sent to ${email}!`);
+      setEmail('');
       
-      // Clear the input after successful submission
-      setIdentifier('');
-      
-      // Automatically return to login form after 3 seconds
       setTimeout(() => {
         setShowResetForm(false);
         setResetSuccess('');
@@ -124,17 +70,13 @@ const Login = () => {
     } catch (err: any) {
       let errorMessage = 'Failed to send reset email';
       
-      // Handle specific Firebase error codes
       if (err.code === 'auth/user-not-found') {
         errorMessage = 'No account found with this email address';
       } else if (err.code === 'auth/invalid-email') {
         errorMessage = 'Please enter a valid email address';
-      } else if (err.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many attempts. Please try again later';
       }
       
       setError(errorMessage);
-      console.error('Reset password error:', err);
     } finally {
       setLoading(false);
     }
@@ -221,10 +163,10 @@ const Login = () => {
                   className="space-y-2"
                 >
                   <input
-                    type="text"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Email or Username"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
                     className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700/50 text-white placeholder-gray-400 
                       focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
                     required
@@ -301,7 +243,7 @@ const Login = () => {
                   </span>
                 ) : (
                   <>
-                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=" alt="Google logo" className="h-5 w-5 mr-2" />
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNC0xMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=" alt="Google logo" className="h-5 w-5 mr-2" />
                     Sign in with Google
                   </>
                 )}
@@ -342,7 +284,7 @@ const Login = () => {
               </motion.h2>
               
               <p className="text-gray-300 text-sm mb-6 text-center">
-                Enter your email or username and we'll send you a password reset link.
+                Enter your email and we'll send you a password reset link.
               </p>
 
               {error && (
@@ -379,10 +321,10 @@ const Login = () => {
 
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <input
-                  type="text"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="Email or Username"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
                   className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700/50 text-white placeholder-gray-400 
                     focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition-all duration-200"
                   required
@@ -391,7 +333,7 @@ const Login = () => {
                 <div className="flex space-x-4">
                   <motion.button
                     type="submit"
-                    disabled={loading || !identifier}
+                    disabled={loading || !email}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="flex-1 p-3 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-semibold
