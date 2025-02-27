@@ -1,4 +1,5 @@
 import sys
+import uuid
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -51,9 +52,18 @@ async def register_uid(uid_request: UidRequest):
             logging.info("User profile exists for UID: {uid, email,name}")
             return jsonable_encoder(user_profile_serializer(user_profile))
         else:
-            new_user_profile = UserProfile(uid=uid, email=email,name = name)
+            # Generate unique username
+            unique_id = str(uuid.uuid4())[:6]  # Get first 6 characters of UUID
+            username = f"{name.replace(' ', '')}{unique_id}"
+            
+            new_user_profile = UserProfile(
+                uid=uid, 
+                email=email,
+                name=name,
+                username=username
+            )
             user_profile_collection.insert_one(new_user_profile.dict())
-            logging.info(f"New user profile created for UID: {uid,email,name}")
+            logging.info(f"New user profile created for UID: {uid,email,name} with username: {username}")
             return jsonable_encoder(new_user_profile.dict())
     except Exception as e:
         CustomException(e,sys)

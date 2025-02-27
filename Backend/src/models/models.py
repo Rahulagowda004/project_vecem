@@ -5,7 +5,8 @@ from typing import List, Optional
 class User(BaseModel):
     uid: str
     email: str
-    username: str
+    username: str = Field(..., description="Auto-generated unique username")
+    name: Optional[str] = None
 
 class UidRequest(BaseModel):
     uid: str
@@ -42,7 +43,7 @@ class SettingProfile(BaseModel):
 class UserProfile(BaseModel):
     uid: str
     email: Optional[str] = None
-    username : Optional[str] = None
+    username: str
     name: Optional[str] = None
     bio: Optional[str] = "About me..."
     profilePicture: Optional[str] = None
