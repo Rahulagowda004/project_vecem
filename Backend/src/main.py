@@ -1,13 +1,11 @@
 import sys
 import uuid
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
 from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile
 from src.models.models import UserProfile,UidRequest,SettingProfile
 from fastapi.encoders import jsonable_encoder
-from bson import ObjectId
 from src.utils.exception import CustomException
 from src.utils.logger import logging
 

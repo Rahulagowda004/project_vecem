@@ -1,8 +1,12 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from src.utils.logger import logging
+import os
+from dotenv import load_dotenv
 
-MONGO_URL = "mongodb+srv://admin:8bx2pW7Dglj9j5RY@cluster0.tui77.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-DB_NAME = "vecem"
+load_dotenv()
+
+MONGO_URL = os.getenv("MONGODB_URL")
+DB_NAME = os.getenv("MONGODB_NAME")
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
