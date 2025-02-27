@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
+import { PrivateRoute } from "./components/PrivateRoute";
 import HomePage from "./pages/HomePage";
 import UserProfile from "./pages/UserProfile"; // Changed from Profile
 import UploadFile from "./pages/UploadFile";
@@ -42,14 +43,22 @@ function App() {
           element={user ? <Navigate to="/home" replace /> : <Signup />}
         />
         <Route path="/home" element={<HomePage />} />
-        <Route path="/profile" element={<UserProfile />} />
         <Route path="/upload" element={<UploadFile />} />
         <Route path="/community" element={<Community />} />
-        <Route path="/profile/:userId" element={<UserProfile />} />
-        <Route path="/datasets/:datasetId/edit" element={<DatasetEdit />} />
+
         <Route path="/datasets/:id" element={<DatasetDetail />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/documentation" element={<Documentation />} />
+        <Route path="/datasets/:datasetId/edit" element={<DatasetEdit />} />
+        <Route
+          path="/:username"
+          element={
+            <PrivateRoute>
+              <UserProfile />
+            </PrivateRoute>
+          }
+        />
+        
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Upload } from "lucide-react";
-import { getUserProfile } from "../services/userService";
+import { getUserProfile, getUserProfileByUsername, getUserData } from "../services/userService";
 import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -16,23 +16,25 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // If no username is provided, it means it's the current user's profile
-  const isOwnProfile = !username;
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // If it's the current user's profile, use their UID
-        const uid = isOwnProfile ? user?.uid : username;
-
-        if (!uid) {
-          throw new Error("No user ID available");
+        let profileData;
+        if (!username) {
+          // If no username provided, get current user's username and redirect
+          const currentUserData = await getUserData(user!.uid);
+          if (currentUserData?.username) {
+            navigate(`/profile/${currentUserData.username}`, { replace: true });
+            return;
+          }
+          throw new Error("User profile not found");
         }
 
-        const profileData = await getUserProfile(uid);
+        // Fetch profile by username
+        profileData = await getUserProfileByUsername(username);
         setUserData(profileData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile");
@@ -42,8 +44,10 @@ const UserProfile = () => {
       }
     };
 
-    fetchUserData();
-  }, [username, user?.uid, isOwnProfile]);
+    if (user) {
+      fetchUserData();
+    }
+  }, [username, user, navigate]);
 
   // Filter and sort datasets
   const filteredAndSortedDatasets = useMemo(() => {

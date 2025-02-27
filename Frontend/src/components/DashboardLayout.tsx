@@ -17,6 +17,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
+import { getUserProfileByUid } from '../services/userService';
 
 const LogoutButton = () => {
   const { logout } = useAuth();
@@ -49,6 +50,24 @@ const DashboardLayout = () => {
   const [userAvatar, setUserAvatar] = useState(user?.photoURL || "/avatars/avatar1.png");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.uid) {
+        try {
+          const profileData = await getUserProfileByUid(user.uid);
+          if (profileData?.username) {
+            setUsername(profileData.username);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   useEffect(() => {
     if (!user) {
@@ -105,7 +124,7 @@ const DashboardLayout = () => {
                   <div className="absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-gray-900 ring-1 ring-cyan-400/10">
                     <div className="py-1 divide-y divide-gray-800">
                       <Link
-                        to="/profile/:userId"
+                        to={username ? `/${username}` : '#'}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
                       >
                         <User className="h-4 w-4 mr-3 text-cyan-400" />

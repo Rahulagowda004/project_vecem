@@ -75,6 +75,15 @@ async def get_user_profile(uid: str):
     except Exception as e:
         CustomException(e,sys)
 
+@app.get("/user-profile/username/{username}")
+async def get_user_profile_by_username(username: str):
+    try:
+        user_profile = await user_profile_collection.find_one({"username": username})
+        if user_profile:
+            return jsonable_encoder(user_profile_serializer(user_profile))
+        raise HTTPException(status_code=404, detail="User profile not found")
+    except Exception as e:
+        CustomException(e,sys)
 
 @app.post("/update-profile")
 async def update_profile(user: SettingProfile):

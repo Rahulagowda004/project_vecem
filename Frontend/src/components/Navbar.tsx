@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
 
 import NeuralNetwork from './NeuralNetwork';
+import { getUserData } from '../services/userService';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [userProfileLink, setUserProfileLink] = useState<string>('/profile');
+
+  useEffect(() => {
+    const setProfileLink = async () => {
+      if (user?.uid) {
+        try {
+          const userData = await getUserData(user.uid);
+          if (userData?.username) {
+            setUserProfileLink(`/profile/${userData.username}`);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+
+    setProfileLink();
+  }, [user]);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -40,7 +59,7 @@ const Navbar = () => {
                 <Link to="/home" className="text-gray-300 hover:text-cyan-400 transition-colors">
                   Home
                 </Link>
-                <Link to="/profile" className="text-gray-300 hover:text-cyan-400 transition-colors">
+                <Link to={userProfileLink} className="text-gray-300 hover:text-cyan-400 transition-colors">
                   Profile
                 </Link>
                 <button

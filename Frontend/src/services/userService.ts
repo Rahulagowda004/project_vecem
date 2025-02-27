@@ -29,6 +29,27 @@ export interface UserProfileData {
   }>;
 }
 
+// Add new function to get profile by username
+export const getUserProfileByUsername = async (username: string) => {
+  try {
+    const response = await fetch(`${API_URL}/user-profile/username/${username}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};
+
 export const createUserDocument = async (
   userId: string,
   userData: UserData
@@ -83,6 +104,26 @@ export const deleteUserDocument = async (userId: string) => {
 };
 
 export const getUserProfile = async (uid: string) => {
+  try {
+    const response = await fetch(`${API_URL}/user-profile/${uid}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    throw error;
+  }
+};
+
+export const getUserProfileByUid = async (uid: string) => {
   try {
     const response = await fetch(`${API_URL}/user-profile/${uid}`, {
       method: "GET",
