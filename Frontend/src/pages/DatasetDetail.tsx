@@ -113,7 +113,7 @@ data = dataset.get_files()  # For raw files`,
         <div className="max-w-6xl mx-auto px-4">
           {/* Breadcrumb */}
           <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
-            <Link to="/datasets" className="hover:text-white transition-colors">Datasets</Link>
+            <Link to="/profile/:userId" className="hover:text-white transition-colors">Datasets</Link>
             <ChevronRight className="w-4 h-4" />
             <span className="text-white font-medium">{dataset.name}</span>
           </div>
