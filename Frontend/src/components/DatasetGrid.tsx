@@ -187,7 +187,7 @@ const DatasetGrid = ({ searchQuery, category }: DatasetGridProps) => {
             <div className="space-y-6">
               <div className="p-4 bg-gray-800/30 rounded-xl">
                 <h3 className="text-lg font-medium text-white mb-2">Description</h3>
-                <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                <div className="max-h-24 overflow-y-auto custom-scrollbar">
                   <p className="text-gray-400 leading-relaxed text-justify pr-4">
                     {selectedDataset.description}
                   </p>
