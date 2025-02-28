@@ -146,6 +146,11 @@ const UploadFile = () => {
       return;
     }
 
+    if (/\s/.test(formData.name)) {
+      setError("Dataset name should not contain spaces");
+      return;
+    }
+
     try {
       let result;
       const datasetId = `${formData.name}_${Date.now()}`;
@@ -447,11 +452,6 @@ const UploadFile = () => {
                 )}
               </div>
 
-              {error && (
-                <p className="text-sm text-red-400 mt-2">
-                  {error}
-                </p>
-              )}
               <p className="mt-2 text-sm text-gray-400">
                 Select a folder containing only {fileType.toLowerCase()} files
               </p>
@@ -498,6 +498,12 @@ const UploadFile = () => {
                 </p>
               )}
             </div>
+
+            {error && (
+              <p className="text-sm text-red-400 mt-2">
+                {error}
+              </p>
+            )}
 
             <button
               type="submit"
