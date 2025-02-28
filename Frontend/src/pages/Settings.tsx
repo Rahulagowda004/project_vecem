@@ -1,11 +1,30 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Mail, Github, Edit2, Trash2, Camera, PenSquare } from "lucide-react";
+import {
+  Mail,
+  Github,
+  Edit2,
+  Trash2,
+  Camera,
+  PenSquare,
+  Upload,
+} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import AvatarSelector from "../components/AvatarSelector";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { getUserProfile, updateUserProfile, checkUsernameAvailability, deleteAccount } from "../services/userService";
-import { deleteUser, EmailAuthProvider, GoogleAuthProvider, reauthenticateWithCredential, reauthenticateWithPopup } from "firebase/auth";
+import {
+  getUserProfile,
+  updateUserProfile,
+  checkUsernameAvailability,
+  deleteAccount,
+} from "../services/userService";
+import {
+  deleteUser,
+  EmailAuthProvider,
+  GoogleAuthProvider,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
+} from "firebase/auth";
 import { toast } from "react-hot-toast";
 
 interface Dataset {
@@ -24,8 +43,9 @@ interface Dataset {
 const Settings = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  
-  const displayUsername = user?.displayName || user?.email?.split("@")[0] || "username";
+
+  const displayUsername =
+    user?.displayName || user?.email?.split("@")[0] || "username";
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.displayName || "Guest");
@@ -46,18 +66,25 @@ const Settings = () => {
   const [sortOption, setSortOption] = useState("latest");
   const [username, setUsername] = useState(displayUsername);
   const [hasChangedUsername, setHasChangedUsername] = useState(false);
-  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
+  const [usernameStatus, setUsernameStatus] = useState<
+    "idle" | "checking" | "available" | "taken"
+  >("idle");
   const [deleteError, setDeleteError] = useState("");
   const [isReauthenticating, setIsReauthenticating] = useState(false);
   const [reAuthError, setReAuthError] = useState("");
   const [reAuthPassword, setReAuthPassword] = useState("");
-  const [authMethod, setAuthMethod] = useState<"password" | "google" | null>(null);
+  const [authMethod, setAuthMethod] = useState<"password" | "google" | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.uid) return;
 
       try {
+        setLoading(true);
         const userProfile = await getUserProfile(user.uid);
         setName(userProfile.name || user.displayName || "Guest");
         setAbout(userProfile.bio || "About me...");
@@ -70,8 +97,14 @@ const Settings = () => {
         );
         setUsername(userProfile.username || displayUsername);
         setHasChangedUsername(userProfile.hasChangedUsername || false);
+        setDatasets(userProfile.datasets || []);
       } catch (error) {
         console.error("Error fetching user data:", error);
+        setError(
+          error instanceof Error ? error.message : "Failed to load profile"
+        );
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -97,16 +130,16 @@ const Settings = () => {
 
   useEffect(() => {
     // Detect auth method when component mounts
-    if (user?.providerData[0]?.providerId === 'google.com') {
-      setAuthMethod('google');
+    if (user?.providerData[0]?.providerId === "google.com") {
+      setAuthMethod("google");
     } else {
-      setAuthMethod('password');
+      setAuthMethod("password");
     }
   }, [user]);
 
   const checkUsername = async (value: string) => {
     if (!value || value === username || hasChangedUsername) return;
-    
+
     setUsernameStatus("checking");
     try {
       const isAvailable = await checkUsernameAvailability(value);
@@ -155,17 +188,20 @@ const Settings = () => {
     setIsReauthenticating(true);
   };
 
-  const handleReauthenticate = async (method: 'password' | 'google') => {
+  const handleReauthenticate = async (method: "password" | "google") => {
     if (!user) return;
-  
+
     try {
-      if (method === 'google') {
+      if (method === "google") {
         const provider = new GoogleAuthProvider();
         await reauthenticateWithPopup(user, provider);
         setIsReauthenticating(false);
         setReAuthError("");
       } else if (reAuthPassword) {
-        const credential = EmailAuthProvider.credential(user.email!, reAuthPassword);
+        const credential = EmailAuthProvider.credential(
+          user.email!,
+          reAuthPassword
+        );
         await reauthenticateWithCredential(user, credential);
         setIsReauthenticating(false);
         setReAuthError("");
@@ -174,8 +210,8 @@ const Settings = () => {
     } catch (error: any) {
       console.error("Reauthentication error:", error);
       setReAuthError(
-        error.code === "auth/wrong-password" 
-          ? "Incorrect password" 
+        error.code === "auth/wrong-password"
+          ? "Incorrect password"
           : "Failed to reauthenticate"
       );
     }
@@ -183,7 +219,7 @@ const Settings = () => {
 
   const confirmDelete = async () => {
     if (!user) return;
-    
+
     try {
       setConfirmLoading(true);
       setDeleteError("");
@@ -199,7 +235,7 @@ const Settings = () => {
       navigate("/", { replace: true });
     } catch (error: any) {
       console.error("Delete operation error:", error);
-      
+
       if (error.code === "auth/requires-recent-login") {
         setIsReauthenticating(true);
         setDeleteError("Please reauthenticate to delete your account");
@@ -335,6 +371,22 @@ const Settings = () => {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading settings...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-red-400">Error: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="max-w-5xl mx-auto px-4 py-8">
@@ -393,24 +445,36 @@ const Settings = () => {
                           />
                         ) : (
                           <div className="relative">
-                            <span className="absolute left-4 top-2.5 text-gray-400">@</span>
+                            <span className="absolute left-4 top-2.5 text-gray-400">
+                              @
+                            </span>
                             <input
                               type="text"
                               value={username}
                               onChange={handleUsernameChange}
                               className={`w-full pl-8 bg-gray-700/50 text-cyan-400 rounded-lg px-4 py-2.5 border 
-                                ${usernameStatus === "available" ? "border-green-500/50" : 
-                                  usernameStatus === "taken" ? "border-red-500/50" : 
-                                  "border-gray-600/50"} focus:border-cyan-500/50`}
+                                ${
+                                  usernameStatus === "available"
+                                    ? "border-green-500/50"
+                                    : usernameStatus === "taken"
+                                    ? "border-red-500/50"
+                                    : "border-gray-600/50"
+                                } focus:border-cyan-500/50`}
                             />
                             {usernameStatus === "checking" && (
-                              <span className="text-xs text-gray-400 mt-1 block">Checking availability...</span>
+                              <span className="text-xs text-gray-400 mt-1 block">
+                                Checking availability...
+                              </span>
                             )}
                             {usernameStatus === "available" && (
-                              <span className="text-xs text-green-400 mt-1 block">Username is available!</span>
+                              <span className="text-xs text-green-400 mt-1 block">
+                                Username is available!
+                              </span>
                             )}
                             {usernameStatus === "taken" && (
-                              <span className="text-xs text-red-400 mt-1 block">Username is already taken</span>
+                              <span className="text-xs text-red-400 mt-1 block">
+                                Username is already taken
+                              </span>
                             )}
                             <span className="text-xs text-yellow-400 mt-1 block">
                               Note: Username can only be set once
@@ -435,9 +499,7 @@ const Settings = () => {
                       <h1 className="text-3xl font-bold text-cyan-400">
                         {name}
                       </h1>
-                      <p className="text-gray-400 text-lg">
-                        @{username}
-                      </p>
+                      <p className="text-gray-400 text-lg">@{username}</p>
                       <p className="text-gray-500 mt-2">{user?.email}</p>
                     </>
                   )}
@@ -527,40 +589,51 @@ const Settings = () => {
                 </span>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by name, description, tags..."
-                    className="bg-gray-700/50 border border-gray-600 rounded-lg pl-10 pr-4 py-2 w-64
-                      text-gray-200 placeholder-gray-400 focus:border-cyan-500/50 focus:outline-none"
-                  />
-                  <svg
-                    className="w-5 h-5 absolute left-3 top-2.5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-                <select
-                  value={sortOption}
-                  onChange={(e) => setSortOption(e.target.value)}
-                  className="bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 
-                    text-gray-200 focus:border-cyan-500/50 focus:outline-none"
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => navigate("/upload")}
+                  className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
+                    hover:bg-cyan-700 shadow-lg"
                 >
-                  <option value="latest">Latest Updated</option>
-                  <option value="name">Name (A-Z)</option>
-                  <option value="size">Size (Largest)</option>
-                </select>
+                  <Upload size={18} /> Upload Dataset
+                </motion.button>
               </div>
+            </div>
+            <div className="mt-4 flex items-center space-x-4">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search datasets..."
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg pl-10 pr-4 py-2
+                    text-gray-200 placeholder-gray-400 focus:border-cyan-500/50 focus:outline-none"
+                />
+                <svg
+                  className="w-5 h-5 absolute left-3 top-2.5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+                className="bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 
+                  text-gray-200 focus:border-cyan-500/50 focus:outline-none"
+              >
+                <option value="latest">Latest Updated</option>
+                <option value="name">Name (A-Z)</option>
+                <option value="size">Size (Largest)</option>
+              </select>
             </div>
           </div>
 
@@ -668,8 +741,8 @@ const Settings = () => {
                 Delete Account
               </h3>
               <p className="text-gray-300 mb-6">
-                Are you sure you want to permanently delete your account? This action is irreversible, 
-                and all your data will be lost.
+                Are you sure you want to permanently delete your account? This
+                action is irreversible, and all your data will be lost.
               </p>
 
               {deleteError && (
@@ -701,9 +774,10 @@ const Settings = () => {
                     Please reauthenticate
                   </h4>
                   <p className="text-gray-400 mb-4 text-sm">
-                    For security reasons, please verify your identity using one of these methods:
+                    For security reasons, please verify your identity using one
+                    of these methods:
                   </p>
-                  
+
                   <div className="space-y-4">
                     {/* Password Authentication Option */}
                     <div className="space-y-3">
@@ -717,7 +791,7 @@ const Settings = () => {
                         placeholder="Enter your password"
                       />
                       <button
-                        onClick={() => handleReauthenticate('password')}
+                        onClick={() => handleReauthenticate("password")}
                         disabled={!reAuthPassword}
                         className="w-full px-4 py-2 rounded-xl bg-red-500/10 text-red-400 
                           hover:bg-red-500/20 border border-red-500/20 transition-colors
@@ -733,12 +807,14 @@ const Settings = () => {
                         <div className="w-full border-t border-gray-600"></div>
                       </div>
                       <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-gray-800/90 text-gray-400">Or</span>
+                        <span className="px-2 bg-gray-800/90 text-gray-400">
+                          Or
+                        </span>
                       </div>
                     </div>
 
                     <button
-                      onClick={() => handleReauthenticate('google')}
+                      onClick={() => handleReauthenticate("google")}
                       className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl
                         bg-white hover:bg-gray-100 text-gray-800 font-medium transition-colors"
                     >
@@ -763,7 +839,7 @@ const Settings = () => {
                       Continue with Google
                     </button>
                   </div>
-                  
+
                   {reAuthError && (
                     <p className="text-red-400 text-sm mt-3">{reAuthError}</p>
                   )}
@@ -786,7 +862,8 @@ const Settings = () => {
                   onClick={confirmDelete}
                   disabled={
                     confirmLoading ||
-                    (!password && user?.providerData[0]?.providerId !== "google.com")
+                    (!password &&
+                      user?.providerData[0]?.providerId !== "google.com")
                   }
                   className="px-4 py-2 rounded-xl bg-red-500/10 text-red-400 
                     hover:bg-red-500/20 border border-red-500/20 transition-colors
