@@ -61,7 +61,7 @@ async def register_uid(uid_request: UidRequest):
                 username=username,
                 hasChangedUsername=False
             )
-            user_profile_collection.insert_one(new_user_profile.dict())
+            await user_profile_collection.insert_one(new_user_profile.dict())
             logging.info(f"New user profile created for UID: {uid,email,name} with username: {username}")
             return jsonable_encoder(new_user_profile.dict())
     except Exception as e:
