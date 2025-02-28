@@ -194,3 +194,24 @@ export const updateUserProfile = async (profileData: {
     throw error;
   }
 };
+
+export const checkUsernameAvailability = async (username: string) => {
+  try {
+    const response = await fetch(`${API_URL}/check-username/${username}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.available;
+  } catch (error) {
+    console.error("Error checking username availability:", error);
+    throw error;
+  }
+};

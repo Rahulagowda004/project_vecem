@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import AvatarSelector from "../components/AvatarSelector";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { getUserProfile, updateUserProfile } from "../services/userService";
+import { getUserProfile, updateUserProfile, checkUsernameAvailability } from "../services/userService";
 
 interface Dataset {
   id: string;
@@ -44,6 +44,7 @@ const Settings = () => {
   const [sortOption, setSortOption] = useState("latest");
   const [username, setUsername] = useState(displayUsername);
   const [hasChangedUsername, setHasChangedUsername] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -87,7 +88,30 @@ const Settings = () => {
     fetchUserDatasets();
   }, [user]);
 
+  const checkUsername = async (value: string) => {
+    if (!value || value === username || hasChangedUsername) return;
+    
+    setUsernameStatus("checking");
+    try {
+      const isAvailable = await checkUsernameAvailability(value);
+      setUsernameStatus(isAvailable ? "available" : "taken");
+    } catch (error) {
+      console.error("Error checking username:", error);
+      setUsernameStatus("idle");
+    }
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUsername(value);
+    checkUsername(value);
+  };
+
   const handleSave = async () => {
+    if (usernameStatus === "taken") {
+      alert("Please choose a different username");
+      return;
+    }
     setIsEditing(false);
 
     if (user?.uid) {
@@ -335,9 +359,21 @@ const Settings = () => {
                             <input
                               type="text"
                               value={username}
-                              onChange={(e) => setUsername(e.target.value)}
-                              className="w-full pl-8 bg-gray-700/50 text-cyan-400 rounded-lg px-4 py-2.5 border border-gray-600/50 focus:border-cyan-500/50"
+                              onChange={handleUsernameChange}
+                              className={`w-full pl-8 bg-gray-700/50 text-cyan-400 rounded-lg px-4 py-2.5 border 
+                                ${usernameStatus === "available" ? "border-green-500/50" : 
+                                  usernameStatus === "taken" ? "border-red-500/50" : 
+                                  "border-gray-600/50"} focus:border-cyan-500/50`}
                             />
+                            {usernameStatus === "checking" && (
+                              <span className="text-xs text-gray-400 mt-1 block">Checking availability...</span>
+                            )}
+                            {usernameStatus === "available" && (
+                              <span className="text-xs text-green-400 mt-1 block">Username is available!</span>
+                            )}
+                            {usernameStatus === "taken" && (
+                              <span className="text-xs text-red-400 mt-1 block">Username is already taken</span>
+                            )}
                             <span className="text-xs text-yellow-400 mt-1 block">
                               Note: Username can only be set once
                             </span>

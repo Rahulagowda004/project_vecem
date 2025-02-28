@@ -87,6 +87,14 @@ async def get_user_profile_by_username(username: str):
     except Exception as e:
         CustomException(e,sys)
 
+@app.get("/check-username/{username}")
+async def check_username_availability(username: str):
+    try:
+        existing_user = await user_profile_collection.find_one({"username": username})
+        return {"available": existing_user is None}
+    except Exception as e:
+        CustomException(e,sys)
+
 @app.post("/update-profile")
 async def update_profile(user: SettingProfile):
     try:
