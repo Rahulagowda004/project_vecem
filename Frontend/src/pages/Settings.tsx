@@ -588,17 +588,7 @@ const Settings = () => {
                   {datasets.length}
                 </span>
               </div>
-              <div className="flex items-center space-x-4">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate("/upload")}
-                  className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
-                    hover:bg-cyan-700 shadow-lg"
-                >
-                  <Upload size={18} /> Upload Dataset
-                </motion.button>
-              </div>
+              {/* Remove the Upload Dataset button */}
             </div>
             <div className="mt-4 flex items-center space-x-4">
               <div className="relative flex-1">
