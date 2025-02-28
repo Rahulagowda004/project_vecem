@@ -481,13 +481,6 @@ const UploadFile = () => {
               </div>
             )}
 
-<<<<<<< HEAD
-            {error && (
-              <p className="text-sm text-red-400 mt-2">
-                {error}
-              </p>
-            )}
-=======
             {/* Display file size */}
             <div className="mt-4 space-y-2">
               {datasetType === "Both" ? (
@@ -505,7 +498,6 @@ const UploadFile = () => {
                 </p>
               )}
             </div>
->>>>>>> parent of aebedea (shifted error line in uploadedfile)
 
             <button
               type="submit"
