@@ -146,11 +146,6 @@ const UploadFile = () => {
       return;
     }
 
-    if (/\s/.test(formData.name)) {
-      setError("Dataset name should not contain spaces");
-      return;
-    }
-
     try {
       let result;
       const datasetId = `${formData.name}_${Date.now()}`;
@@ -452,6 +447,11 @@ const UploadFile = () => {
                 )}
               </div>
 
+              {error && (
+                <p className="text-sm text-red-400 mt-2">
+                  {error}
+                </p>
+              )}
               <p className="mt-2 text-sm text-gray-400">
                 Select a folder containing only {fileType.toLowerCase()} files
               </p>
@@ -481,11 +481,31 @@ const UploadFile = () => {
               </div>
             )}
 
+<<<<<<< HEAD
             {error && (
               <p className="text-sm text-red-400 mt-2">
                 {error}
               </p>
             )}
+=======
+            {/* Display file size */}
+            <div className="mt-4 space-y-2">
+              {datasetType === "Both" ? (
+                <>
+                  <p className="text-sm text-gray-400">
+                    Raw Data Size: {formatFileSize(totalSize.raw)}
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Vectorized Data Size: {formatFileSize(totalSize.vectorized)}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-gray-400">
+                  Total Size: {formatFileSize(totalSize[datasetType.toLowerCase() as 'raw' | 'vectorized'])}
+                </p>
+              )}
+            </div>
+>>>>>>> parent of aebedea (shifted error line in uploadedfile)
 
             <button
               type="submit"
