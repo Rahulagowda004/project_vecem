@@ -98,19 +98,30 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
 
     this.setState({ loading: true, error: "" });
 
+    // Debug log
+    console.log('Attempting signup with:', {
+      email: this.state.email,
+      passwordLength: this.state.password.length,
+      password: this.state.password // Temporary debug log
+    });
+
     try {
+      if (!this.state.password || !this.state.email) {
+        throw new Error("Email and password are required");
+      }
+
+      // Call signup with explicit email and password
       await this.props.auth.signup(
-        // Use auth from props
-        this.state.email,
-        this.state.password
+        this.state.email.trim(),
+        this.state.password.trim()
       );
-      await this.registerUser(); // Register user with backend
+      
       if (this.props.onClose) {
         this.props.onClose();
       }
-      // Redirect to login page after successful signup
       window.location.href = "/";
     } catch (error: any) {
+      console.error('Signup error:', error);
       this.setState({
         error: error.message || "Failed to create account",
         loading: false,

@@ -18,7 +18,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signup: (username: string, email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>; // Update signature
   login: (emailOrUsername: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -69,20 +69,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const signup = async (username: string, email: string, password: string) => {
+  const signup = async (email: string, password: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       // Create user document in Firestore
       await createUserDocument(userCredential.user.uid, {
-        username,
         email,
         createdAt: new Date().toISOString(),
-        displayName: username,
+        displayName: email.split('@')[0], // Use email prefix as default displayName
       });
 
       navigate('/home');
     } catch (err: any) {
+      console.error('Signup error:', err);
       setError(err.message);
       throw err;
     }
