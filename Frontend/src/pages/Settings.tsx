@@ -78,6 +78,8 @@ const Settings = () => {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -328,6 +330,22 @@ const Settings = () => {
 
     return result;
   }, [datasets, searchQuery, sortOption]);
+
+  const paginatedSettings = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredAndSortedDatasets.slice(startIndex, endIndex);
+  }, [filteredAndSortedDatasets, currentPage]);
+
+  const totalPages = Math.ceil(filteredAndSortedDatasets.length / itemsPerPage);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prevPage) => Math.max(prevPage, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages));
+  };
 
   // Update formatFileSize helper function
   const formatFileSize = (bytes: number) => {
@@ -634,7 +652,7 @@ const Settings = () => {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
           >
-            {filteredAndSortedDatasets.map((dataset) => (
+            {paginatedSettings.map((dataset) => (
               <motion.li
                 key={dataset.id}
                 variants={item}
@@ -686,6 +704,69 @@ const Settings = () => {
               </motion.li>
             ))}
           </motion.ul>
+
+          {/* Show pagination only if there are settings */}
+          {filteredAndSortedDatasets.length > 0 && (
+            <div className="border-t border-gray-700/50 p-4">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={handlePreviousPage}
+                  className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
+                  disabled={currentPage === 1}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                  <span>Previous</span>
+                </button>
+                <div className="flex items-center space-x-2">
+                  {Array.from({ length: totalPages }, (_, index) => (
+                    <button
+                      key={index + 1}
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`px-3 py-1 rounded-lg ${
+                        currentPage === index + 1
+                          ? "bg-cyan-500/10 text-cyan-400"
+                          : "hover:bg-gray-700 text-gray-400"
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={handleNextPage}
+                  className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
+                  disabled={currentPage === totalPages}
+                >
+                  <span>Next</span>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Danger Zone */}
