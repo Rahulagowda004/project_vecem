@@ -146,6 +146,15 @@ async def log_dataset_click(data: dict):
         )
         if not dataset:
             raise HTTPException(status_code=404, detail="Dataset not found")
+        # Fetch uploader's username from the user profile
+        user_profile = await user_profile_collection.find_one({"uid": uid})
+        if user_profile:
+            username = user_profile.get("username", uid)
+        else:
+            username = uid
+        # Append uploader's username information
+        dataset["username"] = username         # additional field with username
+        dataset["uploadedBy"] = username       # replace uid with username for display
         # Convert ObjectId to string
         dataset["_id"] = str(dataset["_id"])
         return jsonable_encoder(dataset)
