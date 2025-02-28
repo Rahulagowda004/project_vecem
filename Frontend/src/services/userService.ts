@@ -215,3 +215,24 @@ export const checkUsernameAvailability = async (username: string) => {
     throw error;
   }
 };
+
+export const deleteAccount = async (uid: string) => {
+  try {
+    const response = await fetch(`${API_URL}/delete-account/${uid}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.detail || 'Failed to delete account');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    throw error;
+  }
+};

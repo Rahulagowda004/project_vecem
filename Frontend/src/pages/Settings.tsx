@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import AvatarSelector from "../components/AvatarSelector";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { getUserProfile, updateUserProfile, checkUsernameAvailability } from "../services/userService";
+import { getUserProfile, updateUserProfile, checkUsernameAvailability, deleteAccount } from "../services/userService";
 
 interface Dataset {
   id: string;
@@ -141,31 +141,12 @@ const Settings = () => {
       if (!user?.uid) return;
       setConfirmLoading(true);
 
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:5000/delete-account/${user.uid}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ password }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to delete account");
-        }
-
-        await logout();
-        navigate("/", { replace: true });
-      } catch (error: any) {
-        console.error("Delete operation error:", error);
-        throw new Error(error.message || "Failed to delete account");
-      }
+      await deleteAccount(user.uid);
+      await logout();
+      navigate("/", { replace: true });
     } catch (error: any) {
-      console.error("Confirmation error:", error);
-      alert(error.message || "Failed to delete account. Please try again.");
+      console.error("Delete operation error:", error);
+      setError(error.message || "Failed to delete account");
     } finally {
       setConfirmLoading(false);
       setPassword("");

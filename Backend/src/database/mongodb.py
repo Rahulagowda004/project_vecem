@@ -97,5 +97,20 @@ async def update_user_profile(uid: str, new_bio: str, new_profile_picture: str, 
         logging.error(f"MongoDB error: {str(e)}")
         raise
 
+async def delete_user_account(uid: str) -> bool:
+    try:
+        # Delete user profile
+        profile_result = await user_profile_collection.delete_one({"uid": uid})
+        
+        # Delete all user datasets
+        datasets_result = await datasets_collection.delete_many({"uid": uid})
+        
+        logging.info(f"Deleted user account {uid}: {profile_result.deleted_count} profile(s), {datasets_result.deleted_count} dataset(s)")
+        
+        return profile_result.deleted_count > 0
+    except Exception as e:
+        logging.error(f"MongoDB error during account deletion: {str(e)}")
+        raise
+
 async def close_db_client():
     client.close()
