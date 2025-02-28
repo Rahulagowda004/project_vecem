@@ -48,7 +48,7 @@ class UserProfile(BaseModel):
     username: str
     name: Optional[str] = None
     bio: Optional[str] = "About me..."
-    profilePicture: Optional[str] = None
+    profilePicture: str | None = Field(default="/avatars/avatar1.png")
     githubUrl: Optional[str] = None
     hasChangedUsername: bool = False
     number_of_raw_datasets: int = 0

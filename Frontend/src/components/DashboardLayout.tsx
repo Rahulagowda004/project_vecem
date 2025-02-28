@@ -51,6 +51,7 @@ const DashboardLayout = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [username, setUsername] = useState<string | null>(null);
+  const [avatarLoading, setAvatarLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -67,6 +68,28 @@ const DashboardLayout = () => {
     };
 
     fetchUserProfile();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (!user?.uid) return;
+      
+      try {
+        setAvatarLoading(true);
+        const response = await fetch(`http://127.0.0.1:5000/user-avatar/${user.uid}`);
+        const data = await response.json();
+        
+        if (data.avatar) {
+          setUserAvatar(data.avatar);
+        }
+      } catch (error) {
+        console.error("Error fetching user avatar:", error);
+      } finally {
+        setAvatarLoading(false);
+      }
+    };
+
+    fetchUserAvatar();
   }, [user]);
 
   useEffect(() => {
@@ -108,11 +131,15 @@ const DashboardLayout = () => {
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center space-x-3 focus:outline-none p-2 rounded-lg hover:bg-slate-800 transition-colors"
                 >
-                  <img
-                    className="h-10 w-10 rounded-full ring-2 ring-cyan-400/20"
-                    src={userAvatar}
-                    alt="User avatar"
-                  />
+                  {avatarLoading ? (
+                    <div className="h-10 w-10 rounded-full bg-gray-800 animate-pulse" />
+                  ) : (
+                    <img
+                      className="h-10 w-10 rounded-full ring-2 ring-cyan-400/20 object-cover"
+                      src={userAvatar}
+                      alt={user.displayName || "User avatar"}
+                    />
+                  )}
                   <ChevronDown
                     className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
                       isProfileOpen ? "transform rotate-180" : ""

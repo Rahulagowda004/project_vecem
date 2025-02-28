@@ -153,6 +153,19 @@ async def log_dataset_click(data: dict):
         print(f"Error: {e}")  
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/user-avatar/{uid}")
+async def get_user_avatar(uid: str):
+    try:
+        user_profile = await user_profile_collection.find_one(
+            {"uid": uid}, 
+            {"profilePicture": 1}
+        )
+        if user_profile and "profilePicture" in user_profile:
+            return {"avatar": user_profile["profilePicture"]}
+        return {"avatar": None}
+    except Exception as e:
+        CustomException(e,sys)
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
