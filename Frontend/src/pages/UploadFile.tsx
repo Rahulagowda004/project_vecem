@@ -481,24 +481,6 @@ const UploadFile = () => {
               </div>
             )}
 
-            {/* Display file size */}
-            <div className="mt-4 space-y-2">
-              {datasetType === "Both" ? (
-                <>
-                  <p className="text-sm text-gray-400">
-                    Raw Data Size: {formatFileSize(totalSize.raw)}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Vectorized Data Size: {formatFileSize(totalSize.vectorized)}
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-gray-400">
-                  Total Size: {formatFileSize(totalSize[datasetType.toLowerCase() as 'raw' | 'vectorized'])}
-                </p>
-              )}
-            </div>
-
             {error && (
               <p className="text-sm text-red-400 mt-2">
                 {error}
