@@ -4,7 +4,7 @@ import NeuralNetwork from './NeuralNetwork';
 
 const Hero = () => {
   return (
-    <div className="min-h-screen relative bg-gradient-to-br ">
+    <div id="hero" className="min-h-screen relative bg-gradient-to-br ">
       <NeuralNetwork />
       <div className="container mx-auto min-h-screen flex items-center px-4">
         <motion.div 
