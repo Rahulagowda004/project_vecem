@@ -69,14 +69,6 @@ function App() {
           }
         />
         <Route
-          path="/datasets/:id"
-          element={
-            <PrivateRoute>
-              <DatasetDetail />
-            </PrivateRoute>
-          }
-        />
-        <Route
           path="/settings"
           element={
             <PrivateRoute>
@@ -92,14 +84,26 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Updated Dataset Routes */}
         <Route
-          path="/datasets/:datasetId/edit"
+          path="/:username/:datasetname"
+          element={
+            <PrivateRoute>
+              <DatasetDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/:username/:datasetname/edit"
           element={
             <PrivateRoute>
               <DatasetEdit />
             </PrivateRoute>
           }
         />
+        
+        {/* Profile Route */}
         <Route
           path="/:username"
           element={

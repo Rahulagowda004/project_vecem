@@ -22,7 +22,7 @@ const fadeIn = {
 };
 
 const DatasetDetail = () => {
-  const { id } = useParams();
+  const { username, datasetname } = useParams();
   const navigate = useNavigate();
   const [dataset, setDataset] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,11 +34,8 @@ const DatasetDetail = () => {
       try {
         setLoading(true);
 
-        // Extract uid and dataset name from the URL parameter
-        const [uid, datasetName] = id?.split("_") || [];
-
-        if (!uid || !datasetName) {
-          throw new Error("Invalid dataset ID format");
+        if (!username || !datasetname) {
+          throw new Error("Invalid URL parameters");
         }
 
         const response = await fetch("http://127.0.0.1:5000/dataset-click", {
@@ -47,8 +44,8 @@ const DatasetDetail = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            uid,
-            datasetName,
+            username,
+            datasetName: datasetname,
           }),
         });
 
@@ -86,10 +83,8 @@ const DatasetDetail = () => {
       }
     };
 
-    if (id) {
-      fetchDataset();
-    }
-  }, [id, navigate]);
+    fetchDataset();
+  }, [username, datasetname, navigate]);
 
   if (loading) {
     return (
@@ -120,7 +115,7 @@ const DatasetDetail = () => {
       code: `import vecem as vc
 
 # Load the dataset
-dataset = vc.load_dataset("${id}")
+dataset = vc.load_dataset("${username}_${datasetname}")
 
 # Access the data
 data = dataset.get_files()  # For raw files`,
@@ -145,7 +140,7 @@ data = dataset.get_files()  # For raw files`,
           {/* Breadcrumb */}
           <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
             <Link
-              to="/profile/:userId"
+              to={`/${username}`}
               className="hover:text-white transition-colors"
             >
               Datasets

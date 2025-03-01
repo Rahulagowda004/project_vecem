@@ -28,7 +28,7 @@ const fadeIn = {
 };
 
 const DatasetEdit = () => {
-  const { datasetId } = useParams();
+  const { username, datasetname } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -156,14 +156,14 @@ const DatasetEdit = () => {
       "Machine learning model training",
     ]);
     setIsLoading(false);
-  }, [datasetId]);
+  }, [datasetname]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
       // Add your save logic here
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      navigate(`/datasets/${datasetId}`);
+      navigate(`/${username}/${datasetname}`);
     } catch (error) {
       console.error('Error saving dataset:', error);
     } finally {
@@ -206,7 +206,7 @@ const DatasetEdit = () => {
           <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
             <Link to="/datasets" className="hover:text-white transition-colors">Datasets</Link>
             <ChevronRight className="w-4 h-4" />
-            <Link to={`/datasets/${datasetId}`} className="hover:text-white transition-colors">{name}</Link>
+            <Link to={`/${username}/${datasetname}`} className="hover:text-white transition-colors">{name}</Link>
             <ChevronRight className="w-4 h-4" />
             <span className="text-white font-medium">Edit</span>
           </div>

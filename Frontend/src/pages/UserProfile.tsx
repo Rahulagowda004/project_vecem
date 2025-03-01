@@ -121,12 +121,12 @@ const UserProfile = () => {
         throw new Error("Failed to log dataset click");
       }
 
-      // Navigate to dataset detail page with uid_datasetname format
-      navigate(`/datasets/${userData?.uid}_${datasetName}`);
+      // Navigate using new URL pattern
+      navigate(`/${username}/${datasetName}`);
     } catch (error) {
       console.error("Error logging dataset click:", error);
       // Still navigate even if logging fails
-      navigate(`/datasets/${userData?.uid}_${datasetName}`);
+      navigate(`/${username}/${datasetName}`);
     }
   };
 

@@ -10,6 +10,7 @@ from src.models.models import UserProfile,UidRequest,SettingProfile
 from fastapi.encoders import jsonable_encoder
 from src.utils.exception import CustomException
 from src.utils.logger import logging
+from src.routes import users
 
 app = FastAPI()
 
@@ -31,6 +32,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(upload_router)
+app.include_router(users.router)
 
 @app.get("/")
 async def root():
@@ -137,29 +139,27 @@ async def delete_account(uid: str):
 @app.post("/dataset-click")
 async def log_dataset_click(data: dict):
     try:
-        uid = data.get('uid')
+        username = data.get('username')
         dataset_name = data.get('datasetName')
-        if not uid or not dataset_name:
-            raise ValueError("UID or datasetName is missing")
-        dataset = await datasets_collection.find_one(
-            {"uid": uid, "dataset_info.name": dataset_name}
-        )
+        if not username or not dataset_name:
+            raise ValueError("Username or datasetName is missing")
+            
+        user = await user_profile_collection.find_one({"username": username})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        dataset = await datasets_collection.find_one({
+            "uid": user["uid"],
+            "dataset_info.name": dataset_name
+        })
+        
         if not dataset:
             raise HTTPException(status_code=404, detail="Dataset not found")
-        # Fetch uploader's username from the user profile
-        user_profile = await user_profile_collection.find_one({"uid": uid})
-        if user_profile:
-            username = user_profile.get("username", uid)
-        else:
-            username = uid
-        # Append uploader's username information
-        dataset["username"] = username         # additional field with username
-        dataset["uploadedBy"] = username       # replace uid with username for display
-        # Convert ObjectId to string
+            
         dataset["_id"] = str(dataset["_id"])
+        dataset["username"] = username
         return jsonable_encoder(dataset)
     except Exception as e:
-        print(f"Error: {e}")  
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/user-avatar/{uid}")
