@@ -414,14 +414,14 @@ const Settings = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800 rounded-xl p-8 mb-8 border border-gray-700/50"
+          className="bg-gray-800 rounded-xl p-8 mb-8 border border-gray-700/50 relative z-10"
         >
           <h2 className="text-2xl font-bold text-white mb-6">
             Profile Settings
           </h2>
           <div className="flex items-start space-x-10">
             {/* Avatar Section */}
-            <div className="flex flex-col items-center space-y-4">
+            <div className="flex flex-col items-center space-y-4 relative z-20">
               <AvatarSelector
                 user={user}
                 selectedAvatar={selectedAvatar}
@@ -436,7 +436,7 @@ const Settings = () => {
             </div>
 
             {/* Profile Details Section */}
-            <div className="flex-1 space-y-6">
+            <div className="flex-1 space-y-6 relative z-10">
               <div className="flex items-center justify-between">
                 <div className="space-y-1 flex-grow">
                   {isEditing ? (
@@ -595,7 +595,7 @@ const Settings = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 mb-8"
+          className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 mb-8 relative z-0"
         >
           {/* Dataset Header */}
           <div className="border-b border-gray-700/50 p-6">
