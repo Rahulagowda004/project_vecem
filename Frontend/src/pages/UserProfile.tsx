@@ -9,6 +9,7 @@ import {
 } from "../services/userService";
 import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
+import NavbarPro from "../components/NavbarPro";
 
 const UserProfile = () => {
   const { username } = useParams();
@@ -170,7 +171,8 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <NavbarPro />
+      <div className="max-w-5xl mx-auto px-4 py-8 pt-24">
         {/* Profile Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -26,6 +26,7 @@ import {
   reauthenticateWithPopup,
 } from "firebase/auth";
 import { toast } from "react-hot-toast";
+import NavbarPro from "../components/NavbarPro";
 
 interface Dataset {
   id: string;
@@ -407,7 +408,8 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <NavbarPro />
+      <div className="max-w-5xl mx-auto px-4 py-8 pt-24">
         {/* Profile Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
