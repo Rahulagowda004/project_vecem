@@ -251,7 +251,7 @@ const Settings = () => {
   };
 
   const handleEditDataset = (dataset: Dataset) => {
-    navigate(`/datasets/${dataset.id}/edit`);
+    navigate(`/${username}/${dataset.name}/edit`);
   };
 
   const pageVariants = {
