@@ -175,6 +175,21 @@ async def get_user_avatar(uid: str):
     except Exception as e:
         CustomException(e,sys)
 
+@app.get("/check-dataset-name/{uid}/{dataset_name}")
+async def check_dataset_name_availability(uid: str, dataset_name: str):
+    try:
+        # Check if dataset name exists for this user
+        existing_dataset = await datasets_collection.find_one({
+            "uid": uid,
+            "dataset_info.name": dataset_name
+        })
+        return {
+            "available": existing_dataset is None,
+            "message": "Dataset name already exists" if existing_dataset else "Dataset name available"
+        }
+    except Exception as e:
+        CustomException(e, sys)
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():

@@ -128,3 +128,23 @@ export const sendFirebaseUidAndEmail = async (
     throw error;
   }
 };
+
+export const checkDatasetNameAvailability = async (datasetName: string): Promise<{ available: boolean; message: string }> => {
+  try {
+    const auth = getAuth();
+    const uid = auth.currentUser?.uid;
+    if (!uid) {
+      throw new Error("User must be authenticated to check dataset name");
+    }
+
+    const formattedName = datasetName.trim().replace(/\s+/g, '_');
+    const response = await axios.get(`${API_URL}/check-dataset-name/${uid}/${formattedName}`);
+    return response.data;
+  } catch (error) {
+    console.error("Dataset name check error:", error);
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.detail || "Failed to check dataset name");
+    }
+    throw error;
+  }
+};

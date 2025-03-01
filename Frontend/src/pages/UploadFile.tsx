@@ -1,6 +1,6 @@
 import React, { useState, useRef, FormEvent } from "react";
 import { FileType, Image, Mic, Video } from "lucide-react";
-import { uploadDataset, DatasetForm } from "../services/uploadService";
+import { uploadDataset, DatasetForm, checkDatasetNameAvailability } from "../services/uploadService";
 
 // Add custom type definition for directory input
 interface DirectoryInputElement extends HTMLInputElement {
@@ -38,6 +38,9 @@ const UploadFile = () => {
     raw: 0,
     vectorized: 0
   });
+  const [nameError, setNameError] = useState<string>("");
+  const [isCheckingName, setIsCheckingName] = useState<boolean>(false);
+  const nameCheckTimeout = useRef<NodeJS.Timeout>();
 
   const domains = [
     "Health",
@@ -136,10 +139,58 @@ const UploadFile = () => {
     });
   };
 
+  const formatDatasetName = (name: string) => {
+    return name.replace(/\s+/g, '_');
+  };
+
+  const validateDatasetName = async (name: string) => {
+    if (!name) {
+      setNameError("");
+      return;
+    }
+
+    try {
+      setIsCheckingName(true);
+      const result = await checkDatasetNameAvailability(name);
+      if (!result.available) {
+        setNameError(result.message);
+      } else {
+        setNameError("");
+      }
+    } catch (error) {
+      setNameError(error instanceof Error ? error.message : "Error checking dataset name");
+    } finally {
+      setIsCheckingName(false);
+    }
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedName = formatDatasetName(e.target.value);
+    setFormData({
+      ...formData,
+      name: formattedName
+    });
+
+    // Clear any existing timeout
+    if (nameCheckTimeout.current) {
+      clearTimeout(nameCheckTimeout.current);
+    }
+
+    // Set a new timeout to check name availability
+    nameCheckTimeout.current = setTimeout(() => {
+      validateDatasetName(formattedName);
+    }, 500);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
     setUploadProgress({ progress: 0, status: "uploading" });
+
+    if (nameError) {
+      setError(nameError);
+      return;
+    }
 
     if (!formData.name.trim()) {
       setError("Please provide a dataset name");
@@ -241,12 +292,22 @@ const UploadFile = () => {
                 type="text"
                 name="name"
                 value={formData.name}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                onChange={handleNameChange}
+                className={`w-full px-4 py-2 rounded-xl bg-gray-700/50 border 
+                  ${nameError ? 'border-red-500' : 'border-gray-600'}
                   text-white placeholder-gray-400
-                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                placeholder="Enter dataset name"
+                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition`}
+                placeholder="Enter_dataset_name"
               />
+              {isCheckingName && (
+                <p className="text-sm text-gray-400 mt-1">Checking dataset name...</p>
+              )}
+              {nameError && (
+                <p className="text-sm text-red-400 mt-1">{nameError}</p>
+              )}
+              <p className="text-sm text-gray-400 mt-1">
+                Use underscores (_) instead of spaces in the dataset name
+              </p>
             </div>
 
             {/* Description */}
