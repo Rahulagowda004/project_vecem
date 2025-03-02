@@ -41,7 +41,7 @@ const Navbar = () => {
         <NeuralNetwork />
         <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 opacity-70"></div>
         <div className="container mx-auto flex justify-between items-center p-4 relative z-10">
-          <Link to="/" className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500">
+          <Link to="/" className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200">
             Vecem
           </Link>
 
