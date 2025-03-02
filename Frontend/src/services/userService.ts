@@ -26,6 +26,7 @@ export interface UserProfileData {
     description: string;
     dataType: "raw" | "vectorized" | "both";
     updatedAt: string;
+    upload_type: string; // Add this line
   }>;
 }
 
