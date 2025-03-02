@@ -250,8 +250,31 @@ const Settings = () => {
     }
   };
 
-  const handleEditDataset = (dataset: Dataset) => {
-    navigate(`/${username}/${dataset.name}/edit`);
+  const handleEditDataset = async (dataset: Dataset) => {
+    try {
+      // Log the edit click to backend
+      const response = await fetch("http://127.0.0.1:5000/dataset-edit-click", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: user?.uid,
+          datasetName: dataset.name,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to log dataset edit");
+      }
+
+      // Navigate to edit page even if logging fails
+      navigate(`/${username}/${dataset.name}/edit`);
+    } catch (error) {
+      console.error("Error logging dataset edit:", error);
+      // Still navigate even if logging fails
+      navigate(`/${username}/${dataset.name}/edit`);
+    }
   };
 
   const pageVariants = {

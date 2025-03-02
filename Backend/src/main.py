@@ -162,6 +162,61 @@ async def log_dataset_click(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/dataset-edit-click")
+async def log_dataset_edit(data: dict):
+    try:
+        uid = data.get('uid')
+        dataset_name = data.get('datasetName')
+        
+        if not uid or not dataset_name:
+            raise ValueError("UID or datasetName is missing")
+            
+        dataset = await datasets_collection.find_one({
+            "uid": uid,
+            "dataset_info.name": dataset_name
+        })
+        
+        if not dataset:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        # Convert ObjectId to string for JSON serialization
+        dataset["_id"] = str(dataset["_id"])
+        
+        # Log the edit action
+        logging.info(f"Dataset edit clicked - UID: {uid}, Dataset: {dataset_name}")
+        
+        return jsonable_encoder(dataset)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/update-dataset/{dataset_id}")
+async def update_dataset(dataset_id: str, updated_data: dict):
+    try:
+        # Convert string ID back to ObjectId
+        object_id = ObjectId(dataset_id)
+        
+        # Update the dataset
+        result = await datasets_collection.update_one(
+            {"_id": object_id},
+            {"$set": {
+                "dataset_info.name": updated_data.get("name"),
+                "dataset_info.description": updated_data.get("description"),
+                "dataset_info.domain": updated_data.get("domain"),
+                "dataset_info.file_type": updated_data.get("fileType"),
+                "upload_type": updated_data.get("datasetType"),
+                "vectorized_settings": updated_data.get("vectorizedSettings"),
+            }}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        return {"message": "Dataset updated successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/user-avatar/{uid}")
 async def get_user_avatar(uid: str):
     try:

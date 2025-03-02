@@ -19,15 +19,17 @@ import {
   Mic,
   Video,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext"; // Add this import at the top
 
 // Animation variants
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 10 }
+  exit: { opacity: 0, y: 10 },
 };
 
 const DatasetEdit = () => {
+  const { user } = useAuth(); // Add this near the top of the component
   const { username, datasetname } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -56,23 +58,23 @@ const DatasetEdit = () => {
     Image: {
       label: "Image Files",
       extensions: ["jpg", "jpeg", "png", "gif", "webp", "heic"],
-      icon: Image
+      icon: Image,
     },
     Audio: {
       label: "Audio Files",
       extensions: ["mp3", "wav", "ogg"],
-      icon: Mic
+      icon: Mic,
     },
     Text: {
       label: "Text Files",
       extensions: ["txt", "csv", "json", "pdf", "docx", "xlsx", "doc"],
-      icon: FileType
+      icon: FileType,
     },
     Video: {
       label: "Video Files",
       extensions: ["mp4", "webm", "ogg"],
-      icon: Video
-    }
+      icon: Video,
+    },
   };
 
   // Form states
@@ -93,15 +95,17 @@ const DatasetEdit = () => {
   const [dataStructure, setDataStructure] = useState("");
   const [contents, setContents] = useState<string[]>([]);
   const [useCases, setUseCases] = useState<string[]>([]);
-  const [fileSize, setFileSize] = useState<{ raw: number; vectorized: number }>({
-    raw: 0,
-    vectorized: 0
-  });
+  const [fileSize, setFileSize] = useState<{ raw: number; vectorized: number }>(
+    {
+      raw: 0,
+      vectorized: 0,
+    }
+  );
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
@@ -113,10 +117,13 @@ const DatasetEdit = () => {
     const files = event.target.files;
     if (!files?.length) return;
 
-    const totalSize = Array.from(files).reduce((acc, file) => acc + file.size, 0);
-    setFileSize(prev => ({
+    const totalSize = Array.from(files).reduce(
+      (acc, file) => acc + file.size,
+      0
+    );
+    setFileSize((prev) => ({
       ...prev,
-      raw: totalSize
+      raw: totalSize,
     }));
 
     // Simulate upload progress
@@ -128,44 +135,92 @@ const DatasetEdit = () => {
     }, 500);
   };
 
+  const [dataset, setDataset] = useState(null);
+
   useEffect(() => {
-    // Simulating data fetch - replace with actual API call
-    setName("Medical Imaging Dataset");
-    
-    setDatasetType("Both");
-    setVectorizedSettings({
-      dimensions: 768,
-      vectorDatabase: "Pinecone",
-    });
-    setDomain("Health");
-    setFileType("Image");
-    setSize({
-      raw: "2.3 GB",
-      vectorized: "1.1 GB",
-    });
-    setOverview("Collection of medical imaging data for AI training");
-    setDataStructure("The dataset consists of MRI scans in DICOM format along with their vectorized representations.");
-    setContents([
-      "Raw Data: 10,000 MRI scan files in DICOM format",
-      "Metadata: Patient demographics and scan parameters",
-      "Vectorized Data: 768-dimensional vectors for each scan",
-    ]);
-    setUseCases([
-      "Medical image analysis",
-      "Disease detection",
-      "Machine learning model training",
-    ]);
-    setIsLoading(false);
-  }, [datasetname]);
+    const fetchDataset = async () => {
+      try {
+        if (!user?.uid || !datasetname) {
+          throw new Error("Missing user ID or dataset name");
+        }
+
+        setIsLoading(true);
+        const response = await fetch(
+          "http://127.0.0.1:5000/dataset-edit-click",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              datasetName: datasetname,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || "Failed to fetch dataset");
+        }
+
+        const data = await response.json();
+        console.log("Fetched dataset:", data); // Debug log
+        setDataset(data);
+
+        // Set form values from dataset
+        setName(data.dataset_info.name);
+        setDescription(data.dataset_info.description || "");
+        setDatasetType(data.upload_type);
+        setDomain(data.dataset_info.domain);
+        setFileType(data.dataset_info.file_type);
+        if (data.vectorized_settings) {
+          setVectorizedSettings(data.vectorized_settings);
+        }
+      } catch (error) {
+        console.error("Error fetching dataset:", error);
+        toast.error("Failed to load dataset information");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDataset();
+  }, [datasetname, user]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Add your save logic here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      navigate(`/${username}/${datasetname}`);
+      if (!dataset?._id) {
+        throw new Error("No dataset ID found");
+      }
+
+      const response = await fetch(
+        `http://127.0.0.1:5000/update-dataset/${dataset._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            description,
+            domain,
+            fileType,
+            datasetType,
+            vectorizedSettings,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update dataset");
+      }
+
+      navigate(`/${username}/${name}`);
     } catch (error) {
-      console.error('Error saving dataset:', error);
+      console.error("Error saving dataset:", error);
+      // Add error handling UI here
     } finally {
       setIsSaving(false);
     }
@@ -175,15 +230,40 @@ const DatasetEdit = () => {
     setList([...list, ""]);
   };
 
-  const updateListItem = (index: number, value: string, list: string[], setList: (items: string[]) => void) => {
+  const updateListItem = (
+    index: number,
+    value: string,
+    list: string[],
+    setList: (items: string[]) => void
+  ) => {
     const newList = [...list];
     newList[index] = value;
     setList(newList);
   };
 
-  const removeListItem = (index: number, list: string[], setList: (items: string[]) => void) => {
+  const removeListItem = (
+    index: number,
+    list: string[],
+    setList: (items: string[]) => void
+  ) => {
     setList(list.filter((_, i) => i !== index));
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Please log in to access this page.</div>
+      </div>
+    );
+  }
+
+  if (!datasetname || !username) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-red-400">Invalid URL parameters</div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -196,7 +276,7 @@ const DatasetEdit = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Sticky Header */}
-      <motion.header 
+      <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800"
@@ -204,13 +284,19 @@ const DatasetEdit = () => {
         <div className="max-w-6xl mx-auto px-4">
           {/* Breadcrumb */}
           <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
-            <Link to="/datasets" className="hover:text-white transition-colors">Datasets</Link>
+            <Link to="/datasets" className="hover:text-white transition-colors">
+              Datasets
+            </Link>
             <ChevronRight className="w-4 h-4" />
-            <Link to={`/${username}/${datasetname}`} className="hover:text-white transition-colors">{name}</Link>
+            <Link
+              to={`/${username}/${datasetname}`}
+              className="hover:text-white transition-colors"
+            >
+              {name}
+            </Link>
             <ChevronRight className="w-4 h-4" />
             <span className="text-white font-medium">Edit</span>
           </div>
-
           {/* Title and Actions */}
           <div className="py-4 flex justify-between items-start">
             <motion.div
@@ -226,15 +312,21 @@ const DatasetEdit = () => {
                 placeholder="Dataset Name"
               />
               <div className="flex gap-2">
-                <motion.div whileHover={{ scale: 1.05 }} className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                >
                   {domain || "Select Domain"}
                 </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                >
                   {fileType || "Select Type"}
                 </motion.div>
               </div>
             </motion.div>
-            <motion.div 
+            <motion.div
               initial={{ x: 20 }}
               animate={{ x: 0 }}
               className="flex gap-2"
@@ -248,13 +340,12 @@ const DatasetEdit = () => {
                   hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {isSaving ? 'Saving...' : 'Save Changes'}
+                {isSaving ? "Saving..." : "Save Changes"}
               </motion.button>
             </motion.div>
           </div>
         </div>
       </motion.header>
-
       {/* Main Content */}
       <motion.div
         variants={fadeIn}
@@ -264,45 +355,49 @@ const DatasetEdit = () => {
       >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content Area */}
-          <motion.div 
+          <motion.div
             className="lg:col-span-2 space-y-6"
             variants={{
               initial: { opacity: 0 },
               animate: {
                 opacity: 1,
                 transition: {
-                  staggerChildren: 0.1
-                }
-              }
+                  staggerChildren: 0.1,
+                },
+              },
             }}
           >
             {/* Stats Cards */}
             <div className="grid grid-cols-3 gap-6">
               {[
-                { 
-                  label: 'Size', 
-                  value: `Raw: ${formatFileSize(fileSize.raw)}${fileSize.vectorized ? `\nVectorized: ${formatFileSize(fileSize.vectorized)}` : ''}`, 
+                {
+                  label: "Size",
+                  value: `Raw: ${formatFileSize(fileSize.raw)}${
+                    fileSize.vectorized
+                      ? `\nVectorized: ${formatFileSize(fileSize.vectorized)}`
+                      : ""
+                  }`,
                   icon: Database,
-                  isReadOnly: true 
+                  isReadOnly: true,
                 },
-                { 
-                  label: 'File Type', 
-                  value: fileType, 
+                {
+                  label: "File Type",
+                  value: fileType,
                   icon: FileType,
                   isSelect: true,
                   options: Object.entries(fileTypes).map(([type, data]) => ({
                     value: type,
-                    label: data.label
+                    label: data.label,
                   })),
-                  setter: setFileType 
+                  setter: setFileType,
                 },
-                { 
-                  label: 'Domain', 
-                  value: domain, 
-                  icon: Box, 
+                {
+                  label: "Domain",
+                  value: domain,
+                  icon: Box,
                   isSelect: true,
                   options: domains,
-                  setter: setDomain 
+                  setter: setDomain,
                 },
               ].map((stat) => (
                 <div
@@ -311,47 +406,58 @@ const DatasetEdit = () => {
                 >
                   <div>
                     <stat.icon className="w-5 h-5 text-cyan-400 mb-2" />
-                    <div className="text-sm font-medium text-cyan-200">{stat.label}</div>
+                    <div className="text-sm font-medium text-cyan-200">
+                      {stat.label}
+                    </div>
                   </div>
                   <div className="flex-1 flex items-center">
                     {stat.isReadOnly ? (
                       <div className="text-white whitespace-pre-line text-lg font-medium">
                         {stat.value}
                       </div>
-                    ) : (
-                      stat.isSelect ? (
-                        <select
-                          value={stat.value}
-                          onChange={(e) => stat.setter(e.target.value)}
-                          className="w-full bg-gray-900/50 text-white rounded-lg px-4 py-3 border border-gray-700 
-                            focus:border-cyan-500 outline-none text-lg font-medium"
-                        >
-                          <option value="">Select {stat.label}</option>
-                          {Array.isArray(stat.options) 
-                            ? stat.options.map((option) => (
-                                <option 
-                                  key={typeof option === 'string' ? option : option.value} 
-                                  value={typeof option === 'string' ? option : option.value}
-                                  className="py-2"
-                                >
-                                  {typeof option === 'string' ? option : option.label}
-                                </option>
-                              ))
-                            : null}
-                        </select>
-                      ) : null
-                    )}
+                    ) : stat.isSelect ? (
+                      <select
+                        value={stat.value}
+                        onChange={(e) => stat.setter(e.target.value)}
+                        className="w-full bg-gray-900/50 text-white rounded-lg px-4 py-3 border border-gray-700 
+                          focus:border-cyan-500 outline-none text-lg font-medium"
+                      >
+                        <option value="">Select {stat.label}</option>
+                        {Array.isArray(stat.options)
+                          ? stat.options.map((option) => (
+                              <option
+                                key={
+                                  typeof option === "string"
+                                    ? option
+                                    : option.value
+                                }
+                                value={
+                                  typeof option === "string"
+                                    ? option
+                                    : option.value
+                                }
+                                className="py-2"
+                              >
+                                {typeof option === "string"
+                                  ? option
+                                  : option.label}
+                              </option>
+                            ))
+                          : null}
+                      </select>
+                    ) : null}
                   </div>
                 </div>
               ))}
             </div>
-
             {/* About Section */}
             <motion.div
               variants={fadeIn}
               className="bg-gray-800 rounded-lg p-8 border border-gray-700 shadow-xl mt-8" // Increased padding and margin
             >
-              <h2 className="text-xl font-semibold text-white mb-6">About This Dataset</h2>
+              <h2 className="text-xl font-semibold text-white mb-6">
+                About This Dataset
+              </h2>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -362,15 +468,13 @@ const DatasetEdit = () => {
               />
             </motion.div>
           </motion.div>
-
           {/* Sidebar */}
-          <motion.div
-            variants={fadeIn}
-            className="space-y-6"
-          >
+          <motion.div variants={fadeIn} className="space-y-6">
             {/* File Upload Section */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-lg font-semibold text-white mb-4">Update Files</h2>
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Update Files
+              </h2>
               <div className="space-y-4">
                 <div className="relative">
                   <input
@@ -405,10 +509,11 @@ const DatasetEdit = () => {
                 )}
               </div>
             </div>
-
             {/* Dataset Type */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-lg font-semibold text-white mb-4">Dataset Type</h2>
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Dataset Type
+              </h2>
               <select
                 value={datasetType}
                 onChange={(e) => setDatasetType(e.target.value)}
@@ -420,34 +525,43 @@ const DatasetEdit = () => {
                 <option value="Both">Both</option>
               </select>
             </div>
-
             {/* Vectorized Settings */}
             {(datasetType === "Vectorized" || datasetType === "Both") && (
               <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <h2 className="text-lg font-semibold text-white mb-4">Vectorized Settings</h2>
+                <h2 className="text-lg font-semibold text-white mb-4">
+                  Vectorized Settings
+                </h2>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-cyan-200 mb-1 block">Dimensions</label>
+                    <label className="text-cyan-200 mb-1 block">
+                      Dimensions
+                    </label>
                     <input
                       type="number"
                       value={vectorizedSettings.dimensions}
-                      onChange={(e) => setVectorizedSettings({
-                        ...vectorizedSettings,
-                        dimensions: parseInt(e.target.value)
-                      })}
+                      onChange={(e) =>
+                        setVectorizedSettings({
+                          ...vectorizedSettings,
+                          dimensions: parseInt(e.target.value),
+                        })
+                      }
                       className="w-full bg-gray-900/50 text-white rounded-lg p-2 border border-gray-700 
                         focus:border-cyan-500 outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-cyan-200 mb-1 block">Vector Database</label>
+                    <label className="text-cyan-200 mb-1 block">
+                      Vector Database
+                    </label>
                     <input
                       type="text"
                       value={vectorizedSettings.vectorDatabase}
-                      onChange={(e) => setVectorizedSettings({
-                        ...vectorizedSettings,
-                        vectorDatabase: e.target.value
-                      })}
+                      onChange={(e) =>
+                        setVectorizedSettings({
+                          ...vectorizedSettings,
+                          vectorDatabase: e.target.value,
+                        })
+                      }
                       className="w-full bg-gray-900/50 text-white rounded-lg p-2 border border-gray-700 
                         focus:border-cyan-500 outline-none"
                     />
