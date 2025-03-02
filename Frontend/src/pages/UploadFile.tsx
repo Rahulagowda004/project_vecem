@@ -1,6 +1,9 @@
-import React, { useState, useRef, FormEvent } from "react";
+import React, { useState, useRef, FormEvent, useEffect } from "react";
 import { FileType, Image, Mic, Video } from "lucide-react";
 import { uploadDataset, DatasetForm, checkDatasetNameAvailability } from "../services/uploadService";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { getUserProfileByUid } from "../services/userService";
 
 // Add custom type definition for directory input
 interface DirectoryInputElement extends HTMLInputElement {
@@ -15,6 +18,8 @@ interface UploadProgress {
 }
 
 const UploadFile = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [datasetType, setDatasetType] = useState<"Raw" | "Vectorized" | "Both">(
     "Raw"
   );
@@ -51,6 +56,7 @@ const UploadFile = () => {
     success: boolean;
     message: string;
   }>({ show: false, success: false, message: "" });
+  const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
 
   const domains = [
     "Health",
@@ -214,6 +220,20 @@ const UploadFile = () => {
     }, 500);
   };
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.uid) {
+        try {
+          const profile = await getUserProfileByUid(user.uid);
+          setUserProfile(profile);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+    fetchUserProfile();
+  }, [user]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
@@ -285,9 +305,12 @@ const UploadFile = () => {
           success: true,
           message: "Dataset uploaded successfully!"
         });
-        // Remove automatic page reload to show the message
+        
+        // Wait for 4 seconds, then redirect to user profile
         setTimeout(() => {
-          window.location.reload();
+          if (userProfile?.username) {
+            navigate(`/${userProfile.username}`);
+          }
         }, 2000);
       } else {
         setUploadProgress({ progress: 0, status: "error" });
@@ -297,6 +320,11 @@ const UploadFile = () => {
           success: false,
           message: result?.message || "Failed to upload dataset"
         });
+
+        // Hide error message after 4 seconds
+        setTimeout(() => {
+          setUploadStatus({ show: false, success: false, message: "" });
+        }, 2000);
       }
     } catch (error) {
       console.error("Upload error:", error);
@@ -309,6 +337,11 @@ const UploadFile = () => {
       setError(
         error instanceof Error ? error.message : "Failed to upload dataset"
       );
+
+      // Hide error message after 4 seconds
+      setTimeout(() => {
+        setUploadStatus({ show: false, success: false, message: "" });
+      }, 4000);
     }
   };
 
@@ -362,22 +395,33 @@ const UploadFile = () => {
     </div>
   );
 
-  // Add StatusMessage component
+  // Update the StatusMessage component to be more prominent
   const StatusMessage = () => {
     if (!uploadStatus.show) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className={`p-6 rounded-xl ${uploadStatus.success ? 'bg-green-800' : 'bg-red-800'} shadow-lg max-w-md mx-4 text-center`}>
-          <div className={`text-4xl mb-4 ${uploadStatus.success ? 'text-green-400' : 'text-red-400'}`}>
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div 
+          className={`p-8 rounded-xl ${
+            uploadStatus.success ? 'bg-green-800/90' : 'bg-red-800/90'
+          } shadow-lg max-w-md mx-4 text-center transform transition-all duration-300 scale-100`}
+        >
+          <div className={`text-6xl mb-4 ${
+            uploadStatus.success ? 'text-green-400' : 'text-red-400'
+          }`}>
             {uploadStatus.success ? '✓' : '✕'}
           </div>
-          <h3 className="text-xl font-semibold mb-2 text-white">
+          <h3 className="text-2xl font-semibold mb-2 text-white">
             {uploadStatus.success ? 'Success!' : 'Upload Failed'}
           </h3>
-          <p className="text-gray-200">
+          <p className="text-lg text-gray-200">
             {uploadStatus.message}
           </p>
+          {uploadStatus.success && (
+            <p className="text-sm text-gray-300 mt-4">
+              Redirecting to your profile...
+            </p>
+          )}
         </div>
       </div>
     );
