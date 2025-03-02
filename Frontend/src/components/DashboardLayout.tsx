@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from "../contexts/AuthContext";
 import {
   Search,
   User,
@@ -17,7 +17,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
-import { getUserProfileByUid } from '../services/userService';
+import { getUserProfileByUid } from "../services/userService";
 
 const LogoutButton = () => {
   const { logout } = useAuth();
@@ -26,9 +26,9 @@ const LogoutButton = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
@@ -47,11 +47,14 @@ const DashboardLayout = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [userAvatar, setUserAvatar] = useState(user?.photoURL || "/avatars/avatar1.png");
+  const [userAvatar, setUserAvatar] = useState(
+    user?.photoURL || "/avatars/avatar1.png"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [username, setUsername] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
+  const [datasets, setDatasets] = useState([]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -73,12 +76,14 @@ const DashboardLayout = () => {
   useEffect(() => {
     const fetchUserAvatar = async () => {
       if (!user?.uid) return;
-      
+
       try {
         setAvatarLoading(true);
-        const response = await fetch(`http://127.0.0.1:5000/user-avatar/${user.uid}`);
+        const response = await fetch(
+          `http://127.0.0.1:5000/user-avatar/${user.uid}`
+        );
         const data = await response.json();
-        
+
         if (data.avatar) {
           setUserAvatar(data.avatar);
         }
@@ -94,9 +99,41 @@ const DashboardLayout = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate('/');
+      navigate("/");
     }
   }, [user, navigate]);
+
+  // Add initial data fetch when component mounts
+  useEffect(() => {
+    handleCategorySelect("all");
+  }, []); // Empty dependency array means this runs once on mount
+
+  const handleCategorySelect = async (category: string) => {
+    setSelectedCategory(category);
+    try {
+      const response = await fetch("http://127.0.0.1:5000/dataset-category", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ category }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch datasets");
+      }
+
+      const data = await response.json();
+      if (data.datasets) {
+        setDatasets(data.datasets);
+      } else {
+        setDatasets([]);
+      }
+    } catch (error) {
+      console.error("Error fetching datasets:", error);
+      setDatasets([]); // Set empty array on error
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
@@ -104,7 +141,10 @@ const DashboardLayout = () => {
       <nav className="bg-gray-900/90 backdrop-blur-lg border-b border-gray-800 fixed w-full z-50">
         <div className="max-w-full mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex-shrink-0 transition-transform hover:scale-105">
+            <Link
+              to="/"
+              className="flex-shrink-0 transition-transform hover:scale-105"
+            >
               <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-200 bg-clip-text text-transparent">
                 Vecem
               </span>
@@ -151,7 +191,7 @@ const DashboardLayout = () => {
                   <div className="absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-gray-900 ring-1 ring-cyan-400/10">
                     <div className="py-1 divide-y divide-gray-800">
                       <Link
-                        to={username ? `/${username}` : '#'}
+                        to={username ? `/${username}` : "#"}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
                       >
                         <User className="h-4 w-4 mr-3 text-cyan-400" />
@@ -188,7 +228,7 @@ const DashboardLayout = () => {
                       Hey, {user.displayName}!
                     </div>
                     <div className="text-slate-400 text-sm text-left whitespace-nowrap">
-                    See what the community is building.
+                      See what the community is building.
                     </div>
                   </div>
                 </div>
@@ -201,46 +241,70 @@ const DashboardLayout = () => {
               <div className="space-y-2">
                 <div className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10">
                   <Database className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                  <span className="group-hover:text-cyan-400 transition-colors">Datasets</span>
+                  <span className="group-hover:text-cyan-400 transition-colors">
+                    Datasets
+                  </span>
                 </div>
 
                 <div className="ml-4 space-y-1 relative before:absolute before:left-[1.6rem] before:top-0 before:h-full before:w-px before:bg-gradient-to-b before:from-cyan-500/50 before:to-transparent before:opacity-25">
                   {/* Add All Datasets button first */}
                   <button
-                    onClick={() => setSelectedCategory("all")}
+                    onClick={() => handleCategorySelect("all")}
                     className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${
-                      selectedCategory === "all" ? 'bg-cyan-500/10 text-cyan-400' : 'text-gray-400'
+                      selectedCategory === "all"
+                        ? "bg-cyan-500/10 text-cyan-400"
+                        : "text-gray-400"
                     } rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6`}
                   >
                     <div className="flex items-center">
-                      <Database className={`h-4 w-4 mr-3 ${
-                        selectedCategory === "all" ? 'text-cyan-400' : 'text-cyan-400/50'
-                      } group-hover:text-cyan-400 transition-colors`} />
-                      <span className="group-hover:text-gray-200 transition-colors">All Datasets</span>
+                      <Database
+                        className={`h-4 w-4 mr-3 ${
+                          selectedCategory === "all"
+                            ? "text-cyan-400"
+                            : "text-cyan-400/50"
+                        } group-hover:text-cyan-400 transition-colors`}
+                      />
+                      <span className="group-hover:text-gray-200 transition-colors">
+                        All Datasets
+                      </span>
                     </div>
-
                   </button>
 
                   {[
-                    { icon: FileAudio, label: "Audio Dataset" , category: "audio" },
-                    { icon: Image, label: "Image Dataset",  category: "image" },
-                    { icon: FileVideo, label: "Video Dataset", category: "video" },
+                    {
+                      icon: FileAudio,
+                      label: "Audio Dataset",
+                      category: "audio",
+                    },
+                    { icon: Image, label: "Image Dataset", category: "image" },
+                    {
+                      icon: FileVideo,
+                      label: "Video Dataset",
+                      category: "video",
+                    },
                     { icon: FileText, label: "Text Dataset", category: "text" },
-                  ].map(({ icon: Icon, label,  category }) => (
+                  ].map(({ icon: Icon, label, category }) => (
                     <button
                       key={label}
-                      onClick={() => setSelectedCategory(category)}
+                      onClick={() => handleCategorySelect(category)}
                       className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${
-                        selectedCategory === category ? 'bg-cyan-500/10 text-cyan-400' : 'text-gray-400'
+                        selectedCategory === category
+                          ? "bg-cyan-500/10 text-cyan-400"
+                          : "text-gray-400"
                       } rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6`}
                     >
                       <div className="flex items-center">
-                        <Icon className={`h-4 w-4 mr-3 ${
-                          selectedCategory === category ? 'text-cyan-400' : 'text-cyan-400/50'
-                        } group-hover:text-cyan-400 transition-colors`} />
-                        <span className="group-hover:text-gray-200 transition-colors">{label}</span>
+                        <Icon
+                          className={`h-4 w-4 mr-3 ${
+                            selectedCategory === category
+                              ? "text-cyan-400"
+                              : "text-cyan-400/50"
+                          } group-hover:text-cyan-400 transition-colors`}
+                        />
+                        <span className="group-hover:text-gray-200 transition-colors">
+                          {label}
+                        </span>
                       </div>
-
                     </button>
                   ))}
                 </div>
@@ -253,17 +317,21 @@ const DashboardLayout = () => {
               >
                 <div className="flex items-center">
                   <Users className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                  <span className="group-hover:text-cyan-400 transition-colors">Community</span>
+                  <span className="group-hover:text-cyan-400 transition-colors">
+                    Community
+                  </span>
                 </div>
               </Link>
-                 {/* Documentation Section */}
-                 <Link
+              {/* Documentation Section */}
+              <Link
                 to="/documentation"
                 className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
               >
                 <div className="flex items-center">
                   <BookOpen className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                  <span className="group-hover:text-cyan-400 transition-colors">Documentation</span>
+                  <span className="group-hover:text-cyan-400 transition-colors">
+                    Documentation
+                  </span>
                 </div>
               </Link>
             </nav>
@@ -273,7 +341,11 @@ const DashboardLayout = () => {
         {/* Main Content */}
         <div className="flex-1 ml-64">
           <main className="p-6">
-            <DatasetGrid searchQuery={searchQuery} category={selectedCategory} />
+            <DatasetGrid
+              searchQuery={searchQuery}
+              category={selectedCategory}
+              datasets={datasets} // Pass datasets to DatasetGrid
+            />
           </main>
         </div>
       </div>

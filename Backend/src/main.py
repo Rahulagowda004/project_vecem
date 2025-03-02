@@ -259,6 +259,48 @@ async def check_dataset_name_availability(uid: str, dataset_name: str):
     except Exception as e:
         CustomException(e, sys)
 
+@app.post("/dataset-category")
+async def log_dataset_category(data: dict):
+    logging.info(f"Endpoint called: log_dataset_category() for category: {data.get('category')}")
+    try:
+        category = data.get('category')
+        
+        if not category:
+            raise ValueError("Category is missing")
+        
+        # If category is "all", fetch all datasets
+        if category == "all":
+            datasets = await datasets_collection.find({}).to_list(length=None)
+        else:
+            # Fetch datasets matching the selected category
+            datasets = await datasets_collection.find(
+                {"dataset_info.file_type": category}
+            ).to_list(length=None)
+        
+        # Convert ObjectIds to strings and process the datasets
+        processed_datasets = []
+        for dataset in datasets:
+            dataset["_id"] = str(dataset["_id"])
+            # Ensure all required fields exist
+            if "dataset_info" not in dataset:
+                dataset["dataset_info"] = {}
+            dataset["dataset_info"]["file_type"] = dataset.get("dataset_info", {}).get("file_type", "unknown")
+            dataset["dataset_info"]["name"] = dataset.get("dataset_info", {}).get("name", "Untitled")
+            dataset["dataset_info"]["description"] = dataset.get("dataset_info", {}).get("description", "")
+            dataset["dataset_info"]["domain"] = dataset.get("dataset_info", {}).get("domain", "")
+            processed_datasets.append(dataset)
+        
+        return {
+            "status": "success",
+            "message": f"Category {category} selected",
+            "category": category,
+            "datasets": jsonable_encoder(processed_datasets)
+        }
+        
+    except Exception as e:
+        logging.error(f"Error in log_dataset_category: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
