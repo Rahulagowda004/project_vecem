@@ -219,22 +219,6 @@ const DashboardLayout = () => {
         {/* Sidebar */}
         <div className="w-64 fixed h-full bg-gray-900/90 backdrop-blur-lg border-r border-gray-800">
           <div className="flex flex-col h-full">
-            {/* User Info */}
-            {user && (
-              <div className="p-4 border-b border-gray-800">
-                <div className="flex items-center space-x-3">
-                  <div className="flex flex-col text-center">
-                    <div className="font-medium text-white text-centre items-center">
-                      Hey, {user.displayName}!
-                    </div>
-                    <div className="text-slate-400 text-sm text-left whitespace-nowrap">
-                      See what the community is building.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Navigation Menu */}
             <nav className="flex-1 px-2 py-4 space-y-2">
               {/* Datasets Section */}
@@ -342,17 +326,36 @@ const DashboardLayout = () => {
         {/* Main Content */}
         <div className="flex-1 ml-64">
           <main className="p-6">
-            <div className="mb-8">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-cyan-500/10 rounded-xl">
-                  <Database className="h-6 w-6 text-cyan-400" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-white mb-1">Latest Uploads</h1>
-                  <p className="text-gray-400">Discover the most recent datasets from our community</p>
+            {/* User Welcome Section */}
+            {user && (
+              <div className="mb-8 transform transition-all duration-500 ease-in-out hover:scale-[1.01]">
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 backdrop-blur-xl shadow-xl">
+                  <div className="flex items-center space-x-6">
+                    <div className="relative group">
+                      <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-cyan-300 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+                      <img
+                        className="relative h-16 w-16 rounded-full ring-2 ring-cyan-400/20 object-cover transition-transform duration-300 group-hover:scale-105"
+                        src={userAvatar}
+                        alt={user.displayName || "User avatar"}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                          Welcome back, {user.displayName}!
+                        </h2>
+                        <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                      </div>
+                      <p className="text-white text-sm max-w-lg">
+                        Explore the latest datasets from our growing community and discover new possibilities.
+                       
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
             <DatasetGrid
               searchQuery={searchQuery}
               category={selectedCategory}
