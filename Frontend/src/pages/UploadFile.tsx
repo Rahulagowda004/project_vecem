@@ -140,7 +140,7 @@ const UploadFile = () => {
   };
 
   const formatDatasetName = (name: string) => {
-    return name.replace(/\s+/g, '_');
+    return name
   };
 
   const validateDatasetName = async (name: string) => {
@@ -297,7 +297,7 @@ const UploadFile = () => {
                   ${nameError ? 'border-red-500' : 'border-gray-600'}
                   text-white placeholder-gray-400
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition`}
-                placeholder="Enter_dataset_name"
+                placeholder="Enter dataset name"
               />
               {isCheckingName && (
                 <p className="text-sm text-gray-400 mt-1">Checking dataset name...</p>
@@ -305,9 +305,7 @@ const UploadFile = () => {
               {nameError && (
                 <p className="text-sm text-red-400 mt-1">{nameError}</p>
               )}
-              <p className="text-sm text-gray-400 mt-1">
-                Use underscores (_) instead of spaces in the dataset name
-              </p>
+
             </div>
 
             {/* Description */}
