@@ -55,7 +55,7 @@ async def save_metadata_and_update_user(metadata: dict) -> str:
     except Exception as e:
         logging.error(f"MongoDB error: {str(e)}")
         raise
-
+    
 async def update_user_profile(uid: str, new_bio: str, new_profile_picture: str, new_name: str, new_github_url: str, new_username: str) -> bool:
     try:
         # Get current user profile
