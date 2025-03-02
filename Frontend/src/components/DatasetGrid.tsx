@@ -266,7 +266,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                     <button
                       onClick={() => {
                         setIsModalOpen(false);
-                        navigate(`/datasets/${selectedDataset.id}`);
+                        navigate(`/${selectedDataset.username}/${selectedDataset.name}`);
                       }}
                       className="w-full px-4 py-3 mt-4 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors font-medium"
                     >
