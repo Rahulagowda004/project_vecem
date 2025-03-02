@@ -36,14 +36,17 @@ app.include_router(users.router)
 
 @app.get("/")
 async def root():
+    logging.info("Endpoint called: root()")
     return {"message": "File Upload API is running"}
 
 def user_profile_serializer(user_profile):
+    logging.info("Operation: user_profile_serializer()")
     user_profile["_id"] = str(user_profile["_id"])
     return user_profile
 
 @app.post("/register-uid")
 async def register_uid(uid_request: UidRequest):
+    logging.info(f"Endpoint called: register_uid() with UID: {uid_request.uid}")
     try:
         uid = uid_request.uid
         email = uid_request.email
@@ -71,6 +74,7 @@ async def register_uid(uid_request: UidRequest):
 
 @app.get("/user-profile/{uid}")
 async def get_user_profile(uid: str):
+    logging.info(f"Endpoint called: get_user_profile() for UID: {uid}")
     try:
         user_profile = await user_profile_collection.find_one({"uid": uid})
         if user_profile:
@@ -81,6 +85,7 @@ async def get_user_profile(uid: str):
 
 @app.get("/user-profile/username/{username}")
 async def get_user_profile_by_username(username: str):
+    logging.info(f"Endpoint called: get_user_profile_by_username() for username: {username}")
     try:
         user_profile = await user_profile_collection.find_one({"username": username})
         if user_profile:
@@ -91,6 +96,7 @@ async def get_user_profile_by_username(username: str):
 
 @app.get("/check-username/{username}")
 async def check_username_availability(username: str):
+    logging.info(f"Endpoint called: check_username_availability() for username: {username}")
     try:
         existing_user = await user_profile_collection.find_one({"username": username})
         return {"available": existing_user is None}
@@ -99,6 +105,7 @@ async def check_username_availability(username: str):
 
 @app.post("/update-profile")
 async def update_profile(user: SettingProfile):
+    logging.info(f"Endpoint called: update_profile() for UID: {user.uid}")
     try:
         # Check if username is already taken (if username is being changed)
         existing_user = await user_profile_collection.find_one({"username": user.username, "uid": {"$ne": user.uid}})
@@ -125,6 +132,7 @@ async def update_profile(user: SettingProfile):
 
 @app.delete("/delete-account/{uid}")
 async def delete_account(uid: str):
+    logging.info(f"Endpoint called: delete_account() for UID: {uid}")
     try:
         # Delete user account from database
         success = await delete_user_account(uid)
@@ -138,6 +146,7 @@ async def delete_account(uid: str):
 
 @app.post("/dataset-click")
 async def log_dataset_click(data: dict):
+    logging.info(f"Endpoint called: log_dataset_click() for username: {data.get('username')}, dataset: {data.get('datasetName')}")
     try:
         username = data.get('username')
         dataset_name = data.get('datasetName')
@@ -164,6 +173,7 @@ async def log_dataset_click(data: dict):
 
 @app.post("/dataset-edit-click")
 async def log_dataset_edit(data: dict):
+    logging.info(f"Endpoint called: log_dataset_edit() for UID: {data.get('uid')}, dataset: {data.get('datasetName')}")
     try:
         uid = data.get('uid')
         dataset_name = data.get('datasetName')
@@ -192,6 +202,7 @@ async def log_dataset_edit(data: dict):
 
 @app.put("/update-dataset/{dataset_id}")
 async def update_dataset(dataset_id: str, updated_data: dict):
+    logging.info(f"Endpoint called: update_dataset() for dataset_id: {dataset_id}")
     try:
         # Convert string ID back to ObjectId
         object_id = ObjectId(dataset_id)
@@ -208,7 +219,7 @@ async def update_dataset(dataset_id: str, updated_data: dict):
                 "vectorized_settings": updated_data.get("vectorizedSettings"),
             }}
         )
-        
+        logging.info(f"Dataset updated: {result} in update_dataset()")
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Dataset not found")
             
@@ -219,11 +230,13 @@ async def update_dataset(dataset_id: str, updated_data: dict):
 
 @app.get("/user-avatar/{uid}")
 async def get_user_avatar(uid: str):
+    logging.info(f"Endpoint called: get_user_avatar() for UID: {uid}")
     try:
         user_profile = await user_profile_collection.find_one(
             {"uid": uid}, 
             {"profilePicture": 1}
         )
+        logging.info(f"User profile: {user_profile}")
         if user_profile and "profilePicture" in user_profile:
             return {"avatar": user_profile["profilePicture"]}
         return {"avatar": None}
@@ -232,6 +245,7 @@ async def get_user_avatar(uid: str):
 
 @app.get("/check-dataset-name/{uid}/{dataset_name}")
 async def check_dataset_name_availability(uid: str, dataset_name: str):
+    logging.info(f"Endpoint called: check_dataset_name_availability() for UID: {uid}, dataset name: {dataset_name}")
     try:
         # Check if dataset name exists for this user
         existing_dataset = await datasets_collection.find_one({
@@ -248,4 +262,5 @@ async def check_dataset_name_availability(uid: str, dataset_name: str):
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    logging.info("Operation: shutdown_db_client()")
     await close_db_client()
