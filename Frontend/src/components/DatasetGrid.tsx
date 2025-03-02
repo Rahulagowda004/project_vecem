@@ -227,9 +227,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                       >
                         {selectedDataset.username}
                       </a>
-                      <span className="text-xs text-gray-500">
-                        Dataset Owner
-                      </span>
+
                     </div>
                     <button
                       onClick={() => {
