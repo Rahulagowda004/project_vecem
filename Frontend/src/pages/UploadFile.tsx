@@ -388,6 +388,8 @@ const UploadFile = () => {
                         text-white placeholder-gray-400
                         focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
                       placeholder="Enter dimensions"
+                      min="100"        
+                      max="5000" 
                     />
                   </div>
                   <div>
