@@ -217,7 +217,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
 
                 <div className="p-4 bg-gray-800/30 rounded-xl flex flex-col h-full">
                   <h3 className="text-lg font-medium text-white mb-4">
-                    Actions
+                    Uploaded by
                   </h3>
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="flex flex-col p-2 bg-gray-800/30 rounded-lg">
