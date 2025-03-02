@@ -1,17 +1,12 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Upload } from "lucide-react";
-import {
-  getUserProfile,
-  getUserProfileByUsername,
-  getUserData,
-} from "../services/userService";
+import { getUserProfileByUsername } from "../services/userService";
 import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 import NavbarPro from "../components/NavbarPro";
 
-const UserProfile = () => {
+const OtherProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -29,24 +24,19 @@ const UserProfile = () => {
         setLoading(true);
         setError(null);
 
-        if (!username) {
-          // If no username provided, get current user's username and redirect
-          const currentUserData = await getUserData(user!.uid);
-          if (currentUserData?.username) {
-            navigate(`/profile/${currentUserData.username}`, { replace: true });
-            return;
-          }
-          throw new Error("User profile not found");
+        if (!username || !user) {
+          throw new Error("Invalid username or user not authenticated");
         }
 
-        // Check if viewing other user's profile
+        // Get profile data directly
         const profileData = await getUserProfileByUsername(username);
-        if (profileData.uid !== user?.uid) {
-          // Redirect to other profile view if not the current user
-          navigate(`/${username}/view`, { replace: true });
+        
+        // Check if it's the current user trying to view their own profile
+        if (profileData.uid === user.uid) {
+          navigate(`/${username}`, { replace: true });
           return;
         }
-        
+
         setUserData(profileData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile");
@@ -56,12 +46,48 @@ const UserProfile = () => {
       }
     };
 
-    if (user) {
-      fetchUserData();
-    }
+    fetchUserData();
   }, [username, user, navigate]);
 
-  // Filter and sort datasets
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 },
+  };
+
+  const handleDatasetClick = async (datasetId: string, datasetName: string) => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/dataset-click", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: userData?.uid,
+          datasetName: datasetName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to log dataset click");
+      }
+
+      navigate(`/${username}/${datasetName}`);
+    } catch (error) {
+      console.error("Error logging dataset click:", error);
+      navigate(`/${username}/${datasetName}`);
+    }
+  };
+
   const filteredAndSortedDatasets = useMemo(() => {
     if (!userData?.datasets) return [];
 
@@ -83,57 +109,13 @@ const UserProfile = () => {
       default:
         result.sort(
           (a, b) =>
-            new Date(b.updatedAt || 0).getTime() -
-            new Date(a.updatedAt || 0).getTime()
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         );
         break;
     }
 
     return result;
   }, [userData?.datasets, searchQuery, sortOption]);
-
-  const paginatedDatasets = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredAndSortedDatasets.slice(startIndex, endIndex);
-  }, [filteredAndSortedDatasets, currentPage]);
-
-  const totalPages = Math.ceil(filteredAndSortedDatasets.length / itemsPerPage);
-
-  const handlePreviousPage = () => {
-    setCurrentPage((prevPage) => Math.max(prevPage, 1));
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages));
-  };
-
-  const handleDatasetClick = async (datasetId: string, datasetName: string) => {
-    try {
-      // Log the click to backend
-      const response = await fetch("http://127.0.0.1:5000/dataset-click", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uid: userData?.uid,
-          datasetName: datasetName,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to log dataset click");
-      }
-
-      // Navigate using new URL pattern
-      navigate(`/${username}/${datasetName}`);
-    } catch (error) {
-      console.error("Error logging dataset click:", error);
-      // Still navigate even if logging fails
-      navigate(`/${username}/${datasetName}`);
-    }
-  };
 
   if (loading) {
     return (
@@ -158,21 +140,6 @@ const UserProfile = () => {
       </div>
     );
   }
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 },
-  };
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -259,16 +226,6 @@ const UserProfile = () => {
                     </span>
                   </motion.div>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate("/upload")}
-                  className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
-                    hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
-                >
-                  <Upload size={18} />
-                  Upload Dataset
-                </motion.button>
               </div>
             </div>
 
@@ -305,14 +262,8 @@ const UserProfile = () => {
                   >
                     <option value="latest">Sort by: Latest</option>
                     <option value="name">Sort by: Name</option>
-                    <option value="size">Sort by: Size</option>
                   </select>
                 </div>
-                {searchQuery && (
-                  <div className="text-gray-400">
-                    Found {filteredAndSortedDatasets.length} results
-                  </div>
-                )}
               </div>
             </div>
 
@@ -323,7 +274,7 @@ const UserProfile = () => {
               animate="show"
               className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
             >
-              {paginatedDatasets.map((dataset) => (
+              {filteredAndSortedDatasets.map((dataset) => (
                 <motion.li
                   key={dataset.id}
                   variants={item}
@@ -367,75 +318,40 @@ const UserProfile = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      Uploaded Jan 15, 2024
+                      {new Date(dataset.updatedAt).toLocaleDateString()}
                     </span>
                   </div>
                 </motion.li>
               ))}
             </motion.ul>
 
-            {/* Show pagination only if there are datasets */}
-            {filteredAndSortedDatasets.length > 0 && (
-              <div className="border-t border-gray-700/50 p-4">
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={handlePreviousPage}
-                    className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
-                    disabled={currentPage === 1}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 19l-7-7 7-7"
-                      />
-                    </svg>
-                    <span>Previous</span>
-                  </button>
-                  <div className="flex items-center space-x-2">
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <button
-                        key={index + 1}
-                        onClick={() => setCurrentPage(index + 1)}
-                        className={`px-3 py-1 rounded-lg ${
-                          currentPage === index + 1
-                            ? "bg-cyan-500/10 text-cyan-400"
-                            : "hover:bg-gray-700 text-gray-400"
-                        }`}
-                      >
-                        {index + 1}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    onClick={handleNextPage}
-                    className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
-                    disabled={currentPage === totalPages}
-                  >
-                    <span>Next</span>
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Pagination */}
+            <div className="flex justify-center p-4">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 mx-1 rounded-lg bg-gray-700 hover:bg-gray-600 text-cyan-300 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.min(
+                      prev + 1,
+                      Math.ceil(filteredAndSortedDatasets.length / itemsPerPage)
+                    )
+                  )
+                }
+                disabled={
+                  currentPage ===
+                  Math.ceil(filteredAndSortedDatasets.length / itemsPerPage)
+                }
+                className="px-4 py-2 mx-1 rounded-lg bg-gray-700 hover:bg-gray-600 text-cyan-300 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -443,4 +359,4 @@ const UserProfile = () => {
   );
 };
 
-export default UserProfile;
+export default OtherProfile;

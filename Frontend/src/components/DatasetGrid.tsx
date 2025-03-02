@@ -253,13 +253,15 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                   </h3>
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="flex flex-col p-2 bg-gray-800/30 rounded-lg">
-                      <a
-                        href={`/${selectedDataset.username}`}
-                        className="text-gray-300 font-medium hover:text-cyan-400 transition-colors"
+                      <button
+                        onClick={() => {
+                          setIsModalOpen(false);
+                          navigate(`/${selectedDataset.username}/view`);
+                        }}
+                        className="text-left text-gray-300 font-medium hover:text-cyan-400 transition-colors"
                       >
-                        {selectedDataset.username}
-                      </a>
-
+                        {selectedDataset.username || "Unknown User"}
+                      </button>
                     </div>
                     <button
                       onClick={() => {

@@ -13,6 +13,7 @@ import Signup from "./pages/Signup";
 import Documentation from "./pages/Documentation";
 import { useAuth } from "./contexts/AuthContext";
 import DatasetEdit from "./pages/DatasetEdit";
+import OtherProfile from "./pages/OtherProfile";
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return <div className="min-h-screen bg-gray-900">{children}</div>;
@@ -103,6 +104,16 @@ function App() {
           }
         />
         
+        {/* Add the new route before the profile route */}
+        <Route
+          path="/:username/view"
+          element={
+            <PrivateRoute>
+              <OtherProfile />
+            </PrivateRoute>
+          }
+        />
+
         {/* Profile Route */}
         <Route
           path="/:username"
