@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MONGO_URL = os.getenv("MONGODB_URL")
-DB_NAME = str(os.getenv("MONGODB_NAME"))
+MONGO_URL = "mongodb+srv://admin:8bx2pW7Dglj9j5RY@cluster0.tui77.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+DB_NAME = "vecem"
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
