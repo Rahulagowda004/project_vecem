@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FileText, Image, Music, Video, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getUserProfileByUid } from "../services/userService";
 
 interface Dataset {
   id: string; // Changed from number to string
@@ -16,7 +17,7 @@ interface Dataset {
   description: string;
   datasetType: "raw" | "vectorized";
   domain: string;
-  username: string;
+  username?: string; // Make username optional since we'll fetch it
   uid: string; // Added uid
 }
 
@@ -44,7 +45,38 @@ const getIconForType = (fileType: string) => {
 const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
   const [selectedDataset, setSelectedDataset] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [usernameCache, setUsernameCache] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+
+  const fetchUsername = async (uid: string) => {
+    if (usernameCache[uid]) return usernameCache[uid];
+    
+    try {
+      const userProfile = await getUserProfileByUid(uid);
+      if (userProfile?.username) {
+        setUsernameCache(prev => ({
+          ...prev,
+          [uid]: userProfile.username
+        }));
+        return userProfile.username;
+      }
+    } catch (error) {
+      console.error("Error fetching username:", error);
+    }
+    return "Unknown User";
+  };
+
+  useEffect(() => {
+    // Fetch usernames for all datasets that don't have them cached
+    const fetchMissingUsernames = async () => {
+      const uniqueUids = [...new Set(processedDatasets.map(d => d.uid))];
+      const missingUids = uniqueUids.filter(uid => !usernameCache[uid]);
+      
+      await Promise.all(missingUids.map(fetchUsername));
+    };
+
+    fetchMissingUsernames();
+  }, [datasets]);
 
   const processedDatasets = datasets.map((dataset) => ({
     id: dataset.dataset_id,
@@ -56,7 +88,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
     description: dataset.dataset_info.description,
     datasetType: dataset.upload_type,
     domain: dataset.dataset_info.domain,
-    username: dataset.uid, // You might want to fetch actual username using uid
+    username: usernameCache[dataset.uid] || "Loading...",
     uid: dataset.uid,
   }));
 
@@ -222,7 +254,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="flex flex-col p-2 bg-gray-800/30 rounded-lg">
                       <a
-                        href={`/profile/${selectedDataset.uid}`}
+                        href={`/${selectedDataset.username}`}
                         className="text-gray-300 font-medium hover:text-cyan-400 transition-colors"
                       >
                         {selectedDataset.username}
