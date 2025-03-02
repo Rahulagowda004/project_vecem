@@ -325,10 +325,10 @@ const DashboardLayout = () => {
 
         {/* Main Content */}
         <div className="flex-1 ml-64">
-          <main className="p-6">
+          <main className="p-8">
             {/* Enhanced User Welcome Section */}
             {user && (
-              <div className="mb-8 transform transition-all duration-500 ease-in-out hover:scale-[1.02]">
+              <div className="mb-4 transform transition-all duration-500 ease-in-out hover:scale-[1.02]">
                 <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
                   {/* Decorative Elements */}
                   <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
@@ -349,18 +349,14 @@ const DashboardLayout = () => {
 
                     {/* Welcome Text Section */}
                     <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2">
                         <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-100 to-gray-300 bg-clip-text text-transparent">
-                          Welcome back, {user.displayName}!
+                          Welcome back, {user.displayName}
                         </h2>
-                        <div className="flex space-x-1">
-                          <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></div>
-                          <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse delay-75"></div>
-                          <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse delay-150"></div>
-                        </div>
+                        
                       </div>
-                      <p className="text-gray-300 text-sm whitespace-nowrap overflow-hidden text-ellipsis leading-relaxed">  
-    See what the community is building with <span className="text-cyan-400">Vecem</span>—explore datasets, contribute insights, and collaborate on data-driven discoveries.  
+                      <p className="text-gray-300 text-sm whitespace-nowrap overflow-hidden text-ellipsis leading-relaxed animate-[slideIn_0.5s_ease-out]">  
+    See what the community is building with <span className="text-cyan-400 inline-block animate-[shimmer_2s_ease-in-out_infinite]">Vecem</span> — explore datasets, contribute insights, and collaborate on data-driven discoveries.  
 </p>
 
                     </div>
@@ -369,11 +365,13 @@ const DashboardLayout = () => {
               </div>
             )}
 
-            <DatasetGrid
-              searchQuery={searchQuery}
-              category={selectedCategory}
-              datasets={datasets}
-            />
+            <div className="mt-1">
+              <DatasetGrid
+                searchQuery={searchQuery}
+                category={selectedCategory}
+                datasets={datasets}
+              />
+            </div>
           </main>
         </div>
       </div>
