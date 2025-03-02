@@ -350,14 +350,14 @@ const DashboardLayout = () => {
                     {/* Welcome Text Section */}
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2">
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-white via-cyan-100 to-gray-300 bg-clip-text text-transparent">
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                           Welcome back, {user.displayName}
                         </h2>
                         
                       </div>
-                      <p className="text-gray-300 text-sm whitespace-nowrap overflow-hidden text-ellipsis leading-relaxed">  
-                      You’re in! Now explore datasets, contribute insights, and connect with the community.  
-</p>
+                      <p className="text-gray-400 text-base leading-relaxed max-w-2xl tracking-wide">  
+                        You're in! Now explore datasets, contribute insights, and connect with the community.  
+                      </p>
 
                     </div>
                   </div>
