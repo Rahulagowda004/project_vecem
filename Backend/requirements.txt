@@ -8,4 +8,5 @@ pydantic-settings
 python-dotenv
 email-validator
 bson
+azure-storage-blob==12.19.0
 -e .

@@ -7,6 +7,7 @@ from src.utils.logger import logging
 from src.models.models import DatasetInfo, UploadResponse
 from src.utils.file_handlers import ensure_directories, save_uploaded_file
 from src.database.mongodb import save_metadata_and_update_user, user_profile_collection  # Add this import
+from src.utils.azure_storage import upload_to_blob, delete_dataset_blobs
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
@@ -40,35 +41,25 @@ async def upload_files(
         dataset_info_dict.pop('uid', None)  # Remove uid from dataset_info
         
         dataset_id = dataset_info.datasetId or f"{dataset_info.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        dataset_dir = os.path.join(UPLOAD_DIR, dataset_id)
-
-        if not ensure_directories(dataset_dir):
-            raise HTTPException(status_code=500, detail="Could not create upload directory")
 
         uploaded_files = {"raw": [], "vectorized": []}
 
         # Handle file uploads based on type
         if type.lower() == "both":
             if raw_files:
-                raw_dir = os.path.join(dataset_dir, "raw")
-                ensure_directories(raw_dir)
                 for file in raw_files:
-                    if filename := await save_uploaded_file(file, raw_dir):
-                        uploaded_files["raw"].append(filename)
+                    blob_url = await upload_to_blob(file, dataset_id, "raw")
+                    uploaded_files["raw"].append(blob_url)
 
             if vectorized_files:
-                vec_dir = os.path.join(dataset_dir, "vectorized")
-                ensure_directories(vec_dir)
                 for file in vectorized_files:
-                    if filename := await save_uploaded_file(file, vec_dir):
-                        uploaded_files["vectorized"].append(filename)
+                    blob_url = await upload_to_blob(file, dataset_id, "vectorized")
+                    uploaded_files["vectorized"].append(blob_url)
         else:
             if files:
-                type_dir = os.path.join(dataset_dir, type.lower())
-                ensure_directories(type_dir)
                 for file in files:
-                    if filename := await save_uploaded_file(file, type_dir):
-                        uploaded_files[type.lower()].append(filename)
+                    blob_url = await upload_to_blob(file, dataset_id, type.lower())
+                    uploaded_files[type.lower()].append(blob_url)
 
         # Prepare and save metadata
         metadata = {
@@ -77,7 +68,6 @@ async def upload_files(
             "upload_type": type.lower(),
             "timestamp": datetime.now().isoformat(),
             "files": uploaded_files,
-            "base_directory": dataset_dir,
             "uid": uid  # uid only stored at root level
         }
 
@@ -93,4 +83,21 @@ async def upload_files(
 
     except Exception as e:
         logging.error(f"Upload error: {str(e)}")
+        await delete_dataset_blobs(dataset_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/datasets/{dataset_id}")
+async def delete_dataset(dataset_id: str):
+    try:
+        # Delete files from Azure Blob Storage
+        await delete_dataset_blobs(dataset_id)
+        
+        # Delete dataset document from MongoDB
+        result = await datasets_collection.delete_one({"dataset_id": dataset_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        return {"message": "Dataset deleted successfully"}
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
