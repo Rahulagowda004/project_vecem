@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";  // Add useLocation
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Download,
@@ -24,6 +24,8 @@ const fadeIn = {
 const DatasetDetail = () => {
   const { username, datasetname } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();  // Add this line
+  const isFromHome = location.state?.from === 'home';  // Add this line to get the state
   const [dataset, setDataset] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -140,7 +142,7 @@ data = dataset.get_files()  # For raw files`,
           {/* Breadcrumb */}
           <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
             <Link
-              to={`/${username}`}
+              to={isFromHome ? "/home" : `/${username}`}
               className="hover:text-white transition-colors"
             >
               Datasets
