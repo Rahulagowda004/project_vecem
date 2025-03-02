@@ -33,6 +33,8 @@ async def upload_files(
             raise HTTPException(status_code=404, detail="User not found")
         
         username = user_profile.get("username")
+        if not username:
+            raise HTTPException(status_code=400, detail="Username not found")
 
         # Parse dataset info
         dataset_info = DatasetInfo.parse_raw(datasetInfo)
@@ -40,7 +42,8 @@ async def upload_files(
         dataset_info_dict["username"] = username  # Add username to dataset_info
         dataset_info_dict.pop('uid', None)  # Remove uid from dataset_info
         
-        dataset_id = dataset_info.datasetId or f"{dataset_info.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        dataset_id = dataset_info.datasetId or str(uuid.uuid4())
+        dataset_name = dataset_info.name.replace(" ", "_").lower()
 
         uploaded_files = {"raw": [], "vectorized": []}
 
@@ -48,17 +51,17 @@ async def upload_files(
         if type.lower() == "both":
             if raw_files:
                 for file in raw_files:
-                    blob_url = await upload_to_blob(file, dataset_id, "raw")
+                    blob_url = await upload_to_blob(file, dataset_id, dataset_name, "raw", username)
                     uploaded_files["raw"].append(blob_url)
 
             if vectorized_files:
                 for file in vectorized_files:
-                    blob_url = await upload_to_blob(file, dataset_id, "vectorized")
+                    blob_url = await upload_to_blob(file, dataset_id, dataset_name, "vectorized", username)
                     uploaded_files["vectorized"].append(blob_url)
         else:
             if files:
                 for file in files:
-                    blob_url = await upload_to_blob(file, dataset_id, type.lower())
+                    blob_url = await upload_to_blob(file, dataset_id, dataset_name, type.lower(), username)
                     uploaded_files[type.lower()].append(blob_url)
 
         # Prepare and save metadata
@@ -83,14 +86,26 @@ async def upload_files(
 
     except Exception as e:
         logging.error(f"Upload error: {str(e)}")
-        await delete_dataset_blobs(dataset_id)
+        if 'dataset_name' in locals() and 'username' in locals():
+            await delete_dataset_blobs(dataset_name, username)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/datasets/{dataset_id}")
 async def delete_dataset(dataset_id: str):
     try:
+        # Get dataset info to fetch username and dataset name
+        dataset = await datasets_collection.find_one({"dataset_id": dataset_id})
+        if not dataset:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        username = dataset.get("dataset_info", {}).get("username")
+        dataset_name = dataset.get("dataset_info", {}).get("name", "").replace(" ", "_").lower()
+        
+        if not username or not dataset_name:
+            raise HTTPException(status_code=400, detail="Username or dataset name not found")
+        
         # Delete files from Azure Blob Storage
-        await delete_dataset_blobs(dataset_id)
+        await delete_dataset_blobs(dataset_name, username)
         
         # Delete dataset document from MongoDB
         result = await datasets_collection.delete_one({"dataset_id": dataset_id})

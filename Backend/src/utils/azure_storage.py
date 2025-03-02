@@ -9,10 +9,10 @@ CONTAINER_NAME = "datasets"
 blob_service_client = BlobServiceClient(account_url=STORAGE_ACCOUNT_URL, credential=SAS_TOKEN)
 container_client = blob_service_client.get_container_client(CONTAINER_NAME)
 
-async def upload_to_blob(file: UploadFile, dataset_id: str, file_type: str) -> str:
+async def upload_to_blob(file: UploadFile, dataset_id: str, dataset_name: str, file_type: str, username: str) -> str:
     try:
-        # Create a unique blob path: dataset_id/file_type/filename
-        blob_path = f"{dataset_id}/{file_type}/{file.filename}"
+        # Create a unique blob path: username/dataset_name/file_type/filename
+        blob_path = f"{username}/{dataset_name}/{file_type}/{file.filename}"
         blob_client = container_client.get_blob_client(blob_path)
         
         # Read file content
@@ -28,10 +28,10 @@ async def upload_to_blob(file: UploadFile, dataset_id: str, file_type: str) -> s
         print(f"Error uploading to blob storage: {str(e)}")
         raise e
 
-async def delete_dataset_blobs(dataset_id: str):
+async def delete_dataset_blobs(dataset_name: str, username: str):
     try:
-        # List all blobs in the dataset directory
-        blob_list = container_client.list_blobs(name_starts_with=f"{dataset_id}/")
+        # List all blobs in the dataset directory under the user's folder
+        blob_list = container_client.list_blobs(name_starts_with=f"{username}/{dataset_name}/")
         
         # Delete each blob
         for blob in blob_list:
