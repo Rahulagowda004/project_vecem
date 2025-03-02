@@ -228,6 +228,41 @@ async def update_dataset(dataset_id: str, updated_data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/datasets/{dataset_id}")
+async def delete_dataset(dataset_id: str):
+    logging.info(f"Endpoint called: delete_dataset() for dataset_id: {dataset_id}")
+    try:
+        # Convert string ID to ObjectId
+        object_id = ObjectId(dataset_id)
+        
+        # Get dataset info before deletion for user profile update
+        dataset = await datasets_collection.find_one({"_id": object_id})
+        if not dataset:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        # Delete dataset
+        result = await datasets_collection.delete_one({"_id": object_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+            
+        # Update user profile to remove dataset reference
+        await user_profile_collection.update_one(
+            {"uid": dataset["uid"]},
+            {
+                "$pull": {"datasets": {"dataset_id": dataset["dataset_id"]}},
+                "$inc": {
+                    "number_of_raw_datasets": -1 if dataset["upload_type"] in ["raw", "both"] else 0,
+                    "number_of_vectorized_datasets": -1 if dataset["upload_type"] in ["vectorized", "both"] else 0
+                }
+            }
+        )
+            
+        return {"message": "Dataset deleted successfully"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/user-avatar/{uid}")
 async def get_user_avatar(uid: str):
     logging.info(f"Endpoint called: get_user_avatar() for UID: {uid}")
