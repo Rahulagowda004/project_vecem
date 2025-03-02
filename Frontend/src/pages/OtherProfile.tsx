@@ -18,6 +18,31 @@ const OtherProfile = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return new Date().toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+      return date.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return new Date().toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -300,11 +325,7 @@ const OtherProfile = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      {dataset.dataType === "both"
-                        ? "Raw + Vectorized"
-                        : dataset.dataType === "raw"
-                        ? "Raw Data"
-                        : "Vectorized Data"}
+                      {dataset.upload_type || "Unknown Type"}
                     </span>
                     <span className="flex items-center">
                       <svg
@@ -318,7 +339,7 @@ const OtherProfile = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      {new Date(dataset.updatedAt).toLocaleDateString()}
+                      {formatDate(dataset.uploadedAt)}
                     </span>
                   </div>
                 </motion.li>
