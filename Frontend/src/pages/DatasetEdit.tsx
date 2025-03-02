@@ -236,23 +236,41 @@ const DatasetEdit = () => {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(
-        `http://127.0.0.1:5000/datasets/${dataset._id}`,
+      // First, delete from MongoDB and Azure Blob Storage
+      const deleteResponse = await fetch(
+        `http://127.0.0.1:5000/api/datasets/${dataset._id}`,
         {
           method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user?.uid,
+            datasetName: name
+          })
         }
       );
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!deleteResponse.ok) {
+        const error = await deleteResponse.json();
         throw new Error(error.detail || "Failed to delete dataset");
       }
 
+      // If MongoDB deletion was successful
       toast.success("Dataset deleted successfully");
-      navigate(`/${username}`);
+      
+      // Redirect to user profile after successful deletion
+      setTimeout(() => {
+        navigate(`/${username}`);
+      }, 1500);
+      
     } catch (error) {
       console.error("Error deleting dataset:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to delete dataset");
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : "Failed to delete dataset from database"
+      );
     } finally {
       setIsDeleting(false);
       setShowDeleteModal(false);
@@ -364,9 +382,12 @@ const DatasetEdit = () => {
         className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800"
       >
         <div className="max-w-6xl mx-auto px-4">
-          {/* Breadcrumb */}
+          {/* Updated Breadcrumb */}
           <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
-            <Link to="/datasets" className="hover:text-white transition-colors">
+            <Link 
+              to={`/${username}`} 
+              className="hover:text-white transition-colors flex items-center gap-1"
+            >
               Datasets
             </Link>
             <ChevronRight className="w-4 h-4" />
