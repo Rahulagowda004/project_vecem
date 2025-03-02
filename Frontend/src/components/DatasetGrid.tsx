@@ -3,17 +3,21 @@ import { FileText, Image, Music, Video, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Dataset {
-  id: number;
+  id: string; // Changed from number to string
   name: string;
-  type: "audio" | "image" | "text" | "video";
-  size: string;
+  type: string;
+  files: {
+    // Added files property
+    raw: string[];
+    vectorized: string[];
+  };
   lastModified: string;
   icon: React.ElementType;
   description: string;
-  datasetType: "Raw" | "Vectorized";
-  dimensions?: string;
+  datasetType: "raw" | "vectorized";
   domain: string;
   username: string;
+  uid: string; // Added uid
 }
 
 interface DatasetGridProps {
@@ -43,16 +47,17 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
   const navigate = useNavigate();
 
   const processedDatasets = datasets.map((dataset) => ({
-    id: dataset._id,
+    id: dataset.dataset_id,
     name: dataset.dataset_info.name,
     type: dataset.dataset_info.file_type,
-    size: "N/A", // Add if you have this info
-    lastModified: dataset.timestamp || "N/A",
+    files: dataset.files,
+    lastModified: dataset.timestamp,
     icon: getIconForType(dataset.dataset_info.file_type),
     description: dataset.dataset_info.description,
     datasetType: dataset.upload_type,
-    domain: dataset.dataset_info.domain || "Unspecified",
-    username: dataset.username || "Unknown",
+    domain: dataset.dataset_info.domain,
+    username: dataset.uid, // You might want to fetch actual username using uid
+    uid: dataset.uid,
   }));
 
   const filteredDatasets = processedDatasets.filter((dataset) => {
@@ -190,15 +195,12 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                         value: selectedDataset.datasetType,
                       },
                       { label: "Domain", value: selectedDataset.domain },
-                      { label: "Size", value: selectedDataset.size },
-                      ...(selectedDataset.dimensions
-                        ? [
-                            {
-                              label: "Dimensions",
-                              value: selectedDataset.dimensions,
-                            },
-                          ]
-                        : []),
+                      {
+                        label: "Last Modified",
+                        value: new Date(
+                          selectedDataset.lastModified
+                        ).toLocaleDateString(),
+                      },
                     ].map(({ label, value }) => (
                       <li
                         key={label}
@@ -219,9 +221,12 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                   </h3>
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="flex flex-col p-2 bg-gray-800/30 rounded-lg">
-                      <span className="text-gray-300 font-medium">
+                      <a
+                        href={`/profile/${selectedDataset.uid}`}
+                        className="text-gray-300 font-medium hover:text-cyan-400 transition-colors"
+                      >
                         {selectedDataset.username}
-                      </span>
+                      </a>
                       <span className="text-xs text-gray-500">
                         Dataset Owner
                       </span>
