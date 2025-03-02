@@ -18,8 +18,11 @@ import {
   Image,
   Mic,
   Video,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext"; // Add this import at the top
+import { toast } from "react-hot-toast";
 
 // Animation variants
 const fadeIn = {
@@ -34,6 +37,8 @@ const DatasetEdit = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Add domains array at the top of the component
   const domains = [
@@ -226,6 +231,34 @@ const DatasetEdit = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!dataset?._id) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/datasets/${dataset._id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to delete dataset");
+      }
+
+      toast.success("Dataset deleted successfully");
+      navigate(`/${username}`);
+    } catch (error) {
+      console.error("Error deleting dataset:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to delete dataset");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   const addListItem = (list: string[], setList: (items: string[]) => void) => {
     setList([...list, ""]);
   };
@@ -272,6 +305,55 @@ const DatasetEdit = () => {
       </div>
     );
   }
+
+  const DeleteModal = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={() => setShowDeleteModal(false)}
+    >
+      <motion.div
+        initial={{ scale: 0.95 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.95 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-red-500/20"
+      >
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-red-500/10 rounded-lg">
+            <AlertTriangle className="w-6 h-6 text-red-400" />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-white mb-2">Delete Dataset</h3>
+            <p className="text-gray-300 mb-4">
+              Are you sure you want to delete this dataset? This action cannot be undone.
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={() => setShowDeleteModal(false)}
+            className="px-4 py-2 rounded-lg bg-gray-700/50 text-gray-300 
+              hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="px-4 py-2 rounded-lg bg-red-500/10 text-red-400 
+              hover:bg-red-500/20 border border-red-500/20 transition-colors
+              disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            {isDeleting ? "Deleting..." : "Delete Dataset"}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -341,6 +423,17 @@ const DatasetEdit = () => {
               >
                 <Save className="w-4 h-4" />
                 {isSaving ? "Saving..." : "Save Changes"}
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowDeleteModal(true)}
+                className="px-4 py-2 bg-red-500/10 text-red-400 rounded-lg font-medium flex items-center gap-2 
+                  hover:bg-red-500/20 border border-red-500/20 transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Dataset
               </motion.button>
             </motion.div>
           </div>
@@ -572,6 +665,9 @@ const DatasetEdit = () => {
           </motion.div>
         </div>
       </motion.div>
+      <AnimatePresence>
+        {showDeleteModal && <DeleteModal />}
+      </AnimatePresence>
     </div>
   );
 };
