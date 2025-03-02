@@ -1,8 +1,8 @@
 import React, { useState, useRef, FormEvent, useEffect } from "react";
-import { FileType, Image, Mic, Video } from "lucide-react";
+import { FileType, Image, Mic, Video, ChevronRight, User } from "lucide-react";
 import { uploadDataset, DatasetForm, checkDatasetNameAvailability } from "../services/uploadService";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getUserProfileByUid } from "../services/userService";
 
 // Add custom type definition for directory input
@@ -441,6 +441,26 @@ const UploadFile = () => {
       {showConfirmation && <ConfirmationDialog />}
       {uploadStatus.show && <StatusMessage />}
       <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
+        {/* Updated breadcrumb navigation */}
+        <nav className="flex mb-6 text-sm text-gray-400">
+          {userProfile?.username ? (
+            <Link 
+              to={`/${userProfile.username}`} 
+              className="flex items-center hover:text-cyan-400 transition-colors"
+            >
+              <User className="w-4 h-4 mr-1" />
+              {userProfile.username}
+            </Link>
+          ) : (
+            <span className="flex items-center">
+              <User className="w-4 h-4 mr-1" />
+              Loading...
+            </span>
+          )}
+          <ChevronRight className="w-4 h-4 mx-2" />
+          <span className="text-white">Upload Dataset</span>
+        </nav>
+
         <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
           <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-6">
             Data Specifications
