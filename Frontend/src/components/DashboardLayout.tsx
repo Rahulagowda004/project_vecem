@@ -218,17 +218,15 @@ const DashboardLayout = () => {
                       } group-hover:text-cyan-400 transition-colors`} />
                       <span className="group-hover:text-gray-200 transition-colors">All Datasets</span>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-500 group-hover:bg-cyan-500/10 group-hover:text-cyan-400 transition-all">
-                      960
-                    </span>
+
                   </button>
 
                   {[
-                    { icon: FileAudio, label: "Audio Dataset", count: 128, category: "audio" },
-                    { icon: Image, label: "Image Dataset", count: 256, category: "image" },
-                    { icon: FileVideo, label: "Video Dataset", count: 64, category: "video" },
-                    { icon: FileText, label: "Text Dataset", count: 512, category: "text" },
-                  ].map(({ icon: Icon, label, count, category }) => (
+                    { icon: FileAudio, label: "Audio Dataset" , category: "audio" },
+                    { icon: Image, label: "Image Dataset",  category: "image" },
+                    { icon: FileVideo, label: "Video Dataset", category: "video" },
+                    { icon: FileText, label: "Text Dataset", category: "text" },
+                  ].map(({ icon: Icon, label,  category }) => (
                     <button
                       key={label}
                       onClick={() => setSelectedCategory(category)}
@@ -242,9 +240,7 @@ const DashboardLayout = () => {
                         } group-hover:text-cyan-400 transition-colors`} />
                         <span className="group-hover:text-gray-200 transition-colors">{label}</span>
                       </div>
-                      <span className="text-xs px-2 py-1 rounded-full bg-gray-800/50 text-gray-500 group-hover:bg-cyan-500/10 group-hover:text-cyan-400 transition-all">
-                        {count}
-                      </span>
+
                     </button>
                   ))}
                 </div>
