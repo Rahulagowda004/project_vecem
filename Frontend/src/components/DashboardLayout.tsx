@@ -238,6 +238,7 @@ const DashboardLayout = () => {
             {/* Navigation Menu */}
             <nav className="flex-1 px-2 py-4 space-y-2">
               {/* Datasets Section */}
+             
               <div className="space-y-2">
                 <div className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10">
                   <Database className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
@@ -341,10 +342,21 @@ const DashboardLayout = () => {
         {/* Main Content */}
         <div className="flex-1 ml-64">
           <main className="p-6">
+            <div className="mb-8">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-cyan-500/10 rounded-xl">
+                  <Database className="h-6 w-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1">Latest Uploads</h1>
+                  <p className="text-gray-400">Discover the most recent datasets from our community</p>
+                </div>
+              </div>
+            </div>
             <DatasetGrid
               searchQuery={searchQuery}
               category={selectedCategory}
-              datasets={datasets} // Pass datasets to DatasetGrid
+              datasets={datasets}
             />
           </main>
         </div>

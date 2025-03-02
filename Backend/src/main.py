@@ -303,20 +303,18 @@ async def log_dataset_category(data: dict):
         if not category:
             raise ValueError("Category is missing")
         
-        # If category is "all", fetch all datasets
-        if category == "all":
-            datasets = await datasets_collection.find({}).to_list(length=None)
-        else:
-            # Fetch datasets matching the selected category
-            datasets = await datasets_collection.find(
-                {"dataset_info.file_type": category}
-            ).to_list(length=None)
+        # Base query
+        query = {}
+        if category != "all":
+            query["dataset_info.file_type"] = category
+
+        # Fetch 16 most recent datasets
+        datasets = await datasets_collection.find(query).sort("timestamp", -1).limit(16).to_list(None)
         
-        # Convert ObjectIds to strings and process the datasets
+        # Process datasets
         processed_datasets = []
         for dataset in datasets:
             dataset["_id"] = str(dataset["_id"])
-            # Ensure all required fields exist
             if "dataset_info" not in dataset:
                 dataset["dataset_info"] = {}
             dataset["dataset_info"]["file_type"] = dataset.get("dataset_info", {}).get("file_type", "unknown")

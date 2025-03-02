@@ -70,8 +70,8 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="container mx-auto px-4 py-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredDatasets.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <div className="text-gray-400 text-lg">
@@ -79,39 +79,49 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
             </div>
           </div>
         ) : (
-          filteredDatasets.map((dataset) => {
+          filteredDatasets.slice(0, 12).map((dataset) => {
             const Icon = dataset.icon;
             return (
               <div
                 key={dataset.id}
                 onClick={() => handleDatasetClick(dataset)}
-                className="group relative bg-gray-800/50 backdrop-blur-sm rounded-xl hover:bg-gray-700/50 transition-all duration-300 p-6 cursor-pointer border border-gray-700/50 hover:border-cyan-500/30 shadow-lg hover:shadow-cyan-500/10"
+                className="group relative bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 
+                  hover:bg-gray-700/50 transition-all duration-300 cursor-pointer 
+                  border border-gray-700/50 hover:border-cyan-500/30 shadow-lg 
+                  hover:shadow-cyan-500/10 h-[200px] flex flex-col justify-between"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                <div className="relative flex items-start space-x-4">
-                  <div className="p-3 bg-gray-900/50 rounded-lg group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="h-6 w-6 text-cyan-400" />
+                <div className="relative flex flex-col h-full">
+                  <div className="flex items-start space-x-4 mb-4">
+                    <div className="p-3 bg-gray-900/50 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                      <Icon className="h-6 w-6 text-cyan-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-medium text-white group-hover:text-cyan-400 transition-colors line-clamp-2">
+                        {dataset.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="px-2 py-1 text-xs rounded-full bg-cyan-500/10 text-cyan-400 font-medium">
+                          {dataset.datasetType}
+                        </span>
+                        <span className="px-2 py-1 text-xs rounded-full bg-gray-700/50 text-gray-400">
+                          {dataset.domain}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-white group-hover:text-cyan-400 transition-colors">
-                      {dataset.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="px-2 py-1 text-xs rounded-full bg-cyan-500/10 text-cyan-400 font-medium">
-                        {dataset.datasetType}
-                      </span>
-                      <span className="px-2 py-1 text-xs rounded-full bg-gray-700/50 text-gray-400">
-                        {dataset.domain}
-                      </span>
-                    </div>
-                    <div className="mt-3 text-sm text-gray-400 flex items-center gap-4">
-                      <span className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-cyan-400" />
-                        {dataset.type}
-                      </span>
-                      <span className="text-gray-500">{dataset.size}</span>
-                    </div>
+
+                  <p className="text-gray-400 text-sm line-clamp-3 mb-4">
+                    {dataset.description}
+                  </p>
+
+                  <div className="mt-auto text-sm text-gray-400 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-cyan-400" />
+                      {dataset.type}
+                    </span>
+                    <span className="text-gray-500">{dataset.size}</span>
                   </div>
                 </div>
               </div>
