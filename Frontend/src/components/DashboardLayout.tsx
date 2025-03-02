@@ -360,7 +360,7 @@ const DashboardLayout = () => {
                         </div>
                       </div>
                       <p className="text-gray-300 text-sm whitespace-nowrap overflow-hidden text-ellipsis leading-relaxed">  
-    See what the community is building with <span className="text-cyan-400">Vecem</span>—explore datasets, contribute insights, and collaborate on data-driven discoveries.  
+                      You’re in! Now explore datasets, contribute insights, and connect with the community.  
 </p>
 
                     </div>

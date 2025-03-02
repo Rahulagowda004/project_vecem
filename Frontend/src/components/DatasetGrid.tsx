@@ -80,7 +80,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
         {filteredDatasets.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <div className="text-gray-400 text-lg">
-              No datasets found matching "{searchQuery}"
+              No datasets found matching 
             </div>
           </div>
         ) : (
