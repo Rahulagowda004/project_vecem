@@ -22,11 +22,7 @@ class DatasetInfo(BaseModel):
     domain: Optional[str] = None
     file_type: Optional[str] = None
 
-class DatasetSummary(BaseModel):
-    dataset_id: str
-    name: str
-    upload_type: str
-    timestamp: str
+
 
 class UploadResponse(BaseModel):
     success: bool
@@ -53,4 +49,3 @@ class UserProfile(BaseModel):
     hasChangedUsername: bool = False
     number_of_raw_datasets: int = 0
     number_of_vectorized_datasets: int = 0
-    datasets: List[DatasetSummary] = Field(default_factory=list)
