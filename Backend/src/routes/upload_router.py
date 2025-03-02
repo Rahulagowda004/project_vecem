@@ -6,7 +6,7 @@ from datetime import datetime
 from src.utils.logger import logging
 from src.models.models import DatasetInfo, UploadResponse
 from src.utils.file_handlers import ensure_directories, save_uploaded_file
-from src.database.mongodb import save_metadata_and_update_user
+from src.database.mongodb import save_metadata_and_update_user, user_profile_collection  # Add this import
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
@@ -26,8 +26,19 @@ async def upload_files(
         if not uid:
             raise HTTPException(status_code=400, detail="User ID is required")
 
+        # Get user profile to fetch username
+        user_profile = await user_profile_collection.find_one({"uid": uid})
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        username = user_profile.get("username")
+
         # Parse dataset info
         dataset_info = DatasetInfo.parse_raw(datasetInfo)
+        dataset_info_dict = dataset_info.dict()
+        dataset_info_dict["username"] = username  # Add username to dataset_info
+        dataset_info_dict.pop('uid', None)  # Remove uid from dataset_info
+        
         dataset_id = dataset_info.datasetId or f"{dataset_info.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         dataset_dir = os.path.join(UPLOAD_DIR, dataset_id)
 
@@ -62,12 +73,12 @@ async def upload_files(
         # Prepare and save metadata
         metadata = {
             "dataset_id": dataset_id,
-            "dataset_info": dataset_info.dict(),
+            "dataset_info": dataset_info_dict,  # dataset_info without uid
             "upload_type": type.lower(),
             "timestamp": datetime.now().isoformat(),
             "files": uploaded_files,
             "base_directory": dataset_dir,
-            "uid": uid
+            "uid": uid  # uid only stored at root level
         }
 
         # Save metadata and update user profile
