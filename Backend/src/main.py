@@ -166,7 +166,7 @@ async def log_dataset_click(data: dict):
             raise HTTPException(status_code=404, detail="Dataset not found")
             
         dataset["_id"] = str(dataset["_id"])
-        dataset["username"] = username
+        dataset["username"] = username  # Add username to the response
         return jsonable_encoder(dataset)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

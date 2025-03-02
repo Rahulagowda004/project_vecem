@@ -67,7 +67,7 @@ const DatasetDetail = () => {
             vectorized: `${data.files.vectorized?.length || 0} files`,
           },
           uploadDate: data.timestamp,
-          owner: data.uploadedBy, // Changed from data.uid to data.uploadedBy
+          owner: data.username, // Change this line to use data.username
           files: data.files,
           base_directory: data.base_directory,
           vectorizedSettings: {
@@ -330,7 +330,7 @@ data = dataset.get_files()  # For raw files`,
                     to={`/profile/${encodeURIComponent(dataset.owner)}`}
                     className="text-cyan-400 hover:text-white transition-colors"
                   >
-                    {dataset.owner} 
+                    {dataset.owner}
                   </Link>
                 </p>
                 <p className="text-cyan-100">
