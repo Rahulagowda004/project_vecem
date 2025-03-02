@@ -46,6 +46,11 @@ const UploadFile = () => {
     files: FileList | null;
     type: "raw" | "vectorized";
   } | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{
+    show: boolean;
+    success: boolean;
+    message: string;
+  }>({ show: false, success: false, message: "" });
 
   const domains = [
     "Health",
@@ -213,6 +218,7 @@ const UploadFile = () => {
     e.preventDefault();
     setError("");
     setUploadProgress({ progress: 0, status: "uploading" });
+    setUploadStatus({ show: false, success: false, message: "" });
 
     if (nameError) {
       setError(nameError);
@@ -274,15 +280,32 @@ const UploadFile = () => {
 
       if (result?.success) {
         setUploadProgress({ progress: 100, status: "completed" });
-        // Optionally add success message or redirect
-        window.location.reload(); // Refresh the page after successful upload
+        setUploadStatus({
+          show: true,
+          success: true,
+          message: "Dataset uploaded successfully!"
+        });
+        // Remove automatic page reload to show the message
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
         setUploadProgress({ progress: 0, status: "error" });
         setError(result?.message || "Upload failed");
+        setUploadStatus({
+          show: true,
+          success: false,
+          message: result?.message || "Failed to upload dataset"
+        });
       }
     } catch (error) {
       console.error("Upload error:", error);
       setUploadProgress({ progress: 0, status: "error" });
+      setUploadStatus({
+        show: true,
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to upload dataset"
+      });
       setError(
         error instanceof Error ? error.message : "Failed to upload dataset"
       );
@@ -339,6 +362,27 @@ const UploadFile = () => {
     </div>
   );
 
+  // Add StatusMessage component
+  const StatusMessage = () => {
+    if (!uploadStatus.show) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className={`p-6 rounded-xl ${uploadStatus.success ? 'bg-green-800' : 'bg-red-800'} shadow-lg max-w-md mx-4 text-center`}>
+          <div className={`text-4xl mb-4 ${uploadStatus.success ? 'text-green-400' : 'text-red-400'}`}>
+            {uploadStatus.success ? '✓' : '✕'}
+          </div>
+          <h3 className="text-xl font-semibold mb-2 text-white">
+            {uploadStatus.success ? 'Success!' : 'Upload Failed'}
+          </h3>
+          <p className="text-gray-200">
+            {uploadStatus.message}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   // Update file inputs to bypass system dialog checks
   const fileInputProps = {
     className: "w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 file:transition-colors",
@@ -351,6 +395,7 @@ const UploadFile = () => {
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       {showConfirmation && <ConfirmationDialog />}
+      {uploadStatus.show && <StatusMessage />}
       <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
         <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
           <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-6">
