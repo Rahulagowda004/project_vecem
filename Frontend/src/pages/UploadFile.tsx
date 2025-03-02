@@ -41,6 +41,11 @@ const UploadFile = () => {
   const [nameError, setNameError] = useState<string>("");
   const [isCheckingName, setIsCheckingName] = useState<boolean>(false);
   const nameCheckTimeout = useRef<NodeJS.Timeout>();
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<{
+    files: FileList | null;
+    type: "raw" | "vectorized";
+  } | null>(null);
 
   const domains = [
     "Health",
@@ -75,14 +80,40 @@ const UploadFile = () => {
     Vectorized: ["*/*"] // Allow any file type for vectorized data
   };
 
-  const handleFileChange = (
+  // Modify handleFileInputChange to bypass Windows validation
+  const handleFileInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     type: "raw" | "vectorized"
   ) => {
-    setError("");
     const files = event.target.files;
-
     if (!files || files.length === 0) return;
+
+    // Skip Windows validation and move directly to our custom validation
+    const filesArray = Array.from(files);
+    if (type === "raw") {
+      const allowedTypes = fileTypeMap[fileType];
+      const invalidFiles = filesArray.filter(file => {
+        // More permissive check - only validate file extension
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        return !allowedTypes.some(type => type.includes(extension || ''));
+      });
+
+      if (invalidFiles.length > 0) {
+        setError(`Invalid file types detected. All files must be ${fileType.toLowerCase()} files.`);
+        return;
+      }
+    }
+
+    setSelectedFiles({ files, type });
+    setShowConfirmation(true);
+  };
+
+  const handleFileChange = (
+    files: FileList | null,
+    type: "raw" | "vectorized"
+  ) => {
+    if (!files || files.length === 0) return;
+    setError("");
 
     const filesArray = Array.from(files);
 
@@ -97,21 +128,17 @@ const UploadFile = () => {
         setError(
           `Invalid file types detected. All files must be ${fileType.toLowerCase()} files.`
         );
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
         return;
       }
     }
 
-    // Calculate total size of selected files
+    // Calculate total size and update progress immediately
     const totalBytes = filesArray.reduce((acc, file) => acc + file.size, 0);
     setTotalSize(prev => ({
       ...prev,
       [type]: totalBytes
     }));
 
-    // Initialize progress tracking for the folder
     setUploadProgress({ progress: 0, status: "uploading" });
     simulateFolderUpload(filesArray.length);
   };
@@ -271,8 +298,59 @@ const UploadFile = () => {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
 
+  // Add confirmation dialog component
+  const ConfirmationDialog = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-md w-full mx-4">
+        <h3 className="text-xl font-semibold mb-4">Confirm File Upload</h3>
+        <p className="text-gray-300 mb-4">
+          {selectedFiles?.files?.length} files selected. Are you sure you want to proceed with these files?
+        </p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={() => {
+              setShowConfirmation(false);
+              // Clear the file input
+              if (selectedFiles?.type === "raw") {
+                if (rawInputRef.current) rawInputRef.current.value = "";
+              } else if (selectedFiles?.type === "vectorized") {
+                if (vectorizedInputRef.current) vectorizedInputRef.current.value = "";
+              } else if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+              }
+            }}
+            className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              setShowConfirmation(false);
+              if (selectedFiles) {
+                handleFileChange(selectedFiles.files, selectedFiles.type);
+              }
+            }}
+            className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Update file inputs to bypass system dialog checks
+  const fileInputProps = {
+    className: "w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 file:transition-colors",
+    multiple: true,
+    directory: "",
+    webkitdirectory: "",
+    mozdirectory: "",
+  };
+
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
+      {showConfirmation && <ConfirmationDialog />}
       <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
         <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
           <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-6">
@@ -451,18 +529,11 @@ const UploadFile = () => {
                         Raw Data
                       </label>
                       <input
+                        {...fileInputProps}
                         ref={rawInputRef}
                         type="file"
-                        onChange={(e) => handleFileChange(e, "raw")}
-                        className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
-                          text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
-                          file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
-                          hover:file:bg-cyan-700 file:transition-colors"
-                        accept={fileTypeMap[fileType].join(",")}
-                        multiple
-                        directory=""
-                        webkitdirectory=""
+                        onChange={(e) => handleFileInputChange(e, "raw")}
+                        accept="*/*"
                       />
                     </div>
 
@@ -472,40 +543,26 @@ const UploadFile = () => {
                         Vectorized Data
                       </label>
                       <input
+                        {...fileInputProps}
                         ref={vectorizedInputRef}
                         type="file"
-                        onChange={(e) => handleFileChange(e, "vectorized")}
-                        className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
-                          text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
-                          file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
-                          hover:file:bg-cyan-700 file:transition-colors"
-                        accept={fileTypeMap.Vectorized.join(",")}
-                        multiple
-                        directory=""
-                        webkitdirectory=""
+                        onChange={(e) => handleFileInputChange(e, "vectorized")}
+                        accept="*/*"
                       />
                     </div>
                   </>
                 ) : (
                   <input
+                    {...fileInputProps}
                     ref={fileInputRef}
                     type="file"
                     onChange={(e) =>
-                      handleFileChange(
+                      handleFileInputChange(
                         e,
                         datasetType.toLowerCase() as "raw" | "vectorized"
                       )
                     }
-                    className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                      focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
-                      text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
-                      file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
-                      hover:file:bg-cyan-700 file:transition-colors"
-                    accept={datasetType === "Vectorized" ? fileTypeMap.Vectorized.join(",") : fileTypeMap[fileType].join(",")}
-                    multiple
-                    directory=""
-                    webkitdirectory=""
+                    accept="*/*" // Accept all files and handle validation in code
                   />
                 )}
               </div>
