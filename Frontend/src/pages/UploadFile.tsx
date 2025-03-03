@@ -1,4 +1,4 @@
-import React, { useState, useRef, FormEvent, useEffect } from "react";
+import React, { useState, useRef, FormEvent, useEffect, DragEvent } from "react";
 import { FileType, Image, Mic, Video, ChevronRight, User } from "lucide-react";
 import { uploadDataset, DatasetForm, checkDatasetNameAvailability } from "../services/uploadService";
 import { useAuth } from "../contexts/AuthContext";
@@ -59,6 +59,7 @@ const UploadFile = () => {
   }>({ show: false, success: false, message: "" });
   const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const domains = [
     "Health",
@@ -438,6 +439,97 @@ const UploadFile = () => {
     mozdirectory: "",
   };
 
+  // Add drag and drop handlers
+  const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>, type: "raw" | "vectorized") => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const items = e.dataTransfer.items;
+    const files: File[] = [];
+
+    // Function to recursively process directory
+    const processEntry = async (entry: FileSystemEntry) => {
+      if (entry.isFile) {
+        const file = await new Promise<File>((resolve) => {
+          (entry as FileSystemFileEntry).file(resolve);
+        });
+        files.push(file);
+      } else if (entry.isDirectory) {
+        const reader = (entry as FileSystemDirectoryEntry).createReader();
+        const entries = await new Promise<FileSystemEntry[]>((resolve) => {
+          reader.readEntries(resolve);
+        });
+        await Promise.all(entries.map(processEntry));
+      }
+    };
+
+    // Process all dropped items
+    Promise.all(
+      Array.from(items).map(item => processEntry(item.webkitGetAsEntry()!))
+    ).then(() => {
+      if (files.length > 0) {
+        const fileList = new DataTransfer();
+        files.forEach(file => fileList.items.add(file));
+        handleFileInputChange({ target: { files: fileList.files } } as any, type);
+      }
+    });
+  };
+
+  // Create DropZone component
+  const DropZone = ({ type, inputRef }: { type: "raw" | "vectorized", inputRef: React.RefObject<DirectoryInputElement> }) => (
+    <div
+      className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all
+        ${isDragging 
+          ? "border-cyan-400 bg-cyan-500/10" 
+          : "border-gray-600 hover:border-gray-500 bg-gray-700/50"}`}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={(e) => handleDrop(e, type)}
+    >
+      <input
+        {...fileInputProps}
+        ref={inputRef}
+        type="file"
+        onChange={(e) => handleFileInputChange(e, type)}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+      <div className="space-y-4">
+        <div className="flex justify-center">
+          <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-lg font-medium text-gray-300">
+            Drag and drop your {type} files here
+          </p>
+          <p className="text-sm text-gray-400 mt-2">
+            or click to browse files
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       {showConfirmation && <ConfirmationDialog />}
@@ -639,13 +731,7 @@ const UploadFile = () => {
                       <label className="block text-sm font-medium mb-2 text-white">
                         Raw Data
                       </label>
-                      <input
-                        {...fileInputProps}
-                        ref={rawInputRef}
-                        type="file"
-                        onChange={(e) => handleFileInputChange(e, "raw")}
-                        accept="*/*"
-                      />
+                      <DropZone type="raw" inputRef={rawInputRef} />
                     </div>
 
                     {/* Vectorized Data Upload */}
@@ -653,27 +739,13 @@ const UploadFile = () => {
                       <label className="block text-sm font-medium mb-2 text-white">
                         Vectorized Data
                       </label>
-                      <input
-                        {...fileInputProps}
-                        ref={vectorizedInputRef}
-                        type="file"
-                        onChange={(e) => handleFileInputChange(e, "vectorized")}
-                        accept="*/*"
-                      />
+                      <DropZone type="vectorized" inputRef={vectorizedInputRef} />
                     </div>
                   </>
                 ) : (
-                  <input
-                    {...fileInputProps}
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={(e) =>
-                      handleFileInputChange(
-                        e,
-                        datasetType.toLowerCase() as "raw" | "vectorized"
-                      )
-                    }
-                    accept="*/*" // Accept all files and handle validation in code
+                  <DropZone 
+                    type={datasetType.toLowerCase() as "raw" | "vectorized"} 
+                    inputRef={fileInputRef}
                   />
                 )}
               </div>
