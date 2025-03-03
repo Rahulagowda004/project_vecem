@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Send, MessageSquare, HelpCircle, Tag, 
-  CornerDownRight, MessageCircle, X, Search 
+  CornerDownRight, MessageCircle, X, Search,
+  ChevronRight, Home // Add these imports
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { Link } from "react-router-dom"; // Add this import
 
 interface Message {
   id: number;
@@ -265,9 +267,30 @@ const Community = () => {
         )}
       </AnimatePresence>
 
-      {/* Main Chat Area - Now takes full width */}
+      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Chat Header - unchanged but now full width */}
+        {/* Breadcrumb Navigation - Moved above header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="px-6 py-2 bg-gray-900/80 border-b border-cyan-500/10"
+        >
+          <nav className="flex items-center space-x-2 text-sm">
+            <Link 
+              to="/" 
+              className="flex items-center text-gray-400 hover:text-cyan-400 transition-colors"
+            >
+              <Home className="w-4 h-4 mr-1" />
+              Home
+            </Link>
+           
+           
+            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <span className="text-cyan-400">Community</span>
+          </nav>
+        </motion.div>
+
+        {/* Chat Header */}
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -368,7 +391,7 @@ const Community = () => {
           </div>
         </motion.div>
 
-        {/* Messages Area - unchanged but now full width */}
+        {/* Messages Area */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"

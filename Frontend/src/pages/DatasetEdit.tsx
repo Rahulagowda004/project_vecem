@@ -20,6 +20,8 @@ import {
   Video,
   Trash2,
   AlertTriangle,
+  Home,
+  UserCircle2, // Add this import
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext"; // Add this import at the top
 import { toast } from "react-hot-toast";
@@ -375,31 +377,31 @@ const DatasetEdit = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Sticky Header */}
+      {/* Breadcrumb Navigation */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="px-6 py-2 bg-gray-900/80 border-b border-cyan-500/10"
+      >
+        <nav className="flex items-center space-x-2 text-sm">
+          <Link
+            to={`/${username}/${datasetname}`}
+            className="text-gray-400 hover:text-cyan-400 transition-colors"
+          >
+            {name}
+          </Link>
+          <ChevronRight className="w-4 h-4 text-gray-600" />
+          <span className="text-cyan-400">Edit</span>
+        </nav>
+      </motion.div>
+
+      {/* Sticky Header - Remove old breadcrumb */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800"
       >
         <div className="max-w-6xl mx-auto px-4">
-          {/* Updated Breadcrumb */}
-          <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
-            <Link 
-              to={`/${username}`} 
-              className="hover:text-white transition-colors flex items-center gap-1"
-            >
-              Datasets
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            <Link
-              to={`/${username}/${datasetname}`}
-              className="hover:text-white transition-colors"
-            >
-              {name}
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-white font-medium">Edit</span>
-          </div>
           {/* Title and Actions */}
           <div className="py-4 flex justify-between items-start">
             <motion.div

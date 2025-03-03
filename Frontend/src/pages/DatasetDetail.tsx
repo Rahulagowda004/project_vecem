@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link, useNavigate, useLocation } from "react-router-dom";  // Add useLocation
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Download,
@@ -12,6 +12,8 @@ import {
   Code,
   ChevronRight,
   ExternalLink,
+  Home,
+  UserCircle2 // Add this import
 } from "lucide-react";
 
 // Animation variants
@@ -131,26 +133,34 @@ data = dataset.get_files()  # For raw files`,
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      {/* Sticky Header */}
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
+      {/* Breadcrumb Navigation */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="px-6 py-2 bg-gray-900/80 border-b border-cyan-500/10"
+      >
+        <nav className="flex items-center space-x-2 text-sm">
+         
+          <Link 
+            to={`/${username}`}
+            className="text-gray-400 hover:text-cyan-400 transition-colors"
+          >
+            <UserCircle2 className="w-4 h-4 mr-1 inline-block" />
+            {username}
+          </Link>
+          <ChevronRight className="w-4 h-4 text-gray-600" />
+          <span className="text-cyan-400">{dataset?.name || 'Loading...'}</span>
+        </nav>
+      </motion.div>
+
+      {/* Sticky Header - Remove old breadcrumb */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800"
       >
         <div className="max-w-6xl mx-auto px-4">
-          {/* Breadcrumb */}
-          <div className="py-4 flex items-center gap-2 text-sm text-cyan-400">
-            <Link
-              to={isFromHome ? "/home" : `/${username}`}
-              className="hover:text-white transition-colors"
-            >
-              Datasets
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            <span className="text-white font-medium">{dataset.name}</span>
-          </div>
-
           {/* Title and Actions */}
           <div className="py-4 flex justify-between items-start">
             <motion.div
