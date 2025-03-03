@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Send, MessageSquare, HelpCircle, Tag, 
-  CornerDownRight, MessageCircle, X 
+  CornerDownRight, MessageCircle, X, Search 
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -60,6 +60,7 @@ const Community = () => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // Add this line
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedTag, setSelectedTag] = useState<'general' | 'issue' | 'answer'>('general');
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'general' | 'issue' | 'answer'>('all');
@@ -116,6 +117,13 @@ const Community = () => {
 
   const filteredMessages = messages.filter(message => 
     selectedFilter === 'all' || message.tag === selectedFilter
+  );
+
+  // Add this function
+  const filteredIssueMessages = messages.filter(message => 
+    selectedFilter === 'issue' && message.tag === 'issue' &&
+    (message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     message.userName.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Add guidelines content
@@ -265,62 +273,98 @@ const Community = () => {
           animate={{ y: 0, opacity: 1 }}
           className="px-6 py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
         >
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <MessageSquare className="w-6 h-6 text-indigo-400" />
-              <div className="flex items-center space-x-3">
-                <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
-                  Community Chat
-                </h2>
+          <div className="flex flex-col space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <MessageSquare className="w-6 h-6 text-indigo-400" />
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+                    Community Chat
+                  </h2>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              {/* Updated Tag Filters */}
-              <div className="flex items-center space-x-2">
-              
-                <div className="flex space-x-2">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedFilter('all')}
-                    className={`px-3 py-1 rounded-full flex items-center space-x-1.5 ${
-                      selectedFilter === 'all'
-                        ? 'bg-gray-600 text-white'
-                        : 'text-gray-400 hover:text-white'
-                    }`}
-                  >
-                    <Tag className="w-3 h-3" />
-                    <span>All</span>
-                  </motion.button>
-                  {Object.entries(messageTagConfig).map(([tag, config]) => (
+              <div className="flex items-center space-x-4">
+                {/* Updated Tag Filters */}
+                <div className="flex items-center space-x-2">
+                
+                  <div className="flex space-x-2">
                     <motion.button
-                      key={tag}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setSelectedFilter(tag as any)}
+                      onClick={() => setSelectedFilter('all')}
                       className={`px-3 py-1 rounded-full flex items-center space-x-1.5 ${
-                        selectedFilter === tag ? config.color : 'text-gray-400 hover:text-white'
+                        selectedFilter === 'all'
+                          ? 'bg-gray-600 text-white'
+                          : 'text-gray-400 hover:text-white'
                       }`}
                     >
                       <Tag className="w-3 h-3" />
-                      <span>{config.label}</span>
+                      <span>All</span>
                     </motion.button>
-                  ))}
+                    {Object.entries(messageTagConfig).map(([tag, config]) => (
+                      <motion.button
+                        key={tag}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setSelectedFilter(tag as any)}
+                        className={`px-3 py-1 rounded-full flex items-center space-x-1.5 ${
+                          selectedFilter === tag ? config.color : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        <Tag className="w-3 h-3" />
+                        <span>{config.label}</span>
+                      </motion.button>
+                    ))}
+                  </div>
                 </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowGuidelines(true)}
+                  className="group relative px-4 py-2 rounded-xl overflow-hidden bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-emerald-500/20 hover:from-cyan-500/30 hover:via-teal-500/30 hover:to-emerald-500/30 text-cyan-400 transition-all duration-300"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative flex items-center space-x-2">
+                    <HelpCircle className="w-4 h-4" />
+                    <span>Guidelines</span>
+                  </div>
+                </motion.button>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowGuidelines(true)}
-                className="group relative px-4 py-2 rounded-xl overflow-hidden bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-emerald-500/20 hover:from-cyan-500/30 hover:via-teal-500/30 hover:to-emerald-500/30 text-cyan-400 transition-all duration-300"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative flex items-center space-x-2">
-                  <HelpCircle className="w-4 h-4" />
-                  <span>Guidelines</span>
-                </div>
-              </motion.button>
             </div>
+
+            {/* Add the animated search bar */}
+            <AnimatePresence>
+              {selectedFilter === 'issue' && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-center space-x-2 bg-gray-800/50 rounded-xl p-2 border border-rose-500/20">
+                    <Search className="w-5 h-5 text-rose-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search issues..."
+                      className="flex-1 bg-transparent px-2 py-1 text-white placeholder-gray-400 focus:outline-none text-sm"
+                    />
+                    {searchQuery && (
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setSearchQuery('')}
+                        className="p-1 rounded-lg hover:bg-gray-700/50"
+                      >
+                        <X className="w-4 h-4 text-gray-400" />
+                      </motion.button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 
@@ -331,7 +375,10 @@ const Community = () => {
           animate="visible"
           className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-800/50"
         >
-          {filteredMessages.map((message) => (
+          {(selectedFilter === 'issue' && searchQuery
+            ? filteredIssueMessages
+            : filteredMessages
+          ).map((message) => (
             <motion.div
               key={message.id}
               variants={messageVariants}
