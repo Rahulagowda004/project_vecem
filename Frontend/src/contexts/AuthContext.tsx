@@ -6,7 +6,8 @@ import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  updateProfile
 } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -69,15 +70,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
+  const normalizeUserData = (email: string) => {
+    const username = email.split('@')[0];
+    const displayName = username.charAt(0).toUpperCase() + username.slice(1);
+    return { username, displayName };
+  };
+
   const signup = async (email: string, password: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const { username, displayName } = normalizeUserData(email);
+      
+      // Update Firebase user profile
+      await updateProfile(userCredential.user, {
+        displayName: displayName
+      });
       
       // Create user document in Firestore
       await createUserDocument(userCredential.user.uid, {
         email,
+        username,
+        displayName,
         createdAt: new Date().toISOString(),
-        displayName: email.split('@')[0], // Use email prefix as default displayName
       });
 
       navigate('/home');
@@ -92,7 +106,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, emailOrUsername, password);
       
-      // Update last login time
+      // Update last login time and ensure displayName is set
+      if (!userCredential.user.displayName) {
+        const { displayName } = normalizeUserData(userCredential.user.email || '');
+        await updateProfile(userCredential.user, {
+          displayName: displayName
+        });
+      }
+      
       await updateUserData(userCredential.user.uid, {
         lastLogin: new Date().toISOString()
       });

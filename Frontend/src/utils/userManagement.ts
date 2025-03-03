@@ -1,5 +1,6 @@
 import { firestore } from '../firebase/firebase';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { User } from 'firebase/auth';
 
 interface UserData {
   username: string;
@@ -52,4 +53,27 @@ export const updateUserData = async (
     console.error('Error updating user data:', error);
     throw error;
   }
+};
+
+export const getUserDisplayName = (user: User | null) => {
+  if (!user) return 'Guest';
+  
+  if (user.displayName) return user.displayName;
+  
+  if (user.email) {
+    const username = user.email.split('@')[0];
+    return username.charAt(0).toUpperCase() + username.slice(1);
+  }
+  
+  return 'Guest';
+};
+
+export const getUserUsername = (user: User | null) => {
+  if (!user) return '';
+  
+  if (user.email) {
+    return user.email.split('@')[0].toLowerCase();
+  }
+  
+  return '';
 };

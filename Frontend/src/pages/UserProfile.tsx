@@ -10,6 +10,24 @@ import {
 import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 import NavbarPro from "../components/NavbarPro";
+import { getUserDisplayName, getUserUsername } from '../utils/userManagement';
+
+interface UserProfileData {
+  uid: string;
+  name: string;
+  username: string;
+  bio?: string;
+  profilePicture?: string;
+  githubUrl?: string;
+  datasets: {
+    id: string;
+    name: string;
+    description: string;
+    upload_type: string;
+    uploadedAt: string;
+    updatedAt: string;
+  }[];
+}
 
 const UserProfile = () => {
   const { username } = useParams();
@@ -57,8 +75,9 @@ const UserProfile = () => {
         if (!username) {
           // If no username provided, get current user's username and redirect
           const currentUserData = await getUserData(user!.uid);
-          if (currentUserData?.username) {
-            navigate(`/profile/${currentUserData.username}`, { replace: true });
+          const defaultUsername = getUserUsername(user);
+          if (currentUserData?.username || defaultUsername) {
+            navigate(`/profile/${currentUserData?.username || defaultUsername}`, { replace: true });
             return;
           }
           throw new Error("User profile not found");
@@ -72,7 +91,12 @@ const UserProfile = () => {
           return;
         }
         
-        setUserData(profileData);
+        // Set the name to display name from profile or getUserDisplayName as fallback
+        const displayName = profileData.name || getUserDisplayName(user);
+        setUserData({
+          ...profileData,
+          name: displayName
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile");
         console.error("Error fetching profile:", err);

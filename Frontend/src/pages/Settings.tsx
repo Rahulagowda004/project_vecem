@@ -27,6 +27,7 @@ import {
 } from "firebase/auth";
 import { toast } from "react-hot-toast";
 import NavbarPro from "../components/NavbarPro";
+import { getUserDisplayName } from '../utils/userManagement';
 
 interface Dataset {
   id: string;
@@ -49,7 +50,7 @@ const Settings = () => {
     user?.displayName || user?.email?.split("@")[0] || "username";
 
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user?.displayName || "Guest");
+  const [name, setName] = useState(getUserDisplayName(user));
   const [about, setAbout] = useState("About me...");
   const [selectedAvatar, setSelectedAvatar] = useState(
     user?.photoURL || "/avatars/avatar1.png"

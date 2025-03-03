@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
 import { getUserProfileByUid } from "../services/userService";
+import { getUserDisplayName } from '../utils/userManagement';
 
 const LogoutButton = () => {
   const { logout } = useAuth();
@@ -351,7 +352,7 @@ const DashboardLayout = () => {
                     <div className="space-y-3">
                       <div className="flex items-center space-x-2">
                         <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
-                          Welcome back, {user.displayName}
+                          Welcome back, {getUserDisplayName(user)}
                         </h2>
                         
                       </div>
