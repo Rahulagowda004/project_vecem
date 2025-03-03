@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../contexts/AuthContext";
 import {
   Download,
   Share2,
@@ -28,6 +29,7 @@ const DatasetDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();  // Add this line
   const isFromHome = location.state?.from === 'home';  // Add this line to get the state
+  const { user } = useAuth(); // Add this near the top with other hooks
   const [dataset, setDataset] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -158,9 +160,8 @@ data = dataset.get_files()  # For raw files`,
         className="px-6 py-2 bg-gray-900/80 border-b border-cyan-500/10"
       >
         <nav className="flex items-center space-x-2 text-sm">
-         
           <Link 
-            to={`/${username}`}
+            to={`/${username}${user?.uid === dataset?.owner_uid ? '' : '/view'}`}
             className="text-gray-400 hover:text-cyan-400 transition-colors"
           >
             <UserCircle2 className="w-4 h-4 mr-1 inline-block" />
