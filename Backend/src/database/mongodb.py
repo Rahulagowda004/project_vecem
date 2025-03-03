@@ -38,18 +38,18 @@ async def save_metadata_and_update_user(metadata: dict) -> str:
         
         # Update user profile with dataset reference
         uid = metadata["uid"]
-        dataset_summary = {
-            "dataset_id": metadata["dataset_id"],
-            "name": metadata["dataset_info"]["name"],
-            "upload_type": metadata["upload_type"],
-            "timestamp": metadata["timestamp"]
-        }
+        # dataset_summary = {
+        #     "dataset_id": metadata["dataset_id"],
+        #     "name": metadata["dataset_info"]["name"],
+        #     "upload_type": metadata["upload_type"],
+        #     "timestamp": metadata["timestamp"]
+        # }
                 
 
         update_result = await user_profile_collection.update_one(
             {"uid": uid},
             {
-                "$push": {"datasets": dataset_summary},
+                # "$push": {"datasets": dataset_summary},
                 "$inc": {
                     "number_of_raw_datasets": 1 if metadata["upload_type"] in ["raw", "both"] else 0,
                     "number_of_vectorized_datasets": 1 if metadata["upload_type"] in ["vectorized", "both"] else 0
