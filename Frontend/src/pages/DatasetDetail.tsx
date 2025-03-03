@@ -90,6 +90,23 @@ const DatasetDetail = () => {
     fetchDataset();
   }, [username, datasetname, navigate]);
 
+  const handleDownload = async () => {
+    if (!dataset?.name) {
+      console.error("Dataset name not available");
+      return;
+    }
+
+    const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.name}`;
+    
+    // Create an anchor element and trigger download
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = dataset.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -194,6 +211,7 @@ data = dataset.get_files()  # For raw files`,
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                onClick={handleDownload}
                 className="px-4 py-2 bg-cyan-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-blue-600/20"
               >
                 <Download className="w-4 h-4" />
