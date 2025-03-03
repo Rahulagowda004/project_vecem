@@ -10,7 +10,7 @@ import {
 import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 import NavbarPro from "../components/NavbarPro";
-import { getUserDisplayName, getUserUsername } from '../utils/userManagement';
+import { getUserDisplayName, getUserUsername } from "../utils/userManagement";
 
 interface UserProfileData {
   uid: string;
@@ -46,22 +46,22 @@ const UserProfile = () => {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
         return new Date().toLocaleDateString(undefined, {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         });
       }
       return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
     } catch (error) {
-      console.error('Error formatting date:', error);
+      console.error("Error formatting date:", error);
       return new Date().toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
     }
   };
@@ -73,42 +73,40 @@ const UserProfile = () => {
         setError(null);
 
         if (!username) {
-          // If no username provided, get current user's username and redirect
-          const currentUserData = await getUserData(user!.uid);
-          const defaultUsername = getUserUsername(user);
-          if (currentUserData?.username || defaultUsername) {
-            navigate(`/profile/${currentUserData?.username || defaultUsername}`, { replace: true });
-            return;
-          }
-          throw new Error("User profile not found");
+          throw new Error("Username is required");
         }
 
-        // Check if viewing other user's profile
+        // Get profile data by username
         const profileData = await getUserProfileByUsername(username);
-        if (profileData.uid !== user?.uid) {
-          // Redirect to other profile view if not the current user
-          navigate(`/${username}/view`, { replace: true });
-          return;
+        console.log("Profile data received:", profileData); // Debug log
+
+        if (!profileData) {
+          throw new Error("Profile not found");
         }
-        
+
         // Set the name to display name from profile or getUserDisplayName as fallback
         const displayName = profileData.name || getUserDisplayName(user);
-        setUserData({
+
+        // Ensure datasets array exists
+        const processedData = {
           ...profileData,
-          name: displayName
-        });
+          name: displayName,
+          datasets: profileData.datasets || [],
+        };
+
+        setUserData(processedData);
       } catch (err) {
+        console.error("Error in fetchUserData:", err);
         setError(err instanceof Error ? err.message : "Failed to load profile");
-        console.error("Error fetching profile:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) {
+    if (username) {
       fetchUserData();
     }
-  }, [username, user, navigate]);
+  }, [username, user]);
 
   // Filter and sort datasets
   const filteredAndSortedDatasets = useMemo(() => {

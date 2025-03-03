@@ -27,19 +27,14 @@ import {
 } from "firebase/auth";
 import { toast } from "react-hot-toast";
 import NavbarPro from "../components/NavbarPro";
-import { getUserDisplayName } from '../utils/userManagement';
+import { getUserDisplayName } from "../utils/userManagement";
 
 interface Dataset {
   id: string;
   name: string;
   description: string;
-  visibility: "public" | "private";
+  upload_type: string;
   updatedAt: string;
-  createdAt: Date;
-  size: number;
-  format: string;
-  owner: string;
-  tags: string[];
 }
 
 const Settings = () => {
@@ -89,7 +84,10 @@ const Settings = () => {
 
       try {
         setLoading(true);
+        console.log("Fetching user profile for UID:", user.uid); // Debug log
         const userProfile = await getUserProfile(user.uid);
+        console.log("Received user profile:", userProfile); // Debug log
+
         setName(userProfile.name || user.displayName || "Guest");
         setAbout(userProfile.bio || "About me...");
         setSelectedAvatar(
@@ -101,7 +99,27 @@ const Settings = () => {
         );
         setUsername(userProfile.username || displayUsername);
         setHasChangedUsername(userProfile.hasChangedUsername || false);
-        setDatasets(userProfile.datasets || []);
+
+        // Process and set datasets
+        if (userProfile.datasets && Array.isArray(userProfile.datasets)) {
+          console.log("Processing datasets:", userProfile.datasets); // Debug log
+          const processedDatasets = userProfile.datasets.map(
+            (dataset: any) => ({
+              id: dataset.id || dataset._id,
+              name: dataset.name,
+              description: dataset.description || "",
+              upload_type: dataset.upload_type || "unknown",
+              updatedAt:
+                dataset.updatedAt ||
+                dataset.timestamp ||
+                new Date().toISOString(),
+            })
+          );
+          setDatasets(processedDatasets);
+        } else {
+          console.log("No datasets found in user profile"); // Debug log
+          setDatasets([]);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
         setError(
@@ -113,23 +131,6 @@ const Settings = () => {
     };
 
     fetchUserData();
-  }, [user]);
-
-  useEffect(() => {
-    const fetchUserDatasets = async () => {
-      if (!user?.uid) return;
-
-      try {
-        // Replace with your API call to fetch datasets
-        const response = await fetch(`/api/users/${user.uid}/datasets`);
-        const data = await response.json();
-        setDatasets(data);
-      } catch (error) {
-        console.error("Error fetching datasets:", error);
-      }
-    };
-
-    fetchUserDatasets();
   }, [user]);
 
   useEffect(() => {
@@ -331,8 +332,7 @@ const Settings = () => {
         (dataset) =>
           dataset.name.toLowerCase().includes(searchLower) ||
           dataset.description.toLowerCase().includes(searchLower) ||
-          dataset.tags.some((tag) => tag.toLowerCase().includes(searchLower)) ||
-          dataset.format.toLowerCase().includes(searchLower)
+          dataset.upload_type.toLowerCase().includes(searchLower)
       );
     }
 
@@ -703,7 +703,7 @@ const Settings = () => {
                         clipRule="evenodd"
                       />
                     </svg>
-                    {dataset.visibility}
+                    {dataset.upload_type}
                   </span>
                   <span className="flex items-center">
                     <svg
@@ -717,7 +717,7 @@ const Settings = () => {
                         clipRule="evenodd"
                       />
                     </svg>
-                    Updated {dataset.updatedAt}
+                    {new Date(dataset.updatedAt).toLocaleDateString()}
                   </span>
                 </div>
                 <button

@@ -33,18 +33,29 @@ export interface UserProfileData {
 // Add new function to get profile by username
 export const getUserProfileByUsername = async (username: string) => {
   try {
-    const response = await fetch(`${API_URL}/user-profile/username/${username}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `${API_URL}/user-profile/username/${username}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.detail || `HTTP error! status: ${response.status}`
+      );
     }
 
-    return await response.json();
+    const data = await response.json();
+    if (!data) {
+      throw new Error("No data received from server");
+    }
+
+    return data;
   } catch (error) {
     console.error("Error fetching user profile:", error);
     throw error;
@@ -220,20 +231,20 @@ export const checkUsernameAvailability = async (username: string) => {
 export const deleteAccount = async (uid: string) => {
   try {
     const response = await fetch(`${API_URL}/delete-account/${uid}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
       const data = await response.json();
-      throw new Error(data.detail || 'Failed to delete account');
+      throw new Error(data.detail || "Failed to delete account");
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error deleting account:', error);
+    console.error("Error deleting account:", error);
     throw error;
   }
 };

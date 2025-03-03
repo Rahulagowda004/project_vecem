@@ -77,22 +77,87 @@ async def get_user_profile(uid: str):
     logging.info(f"Endpoint called: get_user_profile() for UID: {uid}")
     try:
         user_profile = await user_profile_collection.find_one({"uid": uid})
-        if user_profile:
-            return jsonable_encoder(user_profile_serializer(user_profile))
-        raise HTTPException(status_code=404, detail="User profile not found")
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="User profile not found")
+
+        # Get user's datasets
+        datasets = await datasets_collection.find(
+            {"uid": uid},
+            {
+                "dataset_id": 1,
+                "dataset_info.name": 1,
+                "dataset_info.description": 1,
+                "upload_type": 1,
+                "timestamp": 1
+            }
+        ).to_list(None)
+
+        # Format datasets
+        formatted_datasets = [
+            {
+                "id": str(dataset["_id"]),
+                "name": dataset.get("dataset_info", {}).get("name", "Untitled"),
+                "description": dataset.get("dataset_info", {}).get("description", ""),
+                "upload_type": dataset.get("upload_type", "unknown"),
+                "updatedAt": dataset.get("timestamp", "")
+            }
+            for dataset in datasets
+        ]
+
+        # Add datasets to user profile
+        user_profile_data = user_profile_serializer(user_profile)
+        user_profile_data["datasets"] = formatted_datasets
+
+        return jsonable_encoder(user_profile_data)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        CustomException(e,sys)
+        logging.error(f"Error in get_user_profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/user-profile/username/{username}")
 async def get_user_profile_by_username(username: str):
     logging.info(f"Endpoint called: get_user_profile_by_username() for username: {username}")
     try:
+        # Get user profile
         user_profile = await user_profile_collection.find_one({"username": username})
-        if user_profile:
-            return jsonable_encoder(user_profile_serializer(user_profile))
-        raise HTTPException(status_code=404, detail="User profile not found")
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="User profile not found")
+
+        # Get user's datasets
+        datasets = await datasets_collection.find(
+            {"uid": user_profile["uid"]},
+            {
+                "dataset_id": 1,
+                "dataset_info.name": 1,
+                "dataset_info.description": 1,
+                "upload_type": 1,
+                "timestamp": 1
+            }
+        ).to_list(None)
+
+        # Format datasets
+        formatted_datasets = [
+            {
+                "id": str(dataset["_id"]),
+                "name": dataset.get("dataset_info", {}).get("name", "Untitled"),
+                "description": dataset.get("dataset_info", {}).get("description", ""),
+                "upload_type": dataset.get("upload_type", "unknown"),
+                "updatedAt": dataset.get("timestamp", "")
+            }
+            for dataset in datasets
+        ]
+
+        # Add datasets to user profile
+        user_profile_data = user_profile_serializer(user_profile)
+        user_profile_data["datasets"] = formatted_datasets
+
+        return jsonable_encoder(user_profile_data)
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        CustomException(e,sys)
+        logging.error(f"Error in get_user_profile_by_username: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/check-username/{username}")
 async def check_username_availability(username: str):
