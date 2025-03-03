@@ -1,10 +1,9 @@
-import React, { useState, useRef, FormEvent, useEffect, DragEvent } from "react";
+import React, { useState, useRef, FormEvent, useEffect } from "react";
 import { FileType, Image, Mic, Video, ChevronRight, User } from "lucide-react";
 import { uploadDataset, DatasetForm, checkDatasetNameAvailability } from "../services/uploadService";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { getUserProfileByUid } from "../services/userService";
-import { motion } from "framer-motion";
 
 // Add custom type definition for directory input
 interface DirectoryInputElement extends HTMLInputElement {
@@ -58,8 +57,6 @@ const UploadFile = () => {
     message: string;
   }>({ show: false, success: false, message: "" });
   const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   const domains = [
     "Health",
@@ -439,97 +436,6 @@ const UploadFile = () => {
     mozdirectory: "",
   };
 
-  // Add drag and drop handlers
-  const handleDragEnter = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: DragEvent<HTMLDivElement>, type: "raw" | "vectorized") => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const items = e.dataTransfer.items;
-    const files: File[] = [];
-
-    // Function to recursively process directory
-    const processEntry = async (entry: FileSystemEntry) => {
-      if (entry.isFile) {
-        const file = await new Promise<File>((resolve) => {
-          (entry as FileSystemFileEntry).file(resolve);
-        });
-        files.push(file);
-      } else if (entry.isDirectory) {
-        const reader = (entry as FileSystemDirectoryEntry).createReader();
-        const entries = await new Promise<FileSystemEntry[]>((resolve) => {
-          reader.readEntries(resolve);
-        });
-        await Promise.all(entries.map(processEntry));
-      }
-    };
-
-    // Process all dropped items
-    Promise.all(
-      Array.from(items).map(item => processEntry(item.webkitGetAsEntry()!))
-    ).then(() => {
-      if (files.length > 0) {
-        const fileList = new DataTransfer();
-        files.forEach(file => fileList.items.add(file));
-        handleFileInputChange({ target: { files: fileList.files } } as any, type);
-      }
-    });
-  };
-
-  // Create DropZone component
-  const DropZone = ({ type, inputRef }: { type: "raw" | "vectorized", inputRef: React.RefObject<DirectoryInputElement> }) => (
-    <div
-      className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all
-        ${isDragging 
-          ? "border-cyan-400 bg-cyan-500/10" 
-          : "border-gray-600 hover:border-gray-500 bg-gray-700/50"}`}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, type)}
-    >
-      <input
-        {...fileInputProps}
-        ref={inputRef}
-        type="file"
-        onChange={(e) => handleFileInputChange(e, type)}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-      />
-      <div className="space-y-4">
-        <div className="flex justify-center">
-          <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-lg font-medium text-gray-300">
-            Drag and drop your {type} files here
-          </p>
-          <p className="text-sm text-gray-400 mt-2">
-            or click to browse files
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       {showConfirmation && <ConfirmationDialog />}
@@ -731,7 +637,13 @@ const UploadFile = () => {
                       <label className="block text-sm font-medium mb-2 text-white">
                         Raw Data
                       </label>
-                      <DropZone type="raw" inputRef={rawInputRef} />
+                      <input
+                        {...fileInputProps}
+                        ref={rawInputRef}
+                        type="file"
+                        onChange={(e) => handleFileInputChange(e, "raw")}
+                        accept="*/*"
+                      />
                     </div>
 
                     {/* Vectorized Data Upload */}
@@ -739,13 +651,27 @@ const UploadFile = () => {
                       <label className="block text-sm font-medium mb-2 text-white">
                         Vectorized Data
                       </label>
-                      <DropZone type="vectorized" inputRef={vectorizedInputRef} />
+                      <input
+                        {...fileInputProps}
+                        ref={vectorizedInputRef}
+                        type="file"
+                        onChange={(e) => handleFileInputChange(e, "vectorized")}
+                        accept="*/*"
+                      />
                     </div>
                   </>
                 ) : (
-                  <DropZone 
-                    type={datasetType.toLowerCase() as "raw" | "vectorized"} 
-                    inputRef={fileInputRef}
+                  <input
+                    {...fileInputProps}
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={(e) =>
+                      handleFileInputChange(
+                        e,
+                        datasetType.toLowerCase() as "raw" | "vectorized"
+                      )
+                    }
+                    accept="*/*" // Accept all files and handle validation in code
                   />
                 )}
               </div>
@@ -804,128 +730,16 @@ const UploadFile = () => {
 
             <button
               type="submit"
-              disabled={uploadProgress.progress > 0 && uploadProgress.progress < 100}
               className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-cyan-400 
                 text-white font-medium rounded-xl shadow-lg shadow-cyan-500/20 
                 hover:from-cyan-600 hover:to-cyan-500 transition-colors
-                focus:outline-none focus:ring-2 focus:ring-cyan-500/40
-                disabled:opacity-75 disabled:cursor-not-allowed"
+                focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
             >
-              {uploadProgress.progress > 0 && uploadProgress.progress < 100 
-                ? "Uploading..." 
-                : "Upload"}
+              Upload
             </button>
           </form>
         </div>
       </div>
-      {showSuccess && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50"
-        >
-          <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-cyan-500/20 min-w-[320px]">
-            {/* Success Icon Container */}
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 20
-                }}
-                className="bg-gradient-to-br from-cyan-500 to-teal-500 rounded-full p-4 shadow-lg shadow-cyan-500/30"
-              >
-                <motion.svg
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <motion.path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M5 13l4 4L19 7"
-                  />
-                </motion.svg>
-              </motion.div>
-            </div>
-
-            {/* Success Message */}
-            <div className="mt-4 text-center">
-              <motion.h3
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="text-lg font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent mb-2"
-              >
-                Upload Successful!
-              </motion.h3>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="text-gray-300 text-sm mb-4"
-              >
-                Your dataset has been successfully uploaded.
-              </motion.p>
-            </div>
-
-            {/* Action Buttons */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex justify-center gap-3 mt-2"
-            >
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setShowSuccess(false)}
-                className="px-4 py-2 rounded-lg bg-gray-700/50 text-gray-300 text-sm hover:bg-gray-700 transition-colors"
-              >
-                Dismiss
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate(`/${userProfile?.username}/${formData.name}`)}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-sm hover:from-cyan-600 hover:to-teal-600 transition-all shadow-lg shadow-cyan-500/20"
-              >
-                View Dataset
-              </motion.button>
-            </motion.div>
-
-            {/* Close Button */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowSuccess(false)}
-              className="absolute -top-2 -right-2 p-1 rounded-full bg-gray-800 border border-gray-700 text-gray-400 hover:text-white transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </motion.button>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 };
