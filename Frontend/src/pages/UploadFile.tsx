@@ -178,7 +178,7 @@ const UploadFile = () => {
   };
 
   const formatDatasetName = (name: string) => {
-    return name
+    return name.replace(/\s+/g, '_');
   };
 
   const validateDatasetName = async (name: string) => {
