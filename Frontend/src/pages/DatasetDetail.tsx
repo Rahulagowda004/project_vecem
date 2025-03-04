@@ -93,12 +93,12 @@ const DatasetDetail = () => {
   }, [username, datasetname, navigate]);
 
   const handleDownload = async () => {
-    if (!dataset?.name) {
-      console.error("Dataset name not available");
+    if (!dataset?.name || !dataset?.owner) {
+      console.error("Dataset name or owner not available");
       return;
     }
 
-    const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.name}`;
+    const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.owner}/${dataset.name}`;
     
     // Create an anchor element and trigger download
     const link = document.createElement('a');
