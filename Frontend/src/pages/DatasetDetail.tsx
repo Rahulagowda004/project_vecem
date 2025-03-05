@@ -274,7 +274,7 @@ data = dataset.get_files()  # For raw files`,
               <h2 className="text-xl font-semibold text-white mb-4">
                 About This Dataset
               </h2>
-              <p className="text-white text-lg leading-relaxed min-h-[270px]">
+              <p className="text-white text-lg leading-relaxed min-h-[260px]">
                 {dataset.description}
               </p>
             </motion.div>
@@ -323,13 +323,10 @@ data = dataset.get_files()  # For raw files`,
                     className="border-t border-gray-700 p-4"
                   >
                     <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-medium text-cyan-200">
-                          {pythonExamples.basic.label}
-                        </h3>
+                      <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto scrollbar-thumb-white scrollbar-track-gray-800 relative">
                         <button
                           onClick={() => handleCopy(pythonExamples.basic.code)}
-                          className="text-gray-400 hover:text-white transition-colors"
+                          className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
                         >
                           {copied ? (
                             <Check className="w-4 h-4 text-green-400" />
@@ -337,8 +334,6 @@ data = dataset.get_files()  # For raw files`,
                             <Copy className="w-4 h-4" />
                           )}
                         </button>
-                      </div>
-                      <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
                         <code className="text-sm text-white">
                           {pythonExamples.basic.code}
                         </code>
