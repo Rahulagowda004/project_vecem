@@ -15,7 +15,7 @@ interface Message {
   userAvatar: string;
   content: string;
   timestamp: string;
-  tag: 'general' | 'issue' | 'answer';
+  tag: 'general' | 'issue';
   replies?: Message[];
 }
 
@@ -27,10 +27,6 @@ const messageTagConfig = {
   issue: {
     color: 'bg-rose-400/20 text-rose-300 border-rose-400/20',
     label: 'Issue'
-  },
-  answer: {
-    color: 'bg-teal-500/20 text-teal-400 border-teal-500/20',
-    label: 'Answer'
   }
 };
 
@@ -64,8 +60,8 @@ const Community = () => {
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState(""); // Add this line
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [selectedTag, setSelectedTag] = useState<'general' | 'issue' | 'answer'>('general');
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'general' | 'issue' | 'answer'>('all');
+  const [selectedTag, setSelectedTag] = useState<'general' | 'issue'>('general');
+  const [selectedFilter, setSelectedFilter] = useState<'general' | 'issue'>('general');
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
@@ -118,7 +114,7 @@ const Community = () => {
   };
 
   const filteredMessages = messages.filter(message => 
-    selectedFilter === 'all' || message.tag === selectedFilter
+    message.tag === selectedFilter
   );
 
   // Add this function
@@ -134,14 +130,13 @@ const Community = () => {
     description: "Welcome to our community! Please follow these guidelines to ensure effective communication and collaboration.",
     tagGuidelines: {
       general: "For community updates, announcements, and general discussions",
-      issue: "For reporting problems, asking questions, or seeking help",
-      answer: "For providing solutions, sharing knowledge, or helping others"
+      issue: "For reporting problems, asking questions, or seeking help"
     },
     rules: [
       {
         icon: "🏷️",
         title: "Use Appropriate Tags",
-        description: "Always select the right tag for your messages: General for regular discussions, Issue for problems, and Answer for solutions."
+        description: "Always select the right tag for your messages: General for regular discussions and Issue for problems."
       },
       {
         icon: "❓",
@@ -151,7 +146,7 @@ const Community = () => {
       {
         icon: "💡",
         title: "Providing Solutions",
-        description: "Use the 'Answer' tag when responding to issues. Ensure your answers are helpful and well-explained."
+        description: "Ensure your answers are helpful and well-explained."
       },
       {
         icon: "💬",
@@ -311,19 +306,6 @@ const Community = () => {
                 <div className="flex items-center space-x-2">
                 
                   <div className="flex space-x-2">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setSelectedFilter('all')}
-                      className={`px-3 py-1 rounded-full flex items-center space-x-1.5 ${
-                        selectedFilter === 'all'
-                          ? 'bg-gray-600 text-white'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      <Tag className="w-3 h-3" />
-                      <span>All</span>
-                    </motion.button>
                     {Object.entries(messageTagConfig).map(([tag, config]) => (
                       <motion.button
                         key={tag}
