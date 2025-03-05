@@ -7,7 +7,7 @@ from src.utils.logger import logging
 from src.models.models import DatasetInfo, UploadResponse
 from src.utils.file_handlers import ensure_directories, save_uploaded_file
 from src.database.mongodb import save_metadata_and_update_user, user_profile_collection  # Add this import
-from src.utils.azure_storage import upload_to_blob, delete_dataset_blobs
+from src.utils.azure_storage import upload_to_blob, delete_dataset_blobs, create_and_upload_zip
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
@@ -50,19 +50,19 @@ async def upload_files(
         # Handle file uploads based on type
         if type.lower() == "both":
             if raw_files:
-                for file in raw_files:
-                    blob_url = await upload_to_blob(file, dataset_id, dataset_name, "raw", username)
-                    uploaded_files["raw"].append(blob_url)
+                # Create and upload zip for raw files
+                raw_url = await create_and_upload_zip(raw_files, username, dataset_name, "raw")
+                uploaded_files["raw"].append(raw_url)
 
             if vectorized_files:
-                for file in vectorized_files:
-                    blob_url = await upload_to_blob(file, dataset_id, dataset_name, "vectorized", username)
-                    uploaded_files["vectorized"].append(blob_url)
+                # Create and upload zip for vectorized files
+                vec_url = await create_and_upload_zip(vectorized_files, username, dataset_name, "vectorized")
+                uploaded_files["vectorized"].append(vec_url)
         else:
             if files:
-                for file in files:
-                    blob_url = await upload_to_blob(file, dataset_id, dataset_name, type.lower(), username)
-                    uploaded_files[type.lower()].append(blob_url)
+                # Create and upload zip for single type
+                url = await create_and_upload_zip(files, username, dataset_name, type.lower())
+                uploaded_files[type.lower()].append(url)
 
         # Prepare and save metadata
         metadata = {
