@@ -26,6 +26,7 @@ interface UserProfileData {
     upload_type: string;
     uploadedAt: string;
     updatedAt: string;
+    timestamp: string;
   }[];
 }
 
@@ -91,7 +92,11 @@ const UserProfile = () => {
         const processedData = {
           ...profileData,
           name: displayName,
-          datasets: profileData.datasets || [],
+          datasets: profileData.datasets.map(dataset => ({
+            ...dataset,
+            uploadedAt: formatDate(dataset.timestamp),
+            updatedAt: formatDate(dataset.updatedAt || dataset.timestamp || new Date().toISOString()) // Ensure updatedAt is also formatted
+          })) || [],
         };
 
         setUserData(processedData);
@@ -410,7 +415,7 @@ const UserProfile = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      {formatDate(dataset.uploadedAt)}
+                      {new Date(dataset.updatedAt).toLocaleDateString()}
                     </span>
                   </div>
                 </motion.li>
