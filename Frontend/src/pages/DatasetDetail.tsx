@@ -98,7 +98,7 @@ const DatasetDetail = () => {
       return;
     }
 
-    const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.owner}/${dataset.name}`;
+    const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.owner}/${dataset.name}.zip`;
     
     // Create an anchor element and trigger download
     const link = document.createElement('a');
