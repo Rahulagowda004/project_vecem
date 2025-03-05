@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   Home,
   UserCircle2, // Add this import
+  Settings, // Add this import
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext"; // Add this import at the top
 import { toast } from "react-hot-toast";
@@ -385,10 +386,11 @@ const DatasetEdit = () => {
       >
         <nav className="flex items-center space-x-2 text-sm">
           <Link
-            to={`/${username}/${datasetname}`}
-            className="text-gray-400 hover:text-cyan-400 transition-colors"
+            to={`/settings`}
+            className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1"
           >
-            {name}
+            <Settings className="w-4 h-4" /> {/* Add this icon */}
+            Settings
           </Link>
           <ChevronRight className="w-4 h-4 text-gray-600" />
           <span className="text-cyan-400">Edit</span>

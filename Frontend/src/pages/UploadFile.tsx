@@ -76,46 +76,67 @@ const UploadFile = () => {
   ];
 
   const fileTypeMap = {
-    Image: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
-    Audio: ["audio/mpeg", "audio/wav", "audio/ogg"],
-    Video: ["video/mp4", "video/webm", "video/ogg"],
-    Text: [
-      "text/plain",
-      "text/csv",
-      "application/json",
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-      "application/msword", // .doc
-    ],
-    Vectorized: ["*/*"] // Allow any file type for vectorized data
+    Image: {
+      mimeTypes: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
+      extensions: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic"]
+    },
+    Audio: {
+      mimeTypes: ["audio/mpeg", "audio/wav", "audio/ogg"],
+      extensions: [".mp3", ".wav", ".ogg"]
+    },
+    Video: {
+      mimeTypes: ["video/mp4", "video/webm", "video/ogg"],
+      extensions: [".mp4", ".webm", ".ogg"]
+    },
+    Text: {
+      mimeTypes: [
+        "text/plain",
+        "text/csv",
+        "application/json",
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/msword",
+      ],
+      extensions: [".txt", ".csv", ".json", ".pdf", ".docx", ".xlsx", ".doc"]
+    }
   };
 
-  // Modify handleFileInputChange to bypass Windows validation
+  // Update handleFileInputChange to remove file type validation
   const handleFileInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     type: "raw" | "vectorized"
   ) => {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      setError("Please select a folder containing files");
+      return;
+    }
 
-    // Skip Windows validation and move directly to our custom validation
     const filesArray = Array.from(files);
+    
     if (type === "raw") {
-      const allowedTypes = fileTypeMap[fileType];
+      const allowedExtensions = fileTypeMap[fileType].extensions;
       const invalidFiles = filesArray.filter(file => {
-        // More permissive check - only validate file extension
-        const extension = file.name.split('.').pop()?.toLowerCase();
-        return !allowedTypes.some(type => type.includes(extension || ''));
+        const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+        return !allowedExtensions.includes(extension);
       });
 
       if (invalidFiles.length > 0) {
-        setError(`Invalid file types detected. All files must be ${fileType.toLowerCase()} files.`);
+        setError(`Invalid file types detected. Allowed extensions: ${allowedExtensions.join(', ')}`);
+        if (event.target) event.target.value = '';
         return;
       }
     }
 
-    setSelectedFiles({ files, type });
+    // Create a new FileList-like object with the filtered files
+    const filteredFiles = new DataTransfer();
+    filesArray.forEach(file => filteredFiles.items.add(file));
+    
+    setSelectedFiles({ 
+      files: filteredFiles.files,
+      type 
+    });
     setShowConfirmation(true);
   };
 
@@ -431,9 +452,6 @@ const UploadFile = () => {
   const fileInputProps = {
     className: "w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 file:transition-colors",
     multiple: true,
-    directory: "",
-    webkitdirectory: "",
-    mozdirectory: "",
   };
 
   return (
@@ -639,10 +657,14 @@ const UploadFile = () => {
                       </label>
                       <input
                         {...fileInputProps}
-                        ref={rawInputRef}
                         type="file"
+                        ref={rawInputRef}
                         onChange={(e) => handleFileInputChange(e, "raw")}
-                        accept="*/*"
+                        onClick={(e) => {
+                          const element = e.target as HTMLInputElement;
+                          element.value = '';
+                        }}
+                        accept={fileTypeMap[fileType].extensions.join(',')}
                       />
                     </div>
 
@@ -653,25 +675,32 @@ const UploadFile = () => {
                       </label>
                       <input
                         {...fileInputProps}
-                        ref={vectorizedInputRef}
                         type="file"
+                        ref={vectorizedInputRef}
                         onChange={(e) => handleFileInputChange(e, "vectorized")}
-                        accept="*/*"
+                        onClick={(e) => {
+                          const element = e.target as HTMLInputElement;
+                          element.value = '';
+                        }}
                       />
                     </div>
                   </>
                 ) : (
                   <input
                     {...fileInputProps}
-                    ref={fileInputRef}
                     type="file"
+                    ref={fileInputRef}
                     onChange={(e) =>
                       handleFileInputChange(
                         e,
                         datasetType.toLowerCase() as "raw" | "vectorized"
                       )
                     }
-                    accept="*/*" // Accept all files and handle validation in code
+                    onClick={(e) => {
+                      const element = e.target as HTMLInputElement;
+                      element.value = '';
+                    }}
+                    accept={datasetType.toLowerCase() === "raw" ? fileTypeMap[fileType].extensions.join(',') : undefined}
                   />
                 )}
               </div>

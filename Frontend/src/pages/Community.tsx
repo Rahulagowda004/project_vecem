@@ -281,7 +281,10 @@ const Community = () => {
            
            
             <ChevronRight className="w-4 h-4 text-gray-600" />
-            <span className="text-cyan-400">Community</span>
+            <span className="text-cyan-400 flex items-center">
+  <MessageCircle className="w-4 h-4 mr-1 inline-block" />
+  Community
+</span>
           </nav>
         </motion.div>
 
