@@ -168,7 +168,10 @@ data = dataset.get_files()  # For raw files`,
             {username}
           </Link>
           <ChevronRight className="w-4 h-4 text-gray-600" />
-          <span className="text-cyan-400">{dataset?.name || 'Loading...'}</span>
+          <span className="text-cyan-400 flex items-center">
+  <Database className="w-4 h-4 mr-1 inline-block" />
+  {dataset?.name || 'Loading...'}
+</span>
         </nav>
       </motion.div>
 
