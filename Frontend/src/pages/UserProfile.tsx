@@ -46,23 +46,23 @@ const UserProfile = () => {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
-        return new Date().toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
+        return new Date().toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
         });
       }
-      return date.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
       });
     } catch (error) {
       console.error("Error formatting date:", error);
-      return new Date().toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+      return new Date().toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
       });
     }
   };
@@ -415,7 +415,11 @@ const UserProfile = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      {new Date(dataset.updatedAt).toLocaleDateString()}
+                      {new Date(dataset.updatedAt).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
                     </span>
                   </div>
                 </motion.li>

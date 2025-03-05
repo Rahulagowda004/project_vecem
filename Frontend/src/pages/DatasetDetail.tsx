@@ -359,7 +359,11 @@ data = dataset.get_files()  # For raw files`,
                 <p className="text-cyan-100">
                   Upload Date:{" "}
                   <span className="text-white">
-                    {new Date(dataset.uploadDate).toLocaleDateString()}
+                    {new Date(dataset.uploadDate).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
                   </span>
                 </p>
               </div>

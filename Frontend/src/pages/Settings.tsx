@@ -388,7 +388,11 @@ const Settings = () => {
     if (days === 0) return "Today";
     if (days === 1) return "Yesterday";
     if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
   };
 
   const container = {
@@ -717,7 +721,11 @@ const Settings = () => {
                         clipRule="evenodd"
                       />
                     </svg>
-                    {new Date(dataset.updatedAt).toLocaleDateString()}
+                    {new Date(dataset.updatedAt).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
                   </span>
                 </div>
                 <button
