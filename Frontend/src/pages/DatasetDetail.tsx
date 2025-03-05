@@ -313,61 +313,32 @@ data = dataset.get_files()  # For raw files`,
               layout
               className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 shadow-xl"
             >
-              <motion.button
-                whileHover={{ backgroundColor: "rgba(75, 85, 99, 0.3)" }}
-                onClick={() => setIsCodeOpen(!isCodeOpen)}
-                className="w-full p-4 flex items-center justify-between text-left text-white"
-              >
+              <div className="w-full p-4 flex items-center justify-between text-left text-white">
                 <div className="flex items-center gap-2">
                   <Code className="w-5 h-5 text-cyan-400" />
                   <h2 className="text-xl font-semibold">Python Usage</h2>
                 </div>
-                <svg
-                  className={`w-5 h-5 transform transition-transform ${
-                    isCodeOpen ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </motion.button>
-
-              <AnimatePresence>
-                {isCodeOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 25 }}
-                    className="border-t border-gray-700 p-4"
-                  >
-                    <div className="mb-4">
-                      <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto scrollbar-thumb-white scrollbar-track-gray-800 relative">
-                        <button
-                          onClick={() => handleCopy(pythonExamples.basic.code)}
-                          className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
-                        >
-                          {copied ? (
-                            <Check className="w-4 h-4 text-green-400" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                        </button>
-                        <code className="text-sm text-white">
-                          {pythonExamples.basic.code}
-                        </code>
-                      </pre>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              </div>
+              <div className="border-t border-gray-700 p-4">
+                <div className="mb-4 relative">
+                  <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto scrollbar-thumb-white scrollbar-track-gray-800">
+                    <button
+                      onClick={() => handleCopy(pythonExamples.basic.code)}
+                      className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
+                      style={{ position: 'absolute', top: '10px', right: '10px' }}
+                    >
+                      {copied ? (
+                        <Check className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </button>
+                    <code className="text-sm text-white">
+                      {pythonExamples.basic.code}
+                    </code>
+                  </pre>
+                </div>
+              </div>
             </motion.div>
 
             {/* About Section */}
