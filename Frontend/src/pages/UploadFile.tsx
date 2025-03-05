@@ -682,51 +682,11 @@ const UploadFile = () => {
                 </p>
               )}
               <p className="mt-2 text-sm text-gray-400">
-                Select a folder containing only {fileType.toLowerCase()} files
+                {datasetType === "Vectorized" ? "Select a folder containing vectorized data files" : `Select a folder containing only ${fileType.toLowerCase()} files`}
               </p>
             </div>
 
-            {/* Upload Progress Bars
-            {uploadProgress.progress > 0 && (
-              <div className="space-y-2">
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>Upload Progress</span>
-                    <span>{uploadProgress.progress}%</span>
-                  </div>
-                  <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        uploadProgress.status === "completed"
-                          ? "bg-green-500"
-                          : uploadProgress.status === "error"
-                          ? "bg-red-500"
-                          : "bg-cyan-500"
-                      }`}
-                      style={{ width: `${uploadProgress.progress}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )} */}
 
-            {/* Display file size */}
-            <div className="mt-4 space-y-2">
-              {datasetType === "Both" ? (
-                <>
-                  <p className="text-sm text-gray-400">
-                    Raw Data Size: {formatFileSize(totalSize.raw)}
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    Vectorized Data Size: {formatFileSize(totalSize.vectorized)}
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-gray-400">
-                  Total Size: {formatFileSize(totalSize[datasetType.toLowerCase() as 'raw' | 'vectorized'])}
-                </p>
-              )}
-            </div>
 
             <button
               type="submit"
