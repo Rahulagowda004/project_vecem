@@ -686,7 +686,7 @@ const UploadFile = () => {
               </p>
             </div>
 
-            {/* Upload Progress Bars */}
+            {/* Upload Progress Bars
             {uploadProgress.progress > 0 && (
               <div className="space-y-2">
                 <div className="space-y-1">
@@ -708,7 +708,7 @@ const UploadFile = () => {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Display file size */}
             <div className="mt-4 space-y-2">
