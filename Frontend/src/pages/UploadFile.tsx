@@ -57,6 +57,7 @@ const UploadFile = () => {
     message: string;
   }>({ show: false, success: false, message: "" });
   const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const domains = [
     "Health",
@@ -260,14 +261,17 @@ const UploadFile = () => {
     setError("");
     setUploadProgress({ progress: 0, status: "uploading" });
     setUploadStatus({ show: false, success: false, message: "" });
+    setIsUploading(true); // Set uploading state to true
 
     if (nameError) {
       setError(nameError);
+      setIsUploading(false); // Reset uploading state
       return;
     }
 
     if (!formData.name.trim()) {
       setError("Please provide a dataset name");
+      setIsUploading(false); // Reset uploading state
       return;
     }
 
@@ -286,6 +290,7 @@ const UploadFile = () => {
 
         if (!rawFiles?.length && !vectorizedFiles?.length) {
           setError(`Please select ${fileType.toLowerCase()} files to upload`);
+          setIsUploading(false); // Reset uploading state
           return;
         }
 
@@ -304,6 +309,7 @@ const UploadFile = () => {
         const files = fileInputRef.current?.files;
         if (!files?.length) {
           setError(`Please select ${fileType.toLowerCase()} files to upload`);
+          setIsUploading(false); // Reset uploading state
           return;
         }
 
@@ -332,6 +338,7 @@ const UploadFile = () => {
           if (userProfile?.username) {
             navigate(`/${userProfile.username}`);
           }
+          setIsUploading(false); // Reset uploading state after redirect
         }, 2000);
       } else {
         setUploadProgress({ progress: 0, status: "error" });
@@ -345,6 +352,7 @@ const UploadFile = () => {
         // Hide error message after 4 seconds
         setTimeout(() => {
           setUploadStatus({ show: false, success: false, message: "" });
+          setIsUploading(false); // Reset uploading state after error message
         }, 2000);
       }
     } catch (error) {
@@ -362,6 +370,7 @@ const UploadFile = () => {
       // Hide error message after 4 seconds
       setTimeout(() => {
         setUploadStatus({ show: false, success: false, message: "" });
+        setIsUploading(false); // Reset uploading state after error message
       }, 4000);
     }
   };
@@ -723,8 +732,9 @@ const UploadFile = () => {
                 text-white font-medium rounded-xl shadow-lg shadow-cyan-500/20 
                 hover:from-cyan-600 hover:to-cyan-500 transition-colors
                 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+              disabled={isUploading} // Disable button while uploading
             >
-              Upload
+              {isUploading ? "Uploading..." : "Upload"}
             </button>
           </form>
         </div>
