@@ -70,6 +70,7 @@ const DashboardLayout = () => {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isFullWidth, setIsFullWidth] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -157,6 +158,10 @@ const DashboardLayout = () => {
   useEffect(() => {
     handleCategorySelect("all");
   }, []); // Empty dependency array means this runs once on mount
+
+  useEffect(() => {
+    setIsFullWidth(currentView === 'chatbot');
+  }, [currentView]);
 
   const handleCategorySelect = async (category: string) => {
     setSelectedCategory(category);
@@ -390,17 +395,17 @@ const DashboardLayout = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 ml-64 h-full">
-          <main className="h-full p-6">
+        <div className={`flex-1 ${isFullWidth ? 'ml-64' : 'ml-64'} h-full`}>
+          <main className="h-full px-6 py-4">
             {currentView === 'chatbot' ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="h-full"
+                className="w-full h-[calc(100vh-6rem)]"
               >
-                <div className="flex flex-col h-full bg-gray-900/40 backdrop-blur-xl border border-gray-700/50">
+                <div className="flex flex-col w-full h-full bg-gray-900/40 backdrop-blur-xl border border-gray-700/50 rounded-2xl overflow-hidden">
                   {/* ChatBot Messages Area */}
-                  <div className="flex-1 p-4 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                  <div className="flex-1 w-full p-6 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                     {messages.map((message) => (
                       <motion.div
                         key={message.id}
@@ -467,7 +472,7 @@ const DashboardLayout = () => {
                   </div>
 
                   {/* Input Area */}
-                  <div className="border-t border-gray-700/50 bg-gray-900/50 backdrop-blur-sm p-4">
+                  <div className="w-full border-t border-gray-700/50 bg-gray-900/50 backdrop-blur-sm p-6">
                     <form onSubmit={handleChatSubmit}>
                       <div className="flex space-x-4">
                         <input
