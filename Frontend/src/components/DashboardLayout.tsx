@@ -61,8 +61,8 @@ const DashboardLayout = () => {
   const [currentView, setCurrentView] = useState('datasets'); // Add this state
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: 'header',
-      content: `<header>VecemBot|Your intelligent assistant for vectorized datasets</header>Hi, I'm VecemBot! I'm here to help you with any questions about our vectorized datasets and platform features. How can I assist you today?`,
+      id: 'welcome',
+      content: "Hi! I'm VecemBot, your AI assistant for discovering and understanding vectorized datasets. How can I help you today?",
       sender: 'bot',
       timestamp: new Date().toISOString(),
     }
@@ -408,67 +408,29 @@ const DashboardLayout = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         className={`flex ${
-                          message.content.includes('<header>') 
-                            ? 'w-full justify-center' 
-                            : message.sender === 'user' 
-                              ? 'justify-end' 
-                              : 'justify-start'
+                          message.sender === 'user' 
+                            ? 'justify-end' 
+                            : 'justify-start'
                         }`}
                       >
                         <div
                           className={`${
-                            message.content.includes('<header>')
-                              ? 'w-full bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-8'
-                              : message.sender === 'user'
+                            message.sender === 'user'
                               ? 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20'
                               : 'bg-gray-800/50 border border-gray-700/50'
                           } rounded-2xl shadow-lg backdrop-blur-sm max-w-[80%] p-4`}
                         >
-                          <div className={`flex items-start gap-3 ${
-                            message.content.includes('<header>') ? 'flex-col items-center' : ''
-                          }`}>
-                            {message.sender === 'bot' && !message.content.includes('<header>') && (
+                          <div className="flex items-start gap-3">
+                            {message.sender === 'bot' && (
                               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
                                 <Bot className="w-4 h-4 text-gray-900" />
                               </div>
                             )}
-                            <div className={message.content.includes('<header>') ? 'text-center w-full' : ''}>
-                              {message.content.includes('<header>') ? (
-                                <>
-                                  {message.content.split('</header>').map((part, index) => {
-                                    if (index === 0) {
-                                      const [title, subtitle] = part.replace('<header>', '').split('|');
-                                      return (
-                                        <div key={index} className="mb-6">
-                                          <motion.div
-                                            animate={{
-                                              scale: [1, 1.02, 1],
-                                            }}
-                                            transition={{
-                                              duration: 2,
-                                              repeat: Infinity,
-                                              repeatType: "reverse"
-                                            }}
-                                          >
-                                            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
-                                              {title}
-                                            </h1>
-                                            <p className="text-gray-400 text-lg">{subtitle}</p>
-                                          </motion.div>
-                                        </div>
-                                      );
-                                    }
-                                    return <div key={index} className="text-gray-300">{part}</div>;
-                                  })}
-                                </>
-                              ) : (
-                                <div className="text-gray-100">
-                                  {message.content}
-                                  <div className="mt-2 text-xs text-gray-500">
-                                    {new Date(message.timestamp).toLocaleTimeString()}
-                                  </div>
-                                </div>
-                              )}
+                            <div className="text-gray-100">
+                              {message.content}
+                              <div className="mt-2 text-xs text-gray-500">
+                                {new Date(message.timestamp).toLocaleTimeString()}
+                              </div>
                             </div>
                           </div>
                         </div>
