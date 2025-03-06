@@ -186,7 +186,7 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
+    <div className="min-h-screen h-full bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Navigation Bar */}
       <nav className="bg-gray-900/90 backdrop-blur-lg border-b border-gray-800 fixed w-full z-50">
         <div className="max-w-full mx-auto px-4">
@@ -265,7 +265,7 @@ const DashboardLayout = () => {
       </nav>
 
       {/* Sidebar and Main Content */}
-      <div className="flex pt-16">
+      <div className="flex pt-16 h-full">
         {/* Sidebar */}
         <div className="w-64 fixed h-full bg-gray-900/90 backdrop-blur-lg border-r border-gray-800">
           <div className="flex flex-col h-full">
@@ -390,8 +390,8 @@ const DashboardLayout = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 ml-64">
-          <main className="h-[calc(100vh-4rem)]">
+        <div className="flex-1 ml-64 h-full">
+          <main className="h-full">
             {currentView === 'chatbot' ? (
               <motion.div
                 initial={{ opacity: 0 }}
