@@ -391,7 +391,7 @@ const DashboardLayout = () => {
 
         {/* Main Content */}
         <div className="flex-1 ml-64 h-full">
-          <main className="h-full">
+          <main className="h-full p-6">
             {currentView === 'chatbot' ? (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -494,17 +494,17 @@ const DashboardLayout = () => {
               <>
                 {/* Enhanced User Welcome Section */}
                 {user && (
-                  <div className="mb-4 transform transition-all duration-500 ease-in-out hover:scale-[1.02]">
-                    <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+                  <div className="w-full mb-6">
+                    <div className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
                       {/* Decorative Elements */}
                       <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
                       <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
                       
                       <div className="relative flex items-center space-x-8">
                         {/* Avatar Section */}
-                        <div className="relative group">
-                          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-cyan-300 to-cyan-500 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                          <div className="relative p-1 bg-gradient-to-r from-gray-900 to-gray-800 rounded-full">
+                        <div className="relative group flex-shrink-0">
+                          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-cyan-300 to-cyan-500 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                          <div className="relative p-0.5 bg-gradient-to-r from-gray-900 to-gray-800 rounded-full">
                             <img
                               className="h-20 w-20 rounded-full ring-2 ring-cyan-400/30 object-cover transition-transform duration-300 group-hover:scale-105"
                               src={userAvatar}
@@ -514,24 +514,20 @@ const DashboardLayout = () => {
                         </div>
 
                         {/* Welcome Text Section */}
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
-                              Welcome back, {getUserDisplayName(user)}
-                            </h2>
-                            
-                          </div>
-                          <p className="text-gray-400 text-base leading-relaxed max-w-2xl tracking-wide">  
-                            You're in! Now explore datasets, contribute insights, and connect with the community.  
+                        <div className="space-y-2 flex-1">
+                          <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
+                            Welcome back, {getUserDisplayName(user)}
+                          </h2>
+                          <p className="text-gray-400 text-sm leading-relaxed max-w-2xl tracking-wide">
+                            You're in! Now explore datasets, contribute insights, and connect with the community.
                           </p>
-
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                <div className="mt-1">
+                <div className="w-full">
                   <DatasetGrid
                     searchQuery={searchQuery}
                     category={selectedCategory}
