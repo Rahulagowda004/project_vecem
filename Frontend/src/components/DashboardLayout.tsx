@@ -175,7 +175,7 @@ const DashboardLayout = () => {
 
       const data = await response.json();
       if (data.datasets) {
-        setDatasets(data.datasets);
+        setDatasets(data.datasets.slice(0, 12)); // Limit to 12 datasets
       } else {
         setDatasets([]);
       }
