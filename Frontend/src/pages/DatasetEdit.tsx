@@ -522,13 +522,11 @@ const DatasetEdit = () => {
                   key={stat.label}
                   className="bg-gray-800 rounded-lg p-6 border border-gray-700 min-h-[120px] flex flex-col justify-between"
                 >
-                  <div>
-                    <stat.icon className="w-5 h-5 text-cyan-400 mb-2" />
-                    <div className="text-sm font-medium text-cyan-200">
-                      {stat.label}
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <stat.icon className="w-5 h-5 text-cyan-400" />
+                    <div className="text-sm font-medium text-cyan-200">{stat.label}</div>
                   </div>
-                  <div className="flex-1 flex items-center">
+                  <div className="flex-1 flex items-center mt-5"> {/* Increase margin-top to add more space */}
                     {stat.isReadOnly ? (
                       <div className="text-white whitespace-pre-line text-lg font-medium">
                         {stat.value}
