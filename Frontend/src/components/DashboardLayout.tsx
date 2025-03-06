@@ -391,142 +391,140 @@ const DashboardLayout = () => {
 
         {/* Main Content */}
         <div className="flex-1 ml-64">
-          <main className="p-8">
+          <main className="h-[calc(100vh-4rem)]">
             {currentView === 'chatbot' ? (
-              <div className="min-h-[calc(100vh-8rem)]">
-                <div className="h-full">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gray-900/40 backdrop-blur-xl rounded-3xl border border-gray-700/50 overflow-hidden shadow-2xl h-full"
-                  >
-                    {/* ChatBot Messages Area */}
-                    <div className="p-6 space-y-6 overflow-y-auto h-[calc(100vh-16rem)] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
-                      {messages.map((message) => (
-                        <motion.div
-                          key={message.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className={`flex ${
-                            message.content.includes('<header>') 
-                              ? 'w-full justify-center' 
-                              : message.sender === 'user' 
-                                ? 'justify-end' 
-                                : 'justify-start'
-                          }`}
+              <div className="h-full">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="h-full bg-gray-900/40 backdrop-blur-xl border border-gray-700/50 overflow-hidden shadow-2xl"
+                >
+                  {/* ChatBot Messages Area */}
+                  <div className="p-6 space-y-6 overflow-y-auto h-[calc(100vh-8rem)] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                    {messages.map((message) => (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className={`flex ${
+                          message.content.includes('<header>') 
+                            ? 'w-full justify-center' 
+                            : message.sender === 'user' 
+                              ? 'justify-end' 
+                              : 'justify-start'
+                        }`}
+                      >
+                        <div
+                          className={`${
+                            message.content.includes('<header>')
+                              ? 'w-full bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-8'
+                              : message.sender === 'user'
+                              ? 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20'
+                              : 'bg-gray-800/50 border border-gray-700/50'
+                          } rounded-2xl shadow-lg backdrop-blur-sm max-w-[80%] p-4`}
                         >
-                          <div
-                            className={`${
-                              message.content.includes('<header>')
-                                ? 'w-full bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-8'
-                                : message.sender === 'user'
-                                ? 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20'
-                                : 'bg-gray-800/50 border border-gray-700/50'
-                            } rounded-2xl shadow-lg backdrop-blur-sm max-w-[80%] p-4`}
-                          >
-                            <div className={`flex items-start gap-3 ${
-                              message.content.includes('<header>') ? 'flex-col items-center' : ''
-                            }`}>
-                              {message.sender === 'bot' && !message.content.includes('<header>') && (
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
-                                  <Bot className="w-4 h-4 text-gray-900" />
+                          <div className={`flex items-start gap-3 ${
+                            message.content.includes('<header>') ? 'flex-col items-center' : ''
+                          }`}>
+                            {message.sender === 'bot' && !message.content.includes('<header>') && (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+                                <Bot className="w-4 h-4 text-gray-900" />
+                              </div>
+                            )}
+                            <div className={message.content.includes('<header>') ? 'text-center w-full' : ''}>
+                              {message.content.includes('<header>') ? (
+                                <>
+                                  {message.content.split('</header>').map((part, index) => {
+                                    if (index === 0) {
+                                      const [title, subtitle] = part.replace('<header>', '').split('|');
+                                      return (
+                                        <div key={index} className="mb-6">
+                                          <motion.div
+                                            animate={{
+                                              scale: [1, 1.02, 1],
+                                            }}
+                                            transition={{
+                                              duration: 2,
+                                              repeat: Infinity,
+                                              repeatType: "reverse"
+                                            }}
+                                          >
+                                            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+                                              {title}
+                                            </h1>
+                                            <p className="text-gray-400 text-lg">{subtitle}</p>
+                                          </motion.div>
+                                        </div>
+                                      );
+                                    }
+                                    return <div key={index} className="text-gray-300">{part}</div>;
+                                  })}
+                                </>
+                              ) : (
+                                <div className="text-gray-100">
+                                  {message.content}
+                                  <div className="mt-2 text-xs text-gray-500">
+                                    {new Date(message.timestamp).toLocaleTimeString()}
+                                  </div>
                                 </div>
                               )}
-                              <div className={message.content.includes('<header>') ? 'text-center w-full' : ''}>
-                                {message.content.includes('<header>') ? (
-                                  <>
-                                    {message.content.split('</header>').map((part, index) => {
-                                      if (index === 0) {
-                                        const [title, subtitle] = part.replace('<header>', '').split('|');
-                                        return (
-                                          <div key={index} className="mb-6">
-                                            <motion.div
-                                              animate={{
-                                                scale: [1, 1.02, 1],
-                                              }}
-                                              transition={{
-                                                duration: 2,
-                                                repeat: Infinity,
-                                                repeatType: "reverse"
-                                              }}
-                                            >
-                                              <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
-                                                {title}
-                                              </h1>
-                                              <p className="text-gray-400 text-lg">{subtitle}</p>
-                                            </motion.div>
-                                          </div>
-                                        );
-                                      }
-                                      return <div key={index} className="text-gray-300">{part}</div>;
-                                    })}
-                                  </>
-                                ) : (
-                                  <div className="text-gray-100">
-                                    {message.content}
-                                    <div className="mt-2 text-xs text-gray-500">
-                                      {new Date(message.timestamp).toLocaleTimeString()}
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
                             </div>
                           </div>
-                        </motion.div>
-                      ))}
-                      {isTyping && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="flex justify-start"
-                        >
-                          <div className="bg-gray-800/50 p-4 rounded-2xl border border-gray-700/50">
-                            <div className="flex space-x-2">
-                              <motion.div
-                                animate={{ y: [0, -6, 0] }}
-                                transition={{ duration: 0.6, repeat: Infinity }}
-                                className="w-2 h-2 bg-cyan-400 rounded-full"
-                              />
-                              <motion.div
-                                animate={{ y: [0, -6, 0] }}
-                                transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-                                className="w-2 h-2 bg-blue-400 rounded-full"
-                              />
-                              <motion.div
-                                animate={{ y: [0, -6, 0] }}
-                                transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-                                className="w-2 h-2 bg-purple-400 rounded-full"
-                              />
-                            </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                    {isTyping && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex justify-start"
+                      >
+                        <div className="bg-gray-800/50 p-4 rounded-2xl border border-gray-700/50">
+                          <div className="flex space-x-2">
+                            <motion.div
+                              animate={{ y: [0, -6, 0] }}
+                              transition={{ duration: 0.6, repeat: Infinity }}
+                              className="w-2 h-2 bg-cyan-400 rounded-full"
+                            />
+                            <motion.div
+                              animate={{ y: [0, -6, 0] }}
+                              transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                              className="w-2 h-2 bg-blue-400 rounded-full"
+                            />
+                            <motion.div
+                              animate={{ y: [0, -6, 0] }}
+                              transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                              className="w-2 h-2 bg-purple-400 rounded-full"
+                            />
                           </div>
-                        </motion.div>
-                      )}
-                      <div ref={messagesEndRef} />
-                    </div>
+                        </div>
+                      </motion.div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
 
-                    {/* Input Area */}
-                    <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-700/50 bg-gray-900/50 backdrop-blur-sm">
-                      <div className="flex space-x-4">
-                        <input
-                          type="text"
-                          value={chatInput}
-                          onChange={(e) => setChatInput(e.target.value)}
-                          placeholder="Ask me anything about Vecem..."
-                          className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
-                        />
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          type="submit"
-                          className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
-                        >
-                          <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </motion.button>
-                      </div>
-                    </form>
-                  </motion.div>
-                </div>
+                  {/* Input Area */}
+                  <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-700/50 bg-gray-900/50 backdrop-blur-sm">
+                    <div className="flex space-x-4">
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        placeholder="Ask me anything about Vecem..."
+                        className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="submit"
+                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
+                      >
+                        <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </motion.button>
+                    </div>
+                  </form>
+                </motion.div>
               </div>
             ) : (
               <>
