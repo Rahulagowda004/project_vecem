@@ -492,12 +492,8 @@ const DatasetEdit = () => {
             <div className="grid grid-cols-3 gap-6">
               {[
                 {
-                  label: "Size",
-                  value: `Raw: ${formatFileSize(fileSize.raw)}${
-                    fileSize.vectorized
-                      ? `\nVectorized: ${formatFileSize(fileSize.vectorized)}`
-                      : ""
-                  }`,
+                  label: "Dataset Type",
+                  value:datasetType, icon: Database,
                   icon: Database,
                   isReadOnly: true,
                 },
@@ -532,7 +528,7 @@ const DatasetEdit = () => {
                   <div className="flex-1 flex items-center mt-5"> {/* Increase margin-top to add more space */}
                     {stat.isReadOnly ? (
                       <div className="text-white whitespace-pre-line text-lg font-medium">
-                        {stat.value}
+                        {stat.value} data
                       </div>
                     ) : stat.isSelect ? (
                       <select
