@@ -273,8 +273,8 @@ data = dataset.get_files()  # For raw files`,
             {/* Stats Cards */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: "Size", value: dataset.size.raw, icon: Database },
-                { label: "Type", value: dataset.fileType, icon: FileType },
+                { label: "Dataset Type", value: dataset.datasetType, icon: Database },
+                { label: "File Type", value: dataset.fileType, icon: FileType },
                 { label: "Domain", value: dataset.domain, icon: Box },
               ].map((stat, index) => (
                 <motion.div
