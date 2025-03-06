@@ -398,44 +398,31 @@ const DashboardLayout = () => {
         <div className={`flex-1 ${isFullWidth ? 'ml-64' : 'ml-64'} h-full`}>
           <main className="h-full px-6 py-4">
             {currentView === 'chatbot' ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="w-full h-[calc(100vh-6rem)]"
-              >
-                <div className="flex flex-col w-full h-full bg-gray-900/40 backdrop-blur-xl border border-gray-700/50 rounded-2xl overflow-hidden">
-                  {/* ChatBot Messages Area */}
-                  <div className="flex-1 w-full p-6 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+              <div className="flex flex-col h-[calc(100vh-5rem)] -mt-4 -mx-6">
+                {/* Messages Area */}
+                <div className="flex-1 overflow-y-auto px-6">
+                  <div className="h-full w-full space-y-6 py-4">
                     {messages.map((message) => (
                       <motion.div
                         key={message.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className={`flex ${
-                          message.sender === 'user' 
-                            ? 'justify-end' 
-                            : 'justify-start'
-                        }`}
+                        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div
-                          className={`${
-                            message.sender === 'user'
-                              ? 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20'
-                              : 'bg-gray-800/50 border border-gray-700/50'
-                          } rounded-2xl shadow-lg backdrop-blur-sm max-w-[80%] p-4`}
-                        >
-                          <div className="flex items-start gap-3">
-                            {message.sender === 'bot' && (
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
-                                <Bot className="w-4 h-4 text-gray-900" />
-                              </div>
-                            )}
-                            <div className="text-gray-100">
-                              {message.content}
-                              <div className="mt-2 text-xs text-gray-500">
-                                {new Date(message.timestamp).toLocaleTimeString()}
-                              </div>
+                        <div className={`flex items-start gap-3 max-w-2xl ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
+                          {message.sender === 'bot' && (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0">
+                              <Bot className="w-4 h-4 text-gray-900" />
+                            </div>
+                          )}
+                          <div className={`${
+                            message.sender === 'user' 
+                              ? 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10'
+                              : 'bg-gray-800/20'
+                          } px-4 py-2 rounded-2xl`}>
+                            <p className="text-gray-100 text-sm">{message.content}</p>
+                            <div className="mt-1 text-[10px] text-gray-500">
+                              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                           </div>
                         </div>
@@ -447,54 +434,53 @@ const DashboardLayout = () => {
                         animate={{ opacity: 1 }}
                         className="flex justify-start"
                       >
-                        <div className="bg-gray-800/50 p-4 rounded-2xl border border-gray-700/50">
-                          <div className="flex space-x-2">
-                            <motion.div
-                              animate={{ y: [0, -6, 0] }}
-                              transition={{ duration: 0.6, repeat: Infinity }}
-                              className="w-2 h-2 bg-cyan-400 rounded-full"
-                            />
-                            <motion.div
-                              animate={{ y: [0, -6, 0] }}
-                              transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
-                              className="w-2 h-2 bg-blue-400 rounded-full"
-                            />
-                            <motion.div
-                              animate={{ y: [0, -6, 0] }}
-                              transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
-                              className="w-2 h-2 bg-purple-400 rounded-full"
-                            />
-                          </div>
+                        <div className="flex items-center space-x-2 px-4 py-2 rounded-xl">
+                          <motion.div
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity }}
+                            className="w-1.5 h-1.5 bg-cyan-400 rounded-full"
+                          />
+                          <motion.div
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                            className="w-1.5 h-1.5 bg-blue-400 rounded-full"
+                          />
+                          <motion.div
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                            className="w-1.5 h-1.5 bg-purple-400 rounded-full"
+                          />
                         </div>
                       </motion.div>
                     )}
                     <div ref={messagesEndRef} />
                   </div>
-
-                  {/* Input Area */}
-                  <div className="w-full border-t border-gray-700/50 bg-gray-900/50 backdrop-blur-sm p-6">
-                    <form onSubmit={handleChatSubmit}>
-                      <div className="flex space-x-4">
-                        <input
-                          type="text"
-                          value={chatInput}
-                          onChange={(e) => setChatInput(e.target.value)}
-                          placeholder="Ask me anything about Vecem..."
-                          className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
-                        />
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          type="submit"
-                          className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
-                        >
-                          <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </motion.button>
-                      </div>
-                    </form>
-                  </div>
                 </div>
-              </motion.div>
+
+                {/* Input Area */}
+                <div className="border-t border-gray-800/50 bg-gray-900/80 backdrop-blur-xl mt-auto p-0">
+  <div className="px-6 py-4">
+    <form onSubmit={handleChatSubmit} className="flex w-full space-x-4">
+      <input
+        type="text"
+        value={chatInput}
+        onChange={(e) => setChatInput(e.target.value)}
+        placeholder="Ask me anything about Vecem..."
+        className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
+      />
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        type="submit"
+        className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
+      >
+        <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+      </motion.button>
+    </form>
+  </div>
+</div>
+
+              </div>
             ) : (
               <>
                 {/* Enhanced User Welcome Section */}
