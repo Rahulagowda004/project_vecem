@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -9,16 +9,18 @@ import {
   Settings,
   Database,
   Users,
-  ChevronRight,
   FileAudio,
   Image,
   FileVideo,
   FileText,
   BookOpen,
+  Bot,
+  Send,
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
 import { getUserProfileByUid } from "../services/userService";
 import { getUserDisplayName } from '../utils/userManagement';
+import { motion } from 'framer-motion';
 
 const LogoutButton = () => {
   const { logout } = useAuth();
@@ -56,6 +58,53 @@ const DashboardLayout = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
+  const [currentView, setCurrentView] = useState('datasets'); // Add this state
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'header',
+      content: `<header>VecemBot|Your intelligent assistant for vectorized datasets</header>Hi, I'm VecemBot! I'm here to help you with any questions about our vectorized datasets and platform features. How can I assist you today?`,
+      sender: 'bot',
+      timestamp: new Date().toISOString(),
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const userMessage = {
+      id: Date.now().toString(),
+      content: chatInput,
+      sender: 'user',
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+    setIsTyping(true);
+
+    setTimeout(() => {
+      const botMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "I understand you're asking about " + chatInput + ". Let me help you with that...",
+        sender: 'bot',
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+      setIsTyping(false);
+    }, 1500);
+  };
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -222,10 +271,25 @@ const DashboardLayout = () => {
           <div className="flex flex-col h-full">
             {/* Navigation Menu */}
             <nav className="flex-1 px-2 py-4 space-y-2">
+              {/* ChatBot Section */}
+              <button
+                onClick={() => setCurrentView('chatbot')}
+                className={`flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 rounded-xl ${
+                  currentView === 'chatbot' ? 'bg-cyan-500/10' : ''
+                }`}
+              >
+                <Bot className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <span className="group-hover:text-cyan-400 transition-colors">ChatBot</span>
+              </button>
+
               {/* Datasets Section */}
-             
               <div className="space-y-2">
-                <div className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10">
+                <div 
+                  onClick={() => setCurrentView('datasets')}
+                  className={`flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 cursor-pointer ${
+                    currentView === 'datasets' ? 'bg-cyan-500/10' : ''
+                  }`}
+                >
                   <Database className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
                   <span className="group-hover:text-cyan-400 transition-colors">
                     Datasets
@@ -233,7 +297,7 @@ const DashboardLayout = () => {
                 </div>
 
                 <div className="ml-4 space-y-1 relative before:absolute before:left-[1.6rem] before:top-0 before:h-full before:w-px before:bg-gradient-to-b before:from-cyan-500/50 before:to-transparent before:opacity-25">
-                  {/* Add All Datasets button first */}
+                  {/* Dataset category buttons */}
                   <button
                     onClick={() => handleCategorySelect("all")}
                     className={`flex items-center justify-between w-full px-4 py-2.5 text-sm ${
@@ -308,6 +372,7 @@ const DashboardLayout = () => {
                   </span>
                 </div>
               </Link>
+
               {/* Documentation Section */}
               <Link
                 to="/documentation"
@@ -327,52 +392,192 @@ const DashboardLayout = () => {
         {/* Main Content */}
         <div className="flex-1 ml-64">
           <main className="p-8">
-            {/* Enhanced User Welcome Section */}
-            {user && (
-              <div className="mb-4 transform transition-all duration-500 ease-in-out hover:scale-[1.02]">
-                <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
-                  {/* Decorative Elements */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
-                  
-                  <div className="relative flex items-center space-x-8">
-                    {/* Avatar Section */}
-                    <div className="relative group">
-                      <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-cyan-300 to-cyan-500 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                      <div className="relative p-1 bg-gradient-to-r from-gray-900 to-gray-800 rounded-full">
-                        <img
-                          className="h-20 w-20 rounded-full ring-2 ring-cyan-400/30 object-cover transition-transform duration-300 group-hover:scale-105"
-                          src={userAvatar}
-                          alt={user.displayName || "User avatar"}
+            {currentView === 'chatbot' ? (
+              <div className="min-h-[calc(100vh-8rem)]">
+                <div className="h-full">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gray-900/40 backdrop-blur-xl rounded-3xl border border-gray-700/50 overflow-hidden shadow-2xl h-full"
+                  >
+                    {/* ChatBot Messages Area */}
+                    <div className="p-6 space-y-6 overflow-y-auto h-[calc(100vh-16rem)] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                      {messages.map((message) => (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className={`flex ${
+                            message.content.includes('<header>') 
+                              ? 'w-full justify-center' 
+                              : message.sender === 'user' 
+                                ? 'justify-end' 
+                                : 'justify-start'
+                          }`}
+                        >
+                          <div
+                            className={`${
+                              message.content.includes('<header>')
+                                ? 'w-full bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-8'
+                                : message.sender === 'user'
+                                ? 'bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20'
+                                : 'bg-gray-800/50 border border-gray-700/50'
+                            } rounded-2xl shadow-lg backdrop-blur-sm max-w-[80%] p-4`}
+                          >
+                            <div className={`flex items-start gap-3 ${
+                              message.content.includes('<header>') ? 'flex-col items-center' : ''
+                            }`}>
+                              {message.sender === 'bot' && !message.content.includes('<header>') && (
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
+                                  <Bot className="w-4 h-4 text-gray-900" />
+                                </div>
+                              )}
+                              <div className={message.content.includes('<header>') ? 'text-center w-full' : ''}>
+                                {message.content.includes('<header>') ? (
+                                  <>
+                                    {message.content.split('</header>').map((part, index) => {
+                                      if (index === 0) {
+                                        const [title, subtitle] = part.replace('<header>', '').split('|');
+                                        return (
+                                          <div key={index} className="mb-6">
+                                            <motion.div
+                                              animate={{
+                                                scale: [1, 1.02, 1],
+                                              }}
+                                              transition={{
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                repeatType: "reverse"
+                                              }}
+                                            >
+                                              <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+                                                {title}
+                                              </h1>
+                                              <p className="text-gray-400 text-lg">{subtitle}</p>
+                                            </motion.div>
+                                          </div>
+                                        );
+                                      }
+                                      return <div key={index} className="text-gray-300">{part}</div>;
+                                    })}
+                                  </>
+                                ) : (
+                                  <div className="text-gray-100">
+                                    {message.content}
+                                    <div className="mt-2 text-xs text-gray-500">
+                                      {new Date(message.timestamp).toLocaleTimeString()}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                      {isTyping && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex justify-start"
+                        >
+                          <div className="bg-gray-800/50 p-4 rounded-2xl border border-gray-700/50">
+                            <div className="flex space-x-2">
+                              <motion.div
+                                animate={{ y: [0, -6, 0] }}
+                                transition={{ duration: 0.6, repeat: Infinity }}
+                                className="w-2 h-2 bg-cyan-400 rounded-full"
+                              />
+                              <motion.div
+                                animate={{ y: [0, -6, 0] }}
+                                transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                                className="w-2 h-2 bg-blue-400 rounded-full"
+                              />
+                              <motion.div
+                                animate={{ y: [0, -6, 0] }}
+                                transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                                className="w-2 h-2 bg-purple-400 rounded-full"
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Input Area */}
+                    <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-700/50 bg-gray-900/50 backdrop-blur-sm">
+                      <div className="flex space-x-4">
+                        <input
+                          type="text"
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          placeholder="Ask me anything about Vecem..."
+                          className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
                         />
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          type="submit"
+                          className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
+                        >
+                          <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </motion.button>
                       </div>
-                    </div>
-
-                    {/* Welcome Text Section */}
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2">
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
-                          Welcome back, {getUserDisplayName(user)}
-                        </h2>
-                        
-                      </div>
-                      <p className="text-gray-400 text-base leading-relaxed max-w-2xl tracking-wide">  
-                        You're in! Now explore datasets, contribute insights, and connect with the community.  
-                      </p>
-
-                    </div>
-                  </div>
+                    </form>
+                  </motion.div>
                 </div>
               </div>
-            )}
+            ) : (
+              <>
+                {/* Enhanced User Welcome Section */}
+                {user && (
+                  <div className="mb-4 transform transition-all duration-500 ease-in-out hover:scale-[1.02]">
+                    <div className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+                      {/* Decorative Elements */}
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                      <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+                      
+                      <div className="relative flex items-center space-x-8">
+                        {/* Avatar Section */}
+                        <div className="relative group">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-cyan-300 to-cyan-500 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                          <div className="relative p-1 bg-gradient-to-r from-gray-900 to-gray-800 rounded-full">
+                            <img
+                              className="h-20 w-20 rounded-full ring-2 ring-cyan-400/30 object-cover transition-transform duration-300 group-hover:scale-105"
+                              src={userAvatar}
+                              alt={user.displayName || "User avatar"}
+                            />
+                          </div>
+                        </div>
 
-            <div className="mt-1">
-              <DatasetGrid
-                searchQuery={searchQuery}
-                category={selectedCategory}
-                datasets={datasets}
-              />
-            </div>
+                        {/* Welcome Text Section */}
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
+                              Welcome back, {getUserDisplayName(user)}
+                            </h2>
+                            
+                          </div>
+                          <p className="text-gray-400 text-base leading-relaxed max-w-2xl tracking-wide">  
+                            You're in! Now explore datasets, contribute insights, and connect with the community.  
+                          </p>
+
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-1">
+                  <DatasetGrid
+                    searchQuery={searchQuery}
+                    category={selectedCategory}
+                    datasets={datasets}
+                  />
+                </div>
+              </>
+            )}
           </main>
         </div>
       </div>

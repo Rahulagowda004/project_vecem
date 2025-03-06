@@ -6,6 +6,7 @@ import {
   ChevronDown,
   LogOut,
   Settings,
+  Bot,
 } from "lucide-react";
 import { getUserProfileByUid } from '../services/userService';
 

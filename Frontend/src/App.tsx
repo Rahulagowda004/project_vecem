@@ -15,6 +15,7 @@ import { useAuth } from "./contexts/AuthContext";
 import DatasetEdit from "./pages/DatasetEdit";
 import OtherProfile from "./pages/OtherProfile";
 
+
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return <div className="min-h-screen bg-gray-900">{children}</div>;
 };
@@ -113,6 +114,8 @@ function App() {
             </PrivateRoute>
           }
         />
+
+       
 
         {/* Profile Route */}
         <Route
