@@ -486,7 +486,7 @@ const Community = () => {
                 value={newMessage}
                 onChange={e => setNewMessage(e.target.value)}
                 onKeyPress={e => e.key === 'Enter' && (replyingTo ? handleReply(replyingTo) : handleSendMessage())}
-                placeholder={replyingTo ? `Reply to ${replyingTo.userName}...` : `Type your ${selectedTag} message...`}
+                placeholder={replyingTo ? `Reply to ${replyingTo.userName}...` : `Type your message...`}
                 className="flex-1 bg-transparent px-4 py-2 text-white placeholder-gray-400 focus:outline-none"
               />
               <motion.button
