@@ -271,17 +271,6 @@ const DashboardLayout = () => {
           <div className="flex flex-col h-full">
             {/* Navigation Menu */}
             <nav className="flex-1 px-2 py-4 space-y-2">
-              {/* ChatBot Section */}
-              <button
-                onClick={() => setCurrentView('chatbot')}
-                className={`flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 rounded-xl ${
-                  currentView === 'chatbot' ? 'bg-cyan-500/10' : ''
-                }`}
-              >
-                <Bot className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                <span className="group-hover:text-cyan-400 transition-colors">ChatBot</span>
-              </button>
-
               {/* Datasets Section */}
               <div className="space-y-2">
                 <div 
@@ -385,6 +374,17 @@ const DashboardLayout = () => {
                   </span>
                 </div>
               </Link>
+
+              {/* ChatBot Section */}
+              <button
+                onClick={() => setCurrentView('chatbot')}
+                className={`flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 rounded-xl ${
+                  currentView === 'chatbot' ? 'bg-cyan-500/10' : ''
+                }`}
+              >
+                <Bot className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <span className="group-hover:text-cyan-400 transition-colors">ChatBot</span>
+              </button>
             </nav>
           </div>
         </div>
@@ -393,14 +393,14 @@ const DashboardLayout = () => {
         <div className="flex-1 ml-64">
           <main className="h-[calc(100vh-4rem)]">
             {currentView === 'chatbot' ? (
-              <div className="h-full">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="h-full bg-gray-900/40 backdrop-blur-xl border border-gray-700/50 overflow-hidden shadow-2xl"
-                >
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="h-full"
+              >
+                <div className="flex flex-col h-full bg-gray-900/40 backdrop-blur-xl border border-gray-700/50">
                   {/* ChatBot Messages Area */}
-                  <div className="p-6 space-y-6 overflow-y-auto h-[calc(100vh-8rem)] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                  <div className="flex-1 p-4 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                     {messages.map((message) => (
                       <motion.div
                         key={message.id}
@@ -505,27 +505,29 @@ const DashboardLayout = () => {
                   </div>
 
                   {/* Input Area */}
-                  <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-700/50 bg-gray-900/50 backdrop-blur-sm">
-                    <div className="flex space-x-4">
-                      <input
-                        type="text"
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="Ask me anything about Vecem..."
-                        className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
-                      />
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        type="submit"
-                        className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
-                      >
-                        <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </motion.button>
-                    </div>
-                  </form>
-                </motion.div>
-              </div>
+                  <div className="border-t border-gray-700/50 bg-gray-900/50 backdrop-blur-sm p-4">
+                    <form onSubmit={handleChatSubmit}>
+                      <div className="flex space-x-4">
+                        <input
+                          type="text"
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          placeholder="Ask me anything about Vecem..."
+                          className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
+                        />
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          type="submit"
+                          className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
+                        >
+                          <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </motion.button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </motion.div>
             ) : (
               <>
                 {/* Enhanced User Welcome Section */}
