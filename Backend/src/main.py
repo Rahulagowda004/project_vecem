@@ -1,6 +1,7 @@
 import sys
 import uuid
 import base64
+from datetime import datetime
 from bson import ObjectId
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -293,39 +294,40 @@ async def update_dataset(dataset_id: str, updated_data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/datasets/{dataset_id}")
-async def delete_dataset(dataset_id: str):
+@app.delete("/api/datasets/{dataset_id}")
+async def delete_dataset(dataset_id: str, data: dict):
     logging.info(f"Endpoint called: delete_dataset() for dataset_id: {dataset_id}")
     try:
+        # Extract data from request
+        uid = data.get("userId")
+        dataset_name = data.get("datasetName")
+        print(uid, dataset_name)
+        # Log the deletion request
+        logging.info(f"Dataset deletion requested - UserID: {uid}, Dataset Name: {dataset_name}")
+        
         # Convert string ID to ObjectId
         object_id = ObjectId(dataset_id)
         
-        # Get dataset info before deletion for user profile update
-        dataset = await datasets_collection.find_one({"_id": object_id})
-        if not dataset:
-            raise HTTPException(status_code=404, detail="Dataset not found")
-            
-        # Delete dataset
-        result = await datasets_collection.delete_one({"_id": object_id})
-        
-        if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Dataset not found")
-            
-        # Update user profile to remove dataset reference
-        await user_profile_collection.update_one(
-            {"uid": dataset["uid"]},
-            {
-                "$pull": {"datasets": {"dataset_id": dataset["dataset_id"]}},
-                "$inc": {
-                    "number_of_raw_datasets": -1 if dataset["upload_type"] in ["raw", "both"] else 0,
-                    "number_of_vectorized_datasets": -1 if dataset["upload_type"] in ["vectorized", "both"] else 0
-                }
-            }
+        # Instead of deleting, mark the dataset as deleted by updating specific fields
+        result = await datasets_collection.update_one(
+            {"_id": object_id, "uid": uid},
+            {"$set": {
+                "dataset_id": "deleted",
+                "dataset_info.name": "deleted",
+                "dataset_info.datasetId": "deleted",
+                "dataset_info.username": "deleted",
+                "uid": "deleted",
+            }}
         )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Dataset not found or you don't have permission to delete it")
             
+        logging.info(f"Dataset successfully marked as deleted - UserID: {uid}, Dataset Name: {dataset_name}")
         return {"message": "Dataset deleted successfully"}
         
     except Exception as e:
+        logging.error(f"Error marking dataset as deleted: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/user-avatar/{uid}")
@@ -333,7 +335,7 @@ async def get_user_avatar(uid: str):
     logging.info(f"Endpoint called: get_user_avatar() for UID: {uid}")
     try:
         user_profile = await user_profile_collection.find_one(
-            {"uid": uid}, 
+            {"uid": uid},
             {"profilePicture": 1}
         )
         logging.info(f"User profile: {user_profile}")
@@ -364,10 +366,9 @@ async def log_dataset_category(data: dict):
     logging.info(f"Endpoint called: log_dataset_category() for category: {data.get('category')}")
     try:
         category = data.get('category')
-        
         if not category:
             raise ValueError("Category is missing")
-        
+
         # Base query
         query = {}
         if category != "all":
@@ -387,14 +388,13 @@ async def log_dataset_category(data: dict):
             dataset["dataset_info"]["description"] = dataset.get("dataset_info", {}).get("description", "")
             dataset["dataset_info"]["domain"] = dataset.get("dataset_info", {}).get("domain", "")
             processed_datasets.append(dataset)
-        
+
         return {
             "status": "success",
             "message": f"Category {category} selected",
             "category": category,
             "datasets": jsonable_encoder(processed_datasets)
         }
-        
     except Exception as e:
         logging.error(f"Error in log_dataset_category: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

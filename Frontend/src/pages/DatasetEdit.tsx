@@ -197,12 +197,10 @@ const DatasetEdit = () => {
   }, [datasetname, user]);
 
   const handleSave = async () => {
+    if (!dataset?._id) return;
+
     setIsSaving(true);
     try {
-      if (!dataset?._id) {
-        throw new Error("No dataset ID found");
-      }
-
       const response = await fetch(
         `http://127.0.0.1:5000/update-dataset/${dataset._id}`,
         {
@@ -222,13 +220,16 @@ const DatasetEdit = () => {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to update dataset");
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to update dataset");
       }
 
-      navigate(`/${username}/${name}`);
+      toast.success("Dataset updated successfully");
     } catch (error) {
-      console.error("Error saving dataset:", error);
-      // Add error handling UI here
+      console.error("Error updating dataset:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update dataset"
+      );
     } finally {
       setIsSaving(false);
     }
@@ -239,7 +240,7 @@ const DatasetEdit = () => {
 
     setIsDeleting(true);
     try {
-      // First, delete from MongoDB and Azure Blob Storage
+      // Mark the dataset as deleted in the database
       const deleteResponse = await fetch(
         `http://127.0.0.1:5000/api/datasets/${dataset._id}`,
         {
@@ -249,8 +250,8 @@ const DatasetEdit = () => {
           },
           body: JSON.stringify({
             userId: user?.uid,
-            datasetName: name
-          })
+            datasetName: name,
+          }),
         }
       );
 
@@ -259,19 +260,18 @@ const DatasetEdit = () => {
         throw new Error(error.detail || "Failed to delete dataset");
       }
 
-      // If MongoDB deletion was successful
+      // If marking as deleted was successful
       toast.success("Dataset deleted successfully");
-      
+
       // Redirect to user profile after successful deletion
       setTimeout(() => {
         navigate(`/${username}`);
       }, 1500);
-      
     } catch (error) {
       console.error("Error deleting dataset:", error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : "Failed to delete dataset from database"
       );
     } finally {
@@ -347,9 +347,12 @@ const DatasetEdit = () => {
             <AlertTriangle className="w-6 h-6 text-red-400" />
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-white mb-2">Delete Dataset</h3>
+            <h3 className="text-xl font-semibold text-white mb-2">
+              Delete Dataset
+            </h3>
             <p className="text-gray-300 mb-4">
-              Are you sure you want to delete this dataset? This action cannot be undone.
+              Are you sure you want to delete this dataset? This action cannot
+              be undone.
             </p>
           </div>
         </div>
@@ -688,9 +691,7 @@ const DatasetEdit = () => {
           </motion.div>
         </div>
       </motion.div>
-      <AnimatePresence>
-        {showDeleteModal && <DeleteModal />}
-      </AnimatePresence>
+      <AnimatePresence>{showDeleteModal && <DeleteModal />}</AnimatePresence>
     </div>
   );
 };
