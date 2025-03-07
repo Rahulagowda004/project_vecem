@@ -3,10 +3,11 @@ import uuid
 import base64
 from datetime import datetime
 from bson import ObjectId
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
-from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile,datasets_collection, delete_user_account
+from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile,datasets_collection, delete_user_account,deleted_datasets_collection
 from src.models.models import UserProfile,UidRequest,SettingProfile
 from fastapi.encoders import jsonable_encoder
 from src.utils.exception import CustomException
@@ -294,40 +295,55 @@ async def update_dataset(dataset_id: str, updated_data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class DatasetDeleteRequest(BaseModel):
+    userId: str
+    datasetName: str = None
+
 @app.delete("/api/datasets/{dataset_id}")
-async def delete_dataset(dataset_id: str, data: dict):
+async def delete_dataset(dataset_id: str, delete_req: DatasetDeleteRequest = Body(...)):
     logging.info(f"Endpoint called: delete_dataset() for dataset_id: {dataset_id}")
     try:
-        # Extract data from request
-        uid = data.get("userId")
-        dataset_name = data.get("datasetName")
-        print(uid, dataset_name)
-        # Log the deletion request
+        # Extract data from request body
+        uid = delete_req.userId
+        dataset_name = delete_req.datasetName
+        
         logging.info(f"Dataset deletion requested - UserID: {uid}, Dataset Name: {dataset_name}")
         
         # Convert string ID to ObjectId
-        object_id = ObjectId(dataset_id)
+        try:
+            object_id = ObjectId(dataset_id)
+        except Exception as e:
+            logging.error(f"Invalid ObjectId format: {dataset_id} - {str(e)}")
+            raise HTTPException(status_code=400, detail=f"Invalid dataset ID format: {dataset_id}")
         
-        # Instead of deleting, mark the dataset as deleted by updating specific fields
-        result = await datasets_collection.update_one(
-            {"_id": object_id, "uid": uid},
-            {"$set": {
-                "dataset_id": "deleted",
-                "dataset_info.name": "deleted",
-                "dataset_info.datasetId": "deleted",
-                "dataset_info.username": "deleted",
-                "uid": "deleted",
-            }}
-        )
+        # Find the dataset document first
+        dataset_doc = await datasets_collection.find_one({"_id": object_id, "uid": uid})
         
-        if result.modified_count == 0:
+        if not dataset_doc:
+            logging.error(f"Dataset not found with _id: {object_id} and uid: {uid}")
             raise HTTPException(status_code=404, detail="Dataset not found or you don't have permission to delete it")
             
-        logging.info(f"Dataset successfully marked as deleted - UserID: {uid}, Dataset Name: {dataset_name}")
+        # Mark the document as deleted
+        dataset_doc["deleted_at"] = datetime.now()
+
+        # Insert into deleted_datasets collection
+        await deleted_datasets_collection.insert_one(dataset_doc)
+        logging.info(f"Dataset added to deleted_datasets_collection")
+
+        # Delete from original collection
+        result = await datasets_collection.delete_one({"_id": object_id})
+        
+        if result.deleted_count == 0:
+            logging.error(f"Failed to delete dataset from collection")
+            raise HTTPException(status_code=500, detail="Failed to delete dataset")
+            
+        logging.info(f"Dataset successfully deleted - UserID: {uid}, Dataset Name: {dataset_name}")
         return {"message": "Dataset deleted successfully"}
         
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logging.error(f"Error marking dataset as deleted: {str(e)}")
+        logging.error(f"Error deleting dataset: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/user-avatar/{uid}")

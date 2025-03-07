@@ -12,6 +12,7 @@ client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 user_profile_collection = db.userprofile
 datasets_collection = db.datasets
+deleted_datasets_collection = db.deleteddatasets
 
 async def save_userprofile(userprofile: dict) -> str:
     try:
