@@ -98,7 +98,7 @@ const DatasetDetail = () => {
       return;
     }
 
-    const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.owner}/${dataset.name}.zip`;
+    const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.owner}/${dataset.name}_${fileType}.zip`;
     
     // Create an anchor element and trigger download
     const link = document.createElement('a');
@@ -273,8 +273,8 @@ data = dataset.get_files()  # For raw files`,
             {/* Stats Cards */}
             <div className="grid grid-cols-3 gap-4">
               {[
-                { label: "Dataset Type", value: dataset.datasetType, icon: Database },
-                { label: "File Type", value: dataset.fileType, icon: FileType },
+                { label: "Size", value: dataset.size.raw, icon: Database },
+                { label: "Type", value: dataset.fileType, icon: FileType },
                 { label: "Domain", value: dataset.domain, icon: Box },
               ].map((stat, index) => (
                 <motion.div

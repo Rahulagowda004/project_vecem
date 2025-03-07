@@ -15,9 +15,8 @@ blob_service_client = BlobServiceClient(account_url=STORAGE_ACCOUNT_URL, credent
 container_client = blob_service_client.get_container_client(CONTAINER_NAME)
 
 async def create_and_upload_zip(files: List[UploadFile], username: str, dataset_name: str, file_type: str) -> str:
-    """Create a zip file from uploaded files and upload it to Azure Blob Storage."""
+    """Create separate zip files for raw and vectorized data and upload them to Azure Blob Storage."""
     temp_dir = None
-    zip_path = None
     
     try:
         # Create temporary directory structure
@@ -33,17 +32,17 @@ async def create_and_upload_zip(files: List[UploadFile], username: str, dataset_
                 f.write(file_content)
             await file.seek(0)  # Reset file pointer
 
-        # Create zip file
-        zip_base_path = os.path.join(temp_dir, f"{dataset_name}")
+        # Create zip file for the specific file_type folder
+        zip_base_path = os.path.join(temp_dir, username, dataset_name, f"{file_type}")
         zip_path = f"{zip_base_path}.zip"
         shutil.make_archive(
             base_name=zip_base_path,
             format='zip',
-            root_dir=os.path.join(temp_dir, username)
+            root_dir=dataset_dir
         )
 
-        # Upload zip to Azure
-        blob_name = f"{username}/{dataset_name}.zip"
+        # Upload zip to Azure with correct folder structure
+        blob_name = f"{username}/{dataset_name}/{file_type}.zip"
         blob_client = container_client.get_blob_client(blob_name)
         
         with open(zip_path, "rb") as zip_file:
