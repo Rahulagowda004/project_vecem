@@ -493,7 +493,7 @@ const DatasetEdit = () => {
               {[
                 {
                   label: "Dataset Type",
-                  value:datasetType, icon: Database,
+                  value: datasetType,
                   icon: Database,
                   isReadOnly: true,
                 },
