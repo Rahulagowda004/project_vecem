@@ -19,8 +19,9 @@ import {
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
 import { getUserProfileByUid } from "../services/userService";
-import { getUserDisplayName } from '../utils/userManagement';
-import { motion } from 'framer-motion';
+import { getUserDisplayName } from "../utils/userManagement";
+import { motion } from "framer-motion";
+import { ChatMessage, sendChatMessage } from "../services/chatService";
 
 const LogoutButton = () => {
   const { logout } = useAuth();
@@ -58,22 +59,23 @@ const DashboardLayout = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [currentView, setCurrentView] = useState('datasets'); // Add this state
+  const [currentView, setCurrentView] = useState("datasets"); // Add this state
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: 'welcome',
-      content: "Hi! I'm VecemBot, your AI assistant for discovering and understanding vectorized datasets. How can I help you today?",
-      sender: 'bot',
+      id: "welcome",
+      content:
+        "Hi! I'm VecemBot, your AI assistant for discovering and understanding vectorized datasets. How can I help you today?",
+      sender: "bot",
       timestamp: new Date().toISOString(),
-    }
+    },
   ]);
-  const [chatInput, setChatInput] = useState('');
+  const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isFullWidth, setIsFullWidth] = useState(false);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -84,27 +86,40 @@ const DashboardLayout = () => {
     e.preventDefault();
     if (!chatInput.trim()) return;
 
-    const userMessage = {
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
       content: chatInput,
-      sender: 'user',
+      sender: "user",
       timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setChatInput('');
+    setMessages((prev) => [...prev, userMessage]);
+    setChatInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      const botMessage = {
+    try {
+      const data = await sendChatMessage(chatInput);
+
+      const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: "I understand you're asking about " + chatInput + ". Let me help you with that...",
-        sender: 'bot',
+        content: data.response,
+        sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, botMessage]);
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm sorry, I encountered an error. Please try again.",
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   useEffect(() => {
@@ -160,7 +175,7 @@ const DashboardLayout = () => {
   }, []); // Empty dependency array means this runs once on mount
 
   useEffect(() => {
-    setIsFullWidth(currentView === 'chatbot');
+    setIsFullWidth(currentView === "chatbot");
   }, [currentView]);
 
   const handleCategorySelect = async (category: string) => {
@@ -278,10 +293,10 @@ const DashboardLayout = () => {
             <nav className="flex-1 px-2 py-4 space-y-2">
               {/* Datasets Section */}
               <div className="space-y-2">
-                <div 
-                  onClick={() => setCurrentView('datasets')}
+                <div
+                  onClick={() => setCurrentView("datasets")}
                   className={`flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 cursor-pointer ${
-                    currentView === 'datasets' ? 'bg-cyan-500/10' : ''
+                    currentView === "datasets" ? "bg-cyan-500/10" : ""
                   }`}
                 >
                   <Database className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
@@ -382,22 +397,24 @@ const DashboardLayout = () => {
 
               {/* ChatBot Section */}
               <button
-                onClick={() => setCurrentView('chatbot')}
+                onClick={() => setCurrentView("chatbot")}
                 className={`flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 rounded-xl ${
-                  currentView === 'chatbot' ? 'bg-cyan-500/10' : ''
+                  currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
                 <Bot className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                <span className="group-hover:text-cyan-400 transition-colors">ChatBot</span>
+                <span className="group-hover:text-cyan-400 transition-colors">
+                  ChatBot
+                </span>
               </button>
             </nav>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className={`flex-1 ${isFullWidth ? 'ml-64' : 'ml-64'} h-full`}>
+        <div className={`flex-1 ${isFullWidth ? "ml-64" : "ml-64"} h-full`}>
           <main className="h-full px-6 py-4">
-            {currentView === 'chatbot' ? (
+            {currentView === "chatbot" ? (
               <div className="flex flex-col h-[calc(100vh-5rem)] -mt-4 -mx-6">
                 {/* Messages Area */}
                 <div className="flex-1 overflow-y-auto px-6">
@@ -407,22 +424,37 @@ const DashboardLayout = () => {
                         key={message.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${
+                          message.sender === "user"
+                            ? "justify-end"
+                            : "justify-start"
+                        }`}
                       >
-                        <div className={`flex items-start gap-3 max-w-2xl ${message.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                          {message.sender === 'bot' && (
+                        <div
+                          className={`flex items-start gap-3 max-w-2xl ${
+                            message.sender === "user" ? "flex-row-reverse" : ""
+                          }`}
+                        >
+                          {message.sender === "bot" && (
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0">
                               <Bot className="w-4 h-4 text-gray-900" />
                             </div>
                           )}
-                          <div className={`${
-                            message.sender === 'user' 
-                              ? 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10'
-                              : 'bg-gray-800/20'
-                          } px-4 py-2 rounded-2xl`}>
-                            <p className="text-gray-100 text-sm">{message.content}</p>
+                          <div
+                            className={`${
+                              message.sender === "user"
+                                ? "bg-gradient-to-r from-cyan-500/10 to-blue-500/10"
+                                : "bg-gray-800/20"
+                            } px-4 py-2 rounded-2xl`}
+                          >
+                            <p className="text-gray-100 text-sm">
+                              {message.content}
+                            </p>
                             <div className="mt-1 text-[10px] text-gray-500">
-                              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {new Date(message.timestamp).toLocaleTimeString(
+                                [],
+                                { hour: "2-digit", minute: "2-digit" }
+                              )}
                             </div>
                           </div>
                         </div>
@@ -442,12 +474,20 @@ const DashboardLayout = () => {
                           />
                           <motion.div
                             animate={{ y: [0, -4, 0] }}
-                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+                            transition={{
+                              duration: 0.6,
+                              repeat: Infinity,
+                              delay: 0.2,
+                            }}
                             className="w-1.5 h-1.5 bg-blue-400 rounded-full"
                           />
                           <motion.div
                             animate={{ y: [0, -4, 0] }}
-                            transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+                            transition={{
+                              duration: 0.6,
+                              repeat: Infinity,
+                              delay: 0.4,
+                            }}
                             className="w-1.5 h-1.5 bg-purple-400 rounded-full"
                           />
                         </div>
@@ -459,27 +499,29 @@ const DashboardLayout = () => {
 
                 {/* Input Area */}
                 <div className="border-t border-gray-800/50 bg-gray-900/80 backdrop-blur-xl mt-auto p-0">
-  <div className="px-6 py-4">
-    <form onSubmit={handleChatSubmit} className="flex w-full space-x-4">
-      <input
-        type="text"
-        value={chatInput}
-        onChange={(e) => setChatInput(e.target.value)}
-        placeholder="Ask me anything about Vecem..."
-        className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
-      />
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        type="submit"
-        className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
-      >
-        <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-      </motion.button>
-    </form>
-  </div>
-</div>
-
+                  <div className="px-6 py-4">
+                    <form
+                      onSubmit={handleChatSubmit}
+                      className="flex w-full space-x-4"
+                    >
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        placeholder="Ask me anything about Vecem..."
+                        className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        type="submit"
+                        className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
+                      >
+                        <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </motion.button>
+                    </form>
+                  </div>
+                </div>
               </div>
             ) : (
               <>
@@ -490,7 +532,7 @@ const DashboardLayout = () => {
                       {/* Decorative Elements */}
                       <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
                       <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
-                      
+
                       <div className="relative flex items-center space-x-8">
                         {/* Avatar Section */}
                         <div className="relative group flex-shrink-0">
@@ -510,7 +552,8 @@ const DashboardLayout = () => {
                             Welcome back, {getUserDisplayName(user)}
                           </h2>
                           <p className="text-gray-400 text-sm leading-relaxed max-w-2xl tracking-wide">
-                            You're in! Now explore datasets, contribute insights, and connect with the community.
+                            You're in! Now explore datasets, contribute
+                            insights, and connect with the community.
                           </p>
                         </div>
                       </div>

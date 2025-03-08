@@ -13,6 +13,8 @@ from fastapi.encoders import jsonable_encoder
 from src.utils.exception import CustomException
 from src.utils.logger import logging
 from src.routes import users
+from src.bot import FRIDAY
+from typing import Optional 
 
 app = FastAPI()
 
@@ -414,6 +416,25 @@ async def log_dataset_category(data: dict):
     except Exception as e:
         logging.error(f"Error in log_dataset_category: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Initialize the chatbot
+bot = FRIDAY()
+
+class ChatMessage(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+
+@app.post("/chat")
+async def chat_endpoint(chat_message: ChatMessage):
+    try:
+        response = await bot.get_response(chat_message.message)
+        return {
+            "response": response,
+            "session_id": None  # Since we don't need persistent sessions
+        }
+    except Exception as e:
+        logging.error(f"Chat endpoint error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error processing chat message")
 
 # Shutdown event
 @app.on_event("shutdown")
