@@ -14,6 +14,7 @@ import Documentation from "./pages/Documentation";
 import { useAuth } from "./contexts/AuthContext";
 import DatasetEdit from "./pages/DatasetEdit";
 import OtherProfile from "./pages/OtherProfile";
+import Prompt from "./pages/Prompt";
 
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
@@ -123,6 +124,16 @@ function App() {
           element={
             <PrivateRoute>
               <UserProfile />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Prompt Route */}
+        <Route
+          path="/prompt"
+          element={
+            <PrivateRoute>
+              <Prompt />
             </PrivateRoute>
           }
         />
