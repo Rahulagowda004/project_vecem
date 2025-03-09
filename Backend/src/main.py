@@ -469,19 +469,37 @@ async def create_reply_message(message: dict):
         return {"id": message_id, "status": "success"}
     except Exception as e:
         logging.error(f"Error creating reply message: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
+        raise HTTPException(status_code=500, detail=[str(e)])
+        
 @app.get("/community/messages/{tag}")
 async def get_messages(tag: str):
     try:
         collection = general_collection if tag == "general" else issues_collection
-        # Change sort order to ascending (oldest first)
         messages = await collection.find({}).sort("created_at", 1).to_list(None)
         
-        # Get user details for each message
         processed_messages = []
         for msg in messages:
             user = await user_profile_collection.find_one({"uid": msg["uid"]})
+            
+            # Get replies for issues
+            replies = []
+            if tag == "issue":
+                replies_cursor = await replies_collection.find(
+                    {"issue_id": str(msg["_id"])}
+                ).sort("created_at", 1).to_list(None)
+                
+                for reply in replies_cursor:
+                    reply_user = await user_profile_collection.find_one({"uid": reply["uid"]})
+                    replies.append({
+                        "id": str(reply["_id"]),
+                        "content": reply["description"],
+                        "userId": reply["uid"],
+                        "userName": reply_user.get("name", "Anonymous") if reply_user else "Anonymous",
+                        "userAvatar": reply_user.get("profilePicture", ""),
+                        "timestamp": reply["created_at"],
+                        "tag": tag
+                    })
+
             processed_msg = {
                 "id": str(msg["_id"]),
                 "content": msg["description"],
@@ -489,10 +507,11 @@ async def get_messages(tag: str):
                 "userName": user.get("name", "Anonymous") if user else "Anonymous",
                 "userAvatar": user.get("profilePicture", ""),
                 "timestamp": msg["created_at"],
-                "tag": tag
+                "tag": tag,
+                "replies": replies
             }
             processed_messages.append(processed_msg)
-            
+        
         return jsonable_encoder(processed_messages)
     except Exception as e:
         logging.error(f"Error fetching {tag} messages: {str(e)}")
