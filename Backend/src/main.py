@@ -174,6 +174,16 @@ async def check_username_availability(username: str):
     except Exception as e:
         CustomException(e,sys)
 
+class SettingProfile(BaseModel):
+    uid: str
+    displayName: Optional[str]
+    username: str
+    about: Optional[str]
+    photoURL: Optional[str]
+    githubUrl: Optional[str]
+    hasChangedUsername: Optional[bool]
+    apiKey: Optional[str]  # Add API key field
+
 @app.post("/update-profile")
 async def update_profile(user: SettingProfile):
     logging.info(f"Endpoint called: update_profile() for UID: {user.uid}")
@@ -183,15 +193,21 @@ async def update_profile(user: SettingProfile):
         if existing_user:
             raise HTTPException(status_code=400, detail="Username already taken")
 
-        success = await update_user_profile(
-            uid=user.uid,
-            new_bio=user.about,
-            new_profile_picture=user.photoURL,
-            new_name=user.displayName,
-            new_github_url=user.githubUrl,
-            new_username=user.username
+        # Update document directly
+        update_result = await user_profile_collection.update_one(
+            {"uid": user.uid},
+            {"$set": {
+                "name": user.displayName,
+                "bio": user.about,
+                "profilePicture": user.photoURL,
+                "githubUrl": user.githubUrl,
+                "username": user.username,
+                "hasChangedUsername": user.hasChangedUsername,
+                "api_key": user.apiKey  # Add API key update
+            }}
         )
-        if success:
+
+        if update_result.modified_count > 0:
             logging.info(f"Profile updated successfully for UID: {user.uid}")
             return {"message": "Profile updated successfully"}
         else:
@@ -199,7 +215,8 @@ async def update_profile(user: SettingProfile):
     except HTTPException as he:
         raise he
     except Exception as e:
-        CustomException(e,sys)
+        logging.error(f"Error updating profile: {str(e)}")
+        CustomException(e, sys)
 
 @app.delete("/delete-account/{uid}")
 async def delete_account(uid: str):
