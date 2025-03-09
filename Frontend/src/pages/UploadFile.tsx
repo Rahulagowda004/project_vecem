@@ -17,6 +17,15 @@ interface UploadProgress {
   status: "uploading" | "completed" | "error";
 }
 
+interface DatasetForm {
+  name: string;
+  description: string;
+  domain: string;
+  dimensions?: number;
+  vectorDatabase?: string;
+  modelName?: string;  // Add this line
+}
+
 const UploadFile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -587,6 +596,21 @@ const UploadFile = () => {
                   Vectorized Settings
                 </h3>
                 <div className="space-y-6">
+                <div>
+                    <label className="block text-sm font-medium mb-2 text-white">
+                      Model Name
+                    </label>
+                    <input
+                      type="text"
+                      name="modelName"
+                      value={formData.modelName || ""}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400
+                        focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+                      placeholder="Enter the model name used for vectorizing the data"
+                    />
+                  </div>
                   <div>
                     <label className="block text-sm font-medium mb-2 text-white">
                       Dataset Dimensions
@@ -604,22 +628,23 @@ const UploadFile = () => {
                       max="5000" 
                     />
                   </div>
+                  
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white">
-                      Vector Database
-                    </label>
-                    <input
-                      type="text"
-                      name="vectorDatabase"
-                      value={formData.vectorDatabase || ""}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                        text-white placeholder-gray-400
-                        focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter vector database name"
-                      pattern="[A-Za-z]+"
-                      title="Only letters are allowed"
-                    />
+                      <label className="block text-sm font-medium mb-2 text-white">
+                        Vector Database
+                      </label>
+                      <input
+                        type="text"
+                        name="vectorDatabase"
+                        value={formData.vectorDatabase || ""}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                          text-white placeholder-gray-400
+                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+                        placeholder="Enter vector database name"
+                        pattern="[A-Za-z]+"
+                        title="Only letters are allowed"
+                      />
                   </div>
                 </div>
               </div>
@@ -639,7 +664,7 @@ const UploadFile = () => {
                 <button
                   key={type}
                   onClick={() => setFileType(type as typeof fileType)}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200
+                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 
                     ${fileType === type
                       ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
                       : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
@@ -691,6 +716,7 @@ const UploadFile = () => {
                           const element = e.target as HTMLInputElement;
                           element.value = '';
                         }}
+                        accept={fileTypeMap[fileType].extensions.join(',')}
                       />
                     </div>
                   </>
@@ -699,12 +725,7 @@ const UploadFile = () => {
                     {...fileInputProps}
                     type="file"
                     ref={fileInputRef}
-                    onChange={(e) =>
-                      handleFileInputChange(
-                        e,
-                        datasetType.toLowerCase() as "raw" | "vectorized"
-                      )
-                    }
+                    onChange={(e) => handleFileInputChange(e, datasetType.toLowerCase() as "raw" | "vectorized")}
                     onClick={(e) => {
                       const element = e.target as HTMLInputElement;
                       element.value = '';
@@ -724,15 +745,13 @@ const UploadFile = () => {
               </p>
             </div>
 
-
-
             <button
               type="submit"
+              disabled={isUploading}
               className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-cyan-400 
                 text-white font-medium rounded-xl shadow-lg shadow-cyan-500/20 
                 hover:from-cyan-600 hover:to-cyan-500 transition-colors
                 focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
-              disabled={isUploading} // Disable button while uploading
             >
               {isUploading ? "Uploading..." : "Upload"}
             </button>
