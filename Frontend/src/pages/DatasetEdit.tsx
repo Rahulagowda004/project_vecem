@@ -153,6 +153,8 @@ const DatasetEdit = () => {
         }
 
         setIsLoading(true);
+        console.log("Fetching dataset:", datasetname); // Debug log
+
         const response = await fetch(
           "http://127.0.0.1:5000/dataset-edit-click",
           {
@@ -185,7 +187,30 @@ const DatasetEdit = () => {
         }
 
         setDataset(data);
-        // ... rest of the existing setForm values code ...
+        
+        // Update form values with dataset information
+        setName(data.dataset_info.name || datasetname); // Set name from URL if not in response
+        setDescription(data.dataset_info.description || "");
+        setDatasetType(data.upload_type || "Both");
+        setDomain(data.dataset_info.domain || "");
+        setFileType(data.dataset_info.file_type || "");
+        
+        if (data.vectorized_settings) {
+          setVectorizedSettings({
+            dimensions: data.vectorized_settings.dimensions || 768,
+            vectorDatabase: data.vectorized_settings.vectorDatabase || "Pinecone",
+            modelName: data.vectorized_settings.modelName || ""
+          });
+        }
+
+        // Update file availability state if it exists in the response
+        if (data.has_raw_file !== undefined && data.has_vectorized_file !== undefined) {
+          setFileSize({
+            raw: data.has_raw_file ? 1 : 0,
+            vectorized: data.has_vectorized_file ? 1 : 0
+          });
+        }
+
       } catch (error) {
         console.error("Error fetching dataset:", error);
         toast.error(error instanceof Error ? error.message : "Failed to load dataset");
