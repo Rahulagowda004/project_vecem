@@ -48,6 +48,7 @@ class UserProfile(BaseModel):
     email: Optional[str] = None
     username: str
     name: Optional[str] = None
+    api_key: str = None
     bio: Optional[str] = "About me..."
     profilePicture: str | None = Field(default="/avatars/avatar1.png")
     githubUrl: Optional[str] = None
