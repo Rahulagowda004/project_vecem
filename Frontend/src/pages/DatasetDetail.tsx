@@ -16,6 +16,7 @@ import {
   Home,
   UserCircle2 // Add this import
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 // Animation variants
 const fadeIn = {
@@ -48,6 +49,7 @@ const DatasetDetail = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Accept": "application/json"
           },
           body: JSON.stringify({
             username,
@@ -55,12 +57,21 @@ const DatasetDetail = () => {
           }),
         });
 
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Server returned non-JSON response");
+        }
+
         if (!response.ok) {
-          throw new Error("Failed to fetch dataset");
+          const errorData = await response.json();
+          console.error("Server Error:", errorData);
+          throw new Error(errorData.detail || "Failed to fetch dataset");
         }
 
         const data = await response.json();
-        console.log("Fetched dataset:", data); // Debug log
+        if (!data || !data.dataset_info) {
+          throw new Error("Invalid dataset response format");
+        }
 
         setDataset({
           name: data.dataset_info.name,
@@ -77,13 +88,15 @@ const DatasetDetail = () => {
           files: data.files,
           base_directory: data.base_directory,
           vectorizedSettings: {
-            dimensions: 768, // Add if available in your data
-            vectorDatabase: "Pinecone", // Add if available in your data
+            dimensions: data.vectorized_settings?.dimensions || 768,
+            vectorDatabase: data.vectorized_settings?.vectorDatabase || "Pinecone",
+            modelName: data.vectorized_settings?.modelName || "Unknown"  // Add model name
           },
         });
       } catch (error) {
         console.error("Error fetching dataset:", error);
-        navigate("/"); // Redirect on error
+        toast.error(error instanceof Error ? error.message : "Failed to load dataset");
+        navigate("/"); 
       } finally {
         setLoading(false);
       }
@@ -153,11 +166,11 @@ data = dataset.get_files()  # For raw files`,
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
-      {/* Breadcrumb Navigation */}
+      {/* Breadcrumb Navigation - Keep existing code but update styles */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-6 py-2 bg-gray-900/80 border-b border-cyan-500/10"
+        className="px-6 py-4 bg-gray-900/90 border-b border-cyan-500/10 backdrop-blur-sm"
       >
         <nav className="flex items-center space-x-2 text-sm">
           <Link 
@@ -175,62 +188,61 @@ data = dataset.get_files()  # For raw files`,
         </nav>
       </motion.div>
 
-      {/* Sticky Header - Remove old breadcrumb */}
+      {/* Header Section - Reorganized for better hierarchy */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800"
+        className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 py-6"
       >
         <div className="max-w-6xl mx-auto px-4">
-          {/* Title and Actions */}
-          <div className="py-4 flex justify-between items-start">
-            <motion.div
-              initial={{ x: -20 }}
-              animate={{ x: 0 }}
-              className="space-y-2"
-            >
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-white bg-clip-text text-transparent">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <motion.div className="space-y-3">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-white bg-clip-text text-transparent">
                 {dataset.name}
               </h1>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <motion.span
                   whileHover={{ scale: 1.05 }}
-                  className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                  className="px-4 py-1.5 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
                 >
                   {dataset.domain}
                 </motion.span>
                 <motion.span
                   whileHover={{ scale: 1.05 }}
-                  className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                  className="px-4 py-1.5 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
                 >
                   {dataset.fileType}
                 </motion.span>
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  className="px-4 py-1.5 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                >
+                  {dataset.datasetType}
+                </motion.span>
               </div>
             </motion.div>
-            <motion.div
-              initial={{ x: 20 }}
-              animate={{ x: 0 }}
-              className="flex gap-2"
-            >
+
+            {/* Download Buttons - Updated styling */}
+            <motion.div className="flex flex-wrap gap-3 w-full md:w-auto">
               {dataset.datasetType === "both" ? (
                 <>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleDownload("raw")}
-                    className="px-4 py-2 bg-cyan-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-blue-600/20"
+                    className="flex-1 md:flex-none px-6 py-2.5 bg-cyan-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
                   >
                     <Download className="w-4 h-4" />
-                    Download Raw Dataset
+                    Raw Dataset
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleDownload("vectorized")}
-                    className="px-4 py-2 bg-cyan-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-blue-600/20"
+                    className="flex-1 md:flex-none px-6 py-2.5 bg-cyan-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
                   >
                     <Download className="w-4 h-4" />
-                    Download Vectorized Dataset
+                    Vectorized Dataset
                   </motion.button>
                 </>
               ) : (
@@ -238,7 +250,7 @@ data = dataset.get_files()  # For raw files`,
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleDownload(dataset.datasetType)}
-                  className="px-4 py-2 bg-cyan-600 text-white rounded-lg font-medium flex items-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-blue-600/20"
+                  className="flex-1 md:flex-none px-6 py-2.5 bg-cyan-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
                 >
                   <Download className="w-4 h-4" />
                   Download Dataset
@@ -249,69 +261,79 @@ data = dataset.get_files()  # For raw files`,
         </div>
       </motion.header>
 
-      {/* Main Content */}
+      {/* Main Content - Reorganized grid layout */}
       <motion.div
         variants={fadeIn}
         initial="initial"
         animate="animate"
         className="max-w-6xl mx-auto px-4 py-8"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content Area */}
-          <motion.div
-            className="lg:col-span-2 space-y-6"
-            variants={{
-              initial: { opacity: 0 },
-              animate: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.1,
-                },
-              },
-            }}
-          >
-            {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Dataset Info */}
+          <motion.div className="lg:col-span-2 space-y-8">
+            {/* Stats Cards - Updated grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {[
                 { label: "Size", value: dataset.size.raw, icon: Database },
                 { label: "Type", value: dataset.fileType, icon: FileType },
                 { label: "Domain", value: dataset.domain, icon: Box },
+                ...(dataset.datasetType.toLowerCase() === "vectorized" || dataset.datasetType.toLowerCase() === "both" ? [
+                  { 
+                    label: "Model Name", 
+                    value: dataset.vectorizedSettings.modelName || "Not specified", 
+                    icon: Code 
+                  },
+                  { 
+                    label: "Dimensions", 
+                    value: dataset.vectorizedSettings.dimensions, 
+                    icon: Box 
+                  },
+                  { 
+                    label: "Vector DB", 
+                    value: dataset.vectorizedSettings.vectorDatabase, 
+                    icon: Database 
+                  }
+                ] : [])
               ].map((stat, index) => (
                 <motion.div
                   key={stat.label}
                   variants={fadeIn}
                   whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                  className="bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-cyan-700 transition-colors shadow-lg"
+                  className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 hover:border-cyan-700/50 transition-colors shadow-xl"
                 >
-                  <stat.icon className="w-5 h-5 text-cyan-400 mb-2" />
-                  <div className="text-sm text-cyan-200">{stat.label}</div>
-                  <div className="text-lg font-semibold text-white mt-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <stat.icon className="w-5 h-5 text-cyan-400" />
+                    <div className="text-sm font-medium text-cyan-200">{stat.label}</div>
+                  </div>
+                  <div className="text-lg font-semibold text-white">
                     {stat.value}
                   </div>
                 </motion.div>
               ))}
             </div>
 
-            {/* Description Section */}
+            {/* Description Section - Enhanced styling */}
             <motion.div
               variants={fadeIn}
-              className="bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-xl"
+              className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 shadow-xl"
             >
-              <h2 className="text-xl font-semibold text-white mb-4">
+              <h2 className="text-2xl font-semibold text-white mb-6">
                 About This Dataset
               </h2>
-              <p className="text-white text-lg leading-relaxed min-h-[260px]">
+              <p className={`text-gray-200 text-lg leading-relaxed ${
+                dataset.datasetType.toLowerCase() === "raw" ? "min-h-[230px]" : "min-h-[100px]"
+              }`}>
                 {dataset.description}
               </p>
             </motion.div>
           </motion.div>
 
-          {/* Sidebar */}
+          {/* Right Column - Sidebar */}
           <motion.div variants={fadeIn} className="space-y-6">
-            {/* Code Usage Section */}
+            {/* Code Usage Section - Updated styling */}
             <motion.div
               layout
-              className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 shadow-xl"
+              className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700/50 shadow-xl"
             >
               <div className="w-full p-4 flex items-center justify-between text-left text-white">
                 <div className="flex items-center gap-2">
@@ -341,8 +363,8 @@ data = dataset.get_files()  # For raw files`,
               </div>
             </motion.div>
 
-            {/* About Section */}
-            <div className="bg-gray-800 rounded-lg p-6">
+            {/* About Section - Enhanced with metadata */}
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
               <h2 className="text-lg font-semibold text-white mb-4">
                 Uploaded User
               </h2>
@@ -368,30 +390,6 @@ data = dataset.get_files()  # For raw files`,
                 </p>
               </div>
             </div>
-
-            {/* Vectorized Settings */}
-            {(dataset.datasetType === "Vectorized" ||
-              dataset.datasetType === "Both") && (
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h2 className="text-lg font-semibold text-white mb-4">
-                  Vectorized Settings
-                </h2>
-                <div className="space-y-3">
-                  <div>
-                    <div className="text-cyan-200 mb-1">Dimensions</div>
-                    <div className="bg-gray-700 p-2 rounded text-white">
-                      {dataset.vectorizedSettings.dimensions}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-cyan-200 mb-1">Vector Database</div>
-                    <div className="bg-gray-700 p-2 rounded text-white">
-                      {dataset.vectorizedSettings.vectorDatabase}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </motion.div>
         </div>
       </motion.div>

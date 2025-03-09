@@ -149,7 +149,7 @@ const DatasetEdit = () => {
     const fetchDataset = async () => {
       try {
         if (!user?.uid || !datasetname) {
-          throw new Error("Missing user ID or dataset name");
+          throw new Error("Missing required parameters");
         }
 
         setIsLoading(true);
@@ -159,6 +159,7 @@ const DatasetEdit = () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Accept": "application/json"
             },
             body: JSON.stringify({
               uid: user.uid,
@@ -167,69 +168,90 @@ const DatasetEdit = () => {
           }
         );
 
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Server returned non-JSON response");
+        }
+
         if (!response.ok) {
           const errorData = await response.json();
+          console.error("Server Error:", errorData);
           throw new Error(errorData.detail || "Failed to fetch dataset");
         }
 
         const data = await response.json();
-        console.log("Fetched dataset:", data); // Debug log
-        setDataset(data);
-
-        // Set form values from dataset
-        setName(data.dataset_info.name);
-        setDescription(data.dataset_info.description || "");
-        setDatasetType(data.upload_type);
-        setDomain(data.dataset_info.domain);
-        setFileType(data.dataset_info.file_type);
-        if (data.vectorized_settings) {
-          setVectorizedSettings(data.vectorized_settings);
+        if (!data || !data.dataset_info) {
+          throw new Error("Invalid dataset response format");
         }
+
+        setDataset(data);
+        // ... rest of the existing setForm values code ...
       } catch (error) {
         console.error("Error fetching dataset:", error);
-        toast.error("Failed to load dataset information");
+        toast.error(error instanceof Error ? error.message : "Failed to load dataset");
+        navigate("/settings");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchDataset();
-  }, [datasetname, user]);
+  }, [datasetname, user, navigate]);
 
   const handleSave = async () => {
-    if (!dataset?._id) return;
+    if (!dataset?._id) {
+      toast.error("Dataset ID is missing");
+      return;
+    }
 
     setIsSaving(true);
     try {
+      const requestData = {
+        name,
+        description,
+        domain,
+        fileType,
+        datasetType,
+        vectorizedSettings,
+        userId: user?.uid // Add user ID to request
+      };
+
       const response = await fetch(
         `http://127.0.0.1:5000/update-dataset/${dataset._id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            "Accept": "application/json"
           },
-          body: JSON.stringify({
-            name,
-            description,
-            domain,
-            fileType,
-            datasetType,
-            vectorizedSettings,
-          }),
+          body: JSON.stringify(requestData),
         }
       );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Failed to update dataset");
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server returned non-JSON response");
       }
 
-      toast.success("Dataset updated successfully");
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Server Error:", errorData);
+        throw new Error(errorData.detail || "Failed to update dataset");
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Dataset updated successfully");
+        setTimeout(() => {
+          navigate(`/${username}/${datasetname}`);
+        }, 1500);
+      } else {
+        throw new Error(result.message || "Failed to update dataset");
+      }
     } catch (error) {
       console.error("Error updating dataset:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update dataset"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update dataset");
     } finally {
       setIsSaving(false);
     }
@@ -380,12 +402,12 @@ const DatasetEdit = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
       {/* Breadcrumb Navigation */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-6 py-2 bg-gray-900/80 border-b border-cyan-500/10"
+        className="px-6 py-4 bg-gray-900/90 border-b border-cyan-500/10 backdrop-blur-sm"
       >
         <nav className="flex items-center space-x-2 text-sm">
           <Link
@@ -400,54 +422,52 @@ const DatasetEdit = () => {
         </nav>
       </motion.div>
 
-      {/* Sticky Header - Remove old breadcrumb */}
+      {/* Header Section - Updated */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800"
+        className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg border-b border-gray-800 py-6"
       >
         <div className="max-w-6xl mx-auto px-4">
-          {/* Title and Actions */}
-          <div className="py-4 flex justify-between items-start">
-            <motion.div
-              initial={{ x: -20 }}
-              animate={{ x: 0 }}
-              className="space-y-2"
-            >
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <motion.div className="space-y-3">
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="text-3xl font-bold bg-transparent text-white outline-none w-full max-w-2xl"
+                className="text-4xl font-bold bg-transparent text-white outline-none w-full max-w-2xl"
                 placeholder="Dataset Name"
               />
-              <div className="flex gap-2">
-                <motion.div
+              <div className="flex flex-wrap gap-2">
+                <motion.span
                   whileHover={{ scale: 1.05 }}
-                  className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                  className="px-4 py-1.5 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
                 >
                   {domain || "Select Domain"}
-                </motion.div>
-                <motion.div
+                </motion.span>
+                <motion.span
                   whileHover={{ scale: 1.05 }}
-                  className="px-3 py-1 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                  className="px-4 py-1.5 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
                 >
                   {fileType || "Select Type"}
-                </motion.div>
+                </motion.span>
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  className="px-4 py-1.5 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
+                >
+                  {datasetType}
+                </motion.span>
               </div>
             </motion.div>
-            <motion.div
-              initial={{ x: 20 }}
-              animate={{ x: 0 }}
-              className="flex gap-2"
-            >
+
+            {/* Action Buttons */}
+            <motion.div className="flex flex-wrap gap-3 w-full md:w-auto">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSave}
                 disabled={isSaving}
-                className="px-4 py-2 bg-cyan-600 text-white rounded-lg font-medium flex items-center gap-2 
-                  hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20 disabled:opacity-50"
+                className="flex-1 md:flex-none px-6 py-2.5 bg-cyan-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
               >
                 <Save className="w-4 h-4" />
                 {isSaving ? "Saving..." : "Save Changes"}
@@ -457,8 +477,7 @@ const DatasetEdit = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowDeleteModal(true)}
-                className="px-4 py-2 bg-red-500/10 text-red-400 rounded-lg font-medium flex items-center gap-2 
-                  hover:bg-red-500/20 border border-red-500/20 transition-all"
+                className="flex-1 md:flex-none px-6 py-2.5 bg-red-500/10 text-red-400 rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-red-500/20 border border-red-500/20 transition-all"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete Dataset
@@ -467,6 +486,7 @@ const DatasetEdit = () => {
           </div>
         </div>
       </motion.header>
+
       {/* Main Content */}
       <motion.div
         variants={fadeIn}
@@ -474,22 +494,11 @@ const DatasetEdit = () => {
         animate="animate"
         className="max-w-6xl mx-auto px-4 py-8"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content Area */}
-          <motion.div
-            className="lg:col-span-2 space-y-6"
-            variants={{
-              initial: { opacity: 0 },
-              animate: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.1,
-                },
-              },
-            }}
-          >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column */}
+          <motion.div className="lg:col-span-2 space-y-8">
             {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {[
                 {
                   label: "Dataset Type",
@@ -516,74 +525,98 @@ const DatasetEdit = () => {
                   options: domains,
                   setter: setDomain,
                 },
+                ...(datasetType === "Vectorized" || datasetType === "Both" ? [
+                  {
+                    label: "Model Name",
+                    value: vectorizedSettings.modelName || "Not specified",
+                    icon: Code,
+                    isInput: true,
+                    setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, modelName: value }))
+                  },
+                  {
+                    label: "Dimensions",
+                    value: vectorizedSettings.dimensions,
+                    icon: Box,
+                    isInput: true,
+                    type: "number",
+                    setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, dimensions: parseInt(value) }))
+                  },
+                  {
+                    label: "Vector DB",
+                    value: vectorizedSettings.vectorDatabase,
+                    icon: Database,
+                    isInput: true,
+                    setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, vectorDatabase: value }))
+                  }
+                ] : [])
               ].map((stat) => (
-                <div
+                <motion.div
                   key={stat.label}
-                  className="bg-gray-800 rounded-lg p-6 border border-gray-700 min-h-[120px] flex flex-col justify-between"
+                  variants={fadeIn}
+                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                  className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 hover:border-cyan-700/50 transition-colors shadow-xl"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mb-3">
                     <stat.icon className="w-5 h-5 text-cyan-400" />
                     <div className="text-sm font-medium text-cyan-200">{stat.label}</div>
                   </div>
-                  <div className="flex-1 flex items-center mt-5"> {/* Increase margin-top to add more space */}
-                    {stat.isReadOnly ? (
-                      <div className="text-white whitespace-pre-line text-lg font-medium">
-                        {stat.value} data
-                      </div>
-                    ) : stat.isSelect ? (
-                      <select
-                        value={stat.value}
-                        onChange={(e) => stat.setter(e.target.value)}
-                        className="w-full bg-gray-900/50 text-white rounded-lg px-4 py-3 border border-gray-700 
-                          focus:border-cyan-500 outline-none text-lg font-medium"
-                      >
-                        <option value="">Select {stat.label}</option>
-                        {Array.isArray(stat.options)
-                          ? stat.options.map((option) => (
-                              <option
-                                key={
-                                  typeof option === "string"
-                                    ? option
-                                    : option.value
-                                }
-                                value={
-                                  typeof option === "string"
-                                    ? option
-                                    : option.value
-                                }
-                                className="py-2"
-                              >
-                                {typeof option === "string"
-                                  ? option
-                                  : option.label}
-                              </option>
-                            ))
-                          : null}
-                      </select>
-                    ) : null}
-                  </div>
-                </div>
+                  {stat.isReadOnly ? (
+                    <div className="text-lg font-semibold text-white">
+                      {stat.value} data
+                    </div>
+                  ) : stat.isSelect ? (
+                    <select
+                      value={stat.value}
+                      onChange={(e) => stat.setter(e.target.value)}
+                      className="w-full bg-gray-900/50 text-white rounded-lg px-4 py-2 border border-gray-700 focus:border-cyan-500 outline-none"
+                    >
+                      <option value="">Select {stat.label}</option>
+                      {Array.isArray(stat.options)
+                        ? stat.options.map((option) => (
+                            <option
+                              key={typeof option === "string" ? option : option.value}
+                              value={typeof option === "string" ? option : option.value}
+                            >
+                              {typeof option === "string" ? option : option.label}
+                            </option>
+                          ))
+                        : null}
+                    </select>
+                  ) : stat.isInput ? (
+                    <input
+                      type={stat.type || "text"}
+                      value={stat.value}
+                      onChange={(e) => stat.setter(e.target.value)}
+                      className="w-full bg-gray-900/50 text-white rounded-lg px-4 py-2 border border-gray-700 focus:border-cyan-500 outline-none"
+                      placeholder={`Enter ${stat.label.toLowerCase()}`}
+                    />
+                  ) : null}
+                </motion.div>
               ))}
             </div>
-            {/* About Section */}
+
+            {/* Description Section */}
             <motion.div
               variants={fadeIn}
-              className="bg-gray-800 rounded-lg p-8 border border-gray-700 shadow-xl mt-8" // Increased padding and margin
+              className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 shadow-xl"
             >
-              <h2 className="text-xl font-semibold text-white mb-6">
+              <h2 className="text-2xl font-semibold text-white mb-6">
                 About This Dataset
               </h2>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-gray-900/50 text-white rounded-lg p-4 border border-gray-700 
-                  focus:border-cyan-500 outline-none text-lg leading-relaxed min-h-[282px]
-                  font-medium resize-none"
+                className={`w-full bg-gray-900/50 text-white rounded-lg p-4 border border-gray-700 
+                  focus:border-cyan-500 outline-none text-lg leading-relaxed
+                  font-medium resize-none ${
+                    datasetType.toLowerCase() === "raw" ? "min-h-[230px]" : "min-h-[100px]"
+                  }`}
                 placeholder="Enter detailed dataset description"
               />
             </motion.div>
           </motion.div>
-          {/* Sidebar */}
+
+          {/* Right Column - Settings */}
           <motion.div variants={fadeIn} className="space-y-6">
             {/* File Upload Section */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -640,50 +673,6 @@ const DatasetEdit = () => {
                 <option value="Both">Both</option>
               </select>
             </div>
-            {/* Vectorized Settings */}
-            {(datasetType === "Vectorized" || datasetType === "Both") && (
-              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <h2 className="text-lg font-semibold text-white mb-4">
-                  Vectorized Settings
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-cyan-200 mb-1 block">
-                      Dimensions
-                    </label>
-                    <input
-                      type="number"
-                      value={vectorizedSettings.dimensions}
-                      onChange={(e) =>
-                        setVectorizedSettings({
-                          ...vectorizedSettings,
-                          dimensions: parseInt(e.target.value),
-                        })
-                      }
-                      className="w-full bg-gray-900/50 text-white rounded-lg p-2 border border-gray-700 
-                        focus:border-cyan-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-cyan-200 mb-1 block">
-                      Vector Database
-                    </label>
-                    <input
-                      type="text"
-                      value={vectorizedSettings.vectorDatabase}
-                      onChange={(e) =>
-                        setVectorizedSettings({
-                          ...vectorizedSettings,
-                          vectorDatabase: e.target.value,
-                        })
-                      }
-                      className="w-full bg-gray-900/50 text-white rounded-lg p-2 border border-gray-700 
-                        focus:border-cyan-500 outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
           </motion.div>
         </div>
       </motion.div>
