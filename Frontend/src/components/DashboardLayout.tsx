@@ -647,9 +647,17 @@ const DashboardLayout = () => {
             className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
           >
             <h2 className="text-xl font-bold text-white mb-4">Google AI Studio API Key Required</h2>
-            <p className="text-gray-300 text-sm mb-4">
-              Please enter your Google AI Studio API key to use the chatbot feature.
-            </p>
+            <div className="text-gray-300 text-sm mb-6 space-y-3">
+              <p>To obtain your Google AI Studio API key:</p>
+              <ol className="list-decimal list-inside space-y-2">
+                <li>Visit <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300">Google AI Studio</a></li>
+                <li>Sign in with your Google account</li>
+                <li>Click on "Get API key" in the top menu</li>
+                <li>Either select an existing key or click "Create API key"</li>
+                <li>Copy the generated API key and paste it below</li>
+              </ol>
+              <p className="mt-2 text-yellow-400">Note: Keep your API key secure and never share it publicly.</p>
+            </div>
             <form onSubmit={handleApiKeySubmit}>
               <input
                 type="password"
