@@ -77,6 +77,7 @@ const Settings = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+  const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -99,6 +100,7 @@ const Settings = () => {
         );
         setUsername(userProfile.username || displayUsername);
         setHasChangedUsername(userProfile.hasChangedUsername || false);
+        setApiKey(userProfile.api_key || ""); // Add this line to initialize API key
 
         // Process and set datasets
         if (userProfile.datasets && Array.isArray(userProfile.datasets)) {
@@ -178,6 +180,7 @@ const Settings = () => {
           photoURL: selectedAvatar,
           githubUrl: githubUrl,
           hasChangedUsername: true,
+          apiKey: apiKey, // Add API Key to the update
         });
         setHasChangedUsername(true);
       } catch (error) {
@@ -388,10 +391,10 @@ const Settings = () => {
     if (days === 0) return "Today";
     if (days === 1) return "Yesterday";
     if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
   };
 
@@ -541,6 +544,18 @@ const Settings = () => {
                           className="w-full bg-gray-700/30 text-gray-500 rounded-lg px-4 py-2.5 border border-gray-600/30"
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-1">
+                          API Key
+                        </label>
+                        <input
+                          type="text"
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                          className="w-full bg-gray-700/50 text-cyan-400 rounded-lg px-4 py-2.5 border border-gray-600/50 focus:border-cyan-500/50"
+                          placeholder="Enter your API key"
+                        />
+                      </div>
                     </div>
                   ) : (
                     <>
@@ -549,6 +564,9 @@ const Settings = () => {
                       </h1>
                       <p className="text-gray-400 text-lg">@{username}</p>
                       <p className="text-gray-500 mt-2">{user?.email}</p>
+                      <p className="text-gray-500 mt-2">
+                        API Key: {apiKey || "Not set"}
+                      </p>
                     </>
                   )}
                 </div>
@@ -561,31 +579,6 @@ const Settings = () => {
                 >
                   {isEditing ? "Save Changes" : "Edit Profile"}
                 </button>
-              </div>
-
-              {/* About Section */}
-              <div className="pt-6 border-t border-gray-700/50">
-                {isEditing ? (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
-                      About Me
-                    </label>
-                    <textarea
-                      value={about}
-                      onChange={(e) => setAbout(e.target.value)}
-                      className="w-full bg-gray-700/50 text-white rounded-xl p-4 border border-gray-600/50 focus:border-cyan-500/50"
-                      placeholder="Tell us about yourself..."
-                      rows={4}
-                    />
-                  </div>
-                ) : (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-400 mb-2">
-                      About
-                    </h3>
-                    <p className="text-gray-300">{about}</p>
-                  </div>
-                )}
               </div>
 
               {/* GitHub Section */}
@@ -613,6 +606,31 @@ const Settings = () => {
                   >
                     {githubUrl}
                   </a>
+                )}
+              </div>
+
+              {/* About Section */}
+              <div className="pt-6 border-t border-gray-700/50">
+                {isEditing ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                      About Me
+                    </label>
+                    <textarea
+                      value={about}
+                      onChange={(e) => setAbout(e.target.value)}
+                      className="w-full bg-gray-700/50 text-white rounded-xl p-4 border border-gray-600/50 focus:border-cyan-500/50"
+                      placeholder="Tell us about yourself..."
+                      rows={4}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400 mb-2">
+                      About
+                    </h3>
+                    <p className="text-gray-300">{about}</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -717,14 +735,14 @@ const Settings = () => {
                     >
                       <path
                         fillRule="evenodd"
-                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 10-2 0v1H7V3a1 1 00-1-1zm0 5a1 1 000 2h8a1 1 100-2H6z"
                         clipRule="evenodd"
                       />
                     </svg>
-                    {new Date(dataset.updatedAt).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
+                    {new Date(dataset.updatedAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
                     })}
                   </span>
                 </div>
