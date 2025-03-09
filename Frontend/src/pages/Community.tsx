@@ -382,6 +382,105 @@ const Community = () => {
     );
   };
 
+  const renderMessage = (message: Message) => {
+    const isOwnMessage = message.userId === user?.uid;
+    const isGeneralMessage = message.tag === "general";
+  
+    if (!isGeneralMessage) {
+      // Updated rendering for issue messages
+      return (
+        <div className="flex items-start space-x-4">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="relative flex-shrink-0"
+          >
+            <img
+              src={message.userAvatar}
+              alt={message.userName}
+              className="w-10 h-10 rounded-xl ring-2 ring-cyan-500/20"
+            />
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black" />
+          </motion.div>
+  
+          <div className="flex-1 flex flex-col">
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              className={`max-w-md rounded-2xl p-4 ${
+                isOwnMessage
+                  ? "bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10"
+                  : "bg-white/5 hover:bg-cyan-900/20"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  className="text-sm text-cyan-400"
+                >
+                  {message.userName}
+                </motion.span>
+              </div>
+              <p className="text-white text-sm">{message.content}</p>
+            </motion.div>
+  
+            <div className="flex items-center mt-1 space-x-2 text-xs">
+              {isOwnMessage && (
+                <span className="text-xs text-cyan-400/50">(You)</span>
+              )}
+              <span className="text-cyan-400">{message.userName}</span>
+              <span className="text-gray-500">{message.timestamp}</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  
+    // New rendering for general messages
+    return (
+      <div className={`flex items-start space-x-4 ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="relative flex-shrink-0"
+        >
+          <img
+            src={message.userAvatar}
+            alt={message.userName}
+            className="w-10 h-10 rounded-xl ring-2 ring-cyan-500/20"
+          />
+          <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black" />
+        </motion.div>
+  
+        <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            className={`max-w-md rounded-2xl p-4 ${
+              isOwnMessage
+                ? "bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10"
+                : "bg-white/5 hover:bg-cyan-900/20"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <motion.span
+                whileHover={{ scale: 1.05 }}
+                className="text-sm text-cyan-400"
+              >
+                {message.userName}
+              </motion.span>
+            </div>
+            <p className="text-white text-sm">{message.content}</p>
+          </motion.div>
+  
+          <div className={`flex items-center mt-1 space-x-2 text-xs ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+            {isOwnMessage && (
+              <span className="text-xs text-cyan-400/50">(You)</span>
+            )}
+            <span className="text-cyan-400">{message.userName}</span>
+            <span className="text-gray-500">{message.timestamp}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -625,62 +724,7 @@ const Community = () => {
               layout
               className="mb-6"
             >
-              {/* Main Message */}
-              <div className="flex items-start space-x-4">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="relative flex-shrink-0"
-                >
-                  <img
-                    src={message.userAvatar}
-                    alt={message.userName}
-                    className="w-10 h-10 rounded-xl ring-2 ring-cyan-500/20"
-                  />
-                  <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black" />
-                </motion.div>
-
-                <div className="flex-1 flex flex-col">
-                  <motion.div
-                    whileHover={{ scale: 1.01 }}
-                    className={`max-w-md rounded-2xl p-4 ${
-                      message.userId === user?.uid
-                        ? "bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10"
-                        : "bg-white/5 hover:bg-cyan-900/20"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <motion.span
-                        whileHover={{ scale: 1.05 }}
-                        className="text-sm text-cyan-400"
-                      >
-                        {message.userName}
-                      </motion.span>
-                      {message.tag === "issue" && (
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => setReplyingTo(message)}
-                          className="text-xs text-gray-400 hover:text-cyan-400 flex items-center space-x-1"
-                        >
-                          <CornerDownRight className="w-3 h-3" />
-                          <span>Reply</span>
-                        </motion.button>
-                      )}
-                    </div>
-                    <p className="text-white text-sm">{message.content}</p>
-                  </motion.div>
-
-                  <div className="flex items-center mt-1 space-x-2 text-xs">
-                    {message.userId === user?.uid && (
-                      <span className="text-xs text-cyan-400/50">(You)</span>
-                    )}
-                    <span className="text-cyan-400">{message.userName}</span>
-                    <span className="text-gray-500">{message.timestamp}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Render Replies */}
+              {renderMessage(message)}
               {message.tag === "issue" && renderReplies(message.replies || [])}
             </motion.div>
           ))}
