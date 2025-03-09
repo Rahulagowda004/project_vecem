@@ -387,7 +387,6 @@ const Community = () => {
     const isGeneralMessage = message.tag === "general";
   
     if (!isGeneralMessage) {
-      // Updated rendering for issue messages
       return (
         <div className="flex items-start space-x-4">
           <motion.div
@@ -418,6 +417,15 @@ const Community = () => {
                 >
                   {message.userName}
                 </motion.span>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setReplyingTo(message)}
+                  className="text-xs text-gray-400 hover:text-cyan-400 flex items-center space-x-1"
+                >
+                  <CornerDownRight className="w-3 h-3" />
+                  <span>Reply</span>
+                </motion.button>
               </div>
               <p className="text-white text-sm">{message.content}</p>
             </motion.div>
