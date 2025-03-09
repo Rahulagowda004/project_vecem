@@ -385,7 +385,7 @@ const Community = () => {
   const renderMessage = (message: Message) => {
     const isOwnMessage = message.userId === user?.uid;
     const isGeneralMessage = message.tag === "general";
-  
+
     if (!isGeneralMessage) {
       return (
         <div className="flex items-start space-x-4">
@@ -400,7 +400,7 @@ const Community = () => {
             />
             <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black" />
           </motion.div>
-  
+
           <div className="flex-1 flex flex-col">
             <motion.div
               whileHover={{ scale: 1.01 }}
@@ -429,19 +429,18 @@ const Community = () => {
               </div>
               <p className="text-white text-sm">{message.content}</p>
             </motion.div>
-  
+
             <div className="flex items-center mt-1 space-x-2 text-xs">
               {isOwnMessage && (
                 <span className="text-xs text-cyan-400/50">(You)</span>
               )}
-              <span className="text-cyan-400">{message.userName}</span>
               <span className="text-gray-500">{message.timestamp}</span>
             </div>
           </div>
         </div>
       );
     }
-  
+
     // New rendering for general messages
     return (
       <div className={`flex items-start space-x-4 ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
@@ -456,7 +455,7 @@ const Community = () => {
           />
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black" />
         </motion.div>
-  
+
         <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
           <motion.div
             whileHover={{ scale: 1.01 }}
@@ -476,12 +475,11 @@ const Community = () => {
             </div>
             <p className="text-white text-sm">{message.content}</p>
           </motion.div>
-  
+
           <div className={`flex items-center mt-1 space-x-2 text-xs ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
             {isOwnMessage && (
               <span className="text-xs text-cyan-400/50">(You)</span>
             )}
-            <span className="text-cyan-400">{message.userName}</span>
             <span className="text-gray-500">{message.timestamp}</span>
           </div>
         </div>
