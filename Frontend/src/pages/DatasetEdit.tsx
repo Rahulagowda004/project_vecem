@@ -643,61 +643,77 @@ const DatasetEdit = () => {
 
           {/* Right Column - Settings */}
           <motion.div variants={fadeIn} className="space-y-6">
-            {/* File Upload Section */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-lg font-semibold text-white mb-4">
-                Update Files
-              </h2>
-              <div className="space-y-4">
-                <div className="relative">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    onChange={handleFileChange}
-                    className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                      focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
-                      text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
-                      file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
-                      hover:file:bg-cyan-700 file:transition-colors"
-                    multiple
-                    directory=""
-                    webkitdirectory=""
-                  />
-                  <Upload className="absolute right-3 top-2.5 text-cyan-400 w-5 h-5" />
+            {/* Only show File Upload and Dataset Type sections if datasetType is not "Both" */}
+            {datasetType !== "Both" && (
+              <>
+                {/* File Upload Section */}
+                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                  <h2 className="text-lg font-semibold text-white mb-4">
+                    Update {datasetType === "Raw" ? "Vectorized" : "Raw"} File
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleFileChange}
+                        className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
+                          text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
+                          file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
+                          hover:file:bg-cyan-700 file:transition-colors"
+                        multiple
+                        directory=""
+                        webkitdirectory=""
+                      />
+                      <Upload className="absolute right-3 top-2.5 text-cyan-400 w-5 h-5" />
+                    </div>
+
+                    {uploadProgress > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm text-gray-400">
+                          <span>Upload Progress</span>
+                          <span>{uploadProgress}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-cyan-500 transition-all duration-300"
+                            style={{ width: `${uploadProgress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {uploadProgress > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm text-gray-400">
-                      <span>Upload Progress</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-cyan-500 transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+                {/* Dataset Type */}
+                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                  <h2 className="text-lg font-semibold text-white mb-4">
+                    Dataset Type
+                  </h2>
+                  <select
+                    value={datasetType}
+                    onChange={(e) => setDatasetType(e.target.value)}
+                    className="w-full bg-gray-900/50 text-white rounded-lg p-2 border border-gray-700 
+                      focus:border-cyan-500 outline-none"
+                  >
+                    <option value="Raw">Raw</option>
+                    <option value="Vectorized">Vectorized</option>
+                    <option value="Both">Both</option>
+                  </select>
+                </div>
+              </>
+            )}
+            
+            {/* Show a message when type is Both */}
+            {datasetType === "Both" && (
+              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                <div className="flex items-center gap-3 text-gray-400">
+                  <Database className="w-5 h-5" />
+                  <p>This dataset contains both raw and vectorized files.</p>
+                </div>
               </div>
-            </div>
-            {/* Dataset Type */}
-            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-lg font-semibold text-white mb-4">
-                Dataset Type
-              </h2>
-              <select
-                value={datasetType}
-                onChange={(e) => setDatasetType(e.target.value)}
-                className="w-full bg-gray-900/50 text-white rounded-lg p-2 border border-gray-700 
-                  focus:border-cyan-500 outline-none"
-              >
-                <option value="Raw">Raw</option>
-                <option value="Vectorized">Vectorized</option>
-                <option value="Both">Both</option>
-              </select>
-            </div>
+            )}
           </motion.div>
         </div>
       </motion.div>
