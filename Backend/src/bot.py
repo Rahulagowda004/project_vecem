@@ -97,7 +97,7 @@ class FRIDAY:
                 return "Error initializing chat model. Please check your API key."
 
             # Process message
-            response = await self.model.apredict(message)
+            response = await self.model.ainvoke(message)
             return response.content
 
         except Exception as e:
