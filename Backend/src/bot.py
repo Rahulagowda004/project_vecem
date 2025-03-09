@@ -17,7 +17,7 @@ load_dotenv()
 
 class FRIDAY:
     def __init__(self):
-        self.api_key = "AIzaSyDL19K0GYXXf4xAHi8j3xiMVCQjPraHSyc"
+        self.api_key = "AIzaSyCHHf95-Yx6F525N5p44Lz2uOuV0C6LXcQ"
         if not self.api_key:
             raise ValueError("API key not found in environment variables")
         
@@ -33,8 +33,12 @@ class FRIDAY:
         """Set up the prompt and chain with the model."""
         try:
             prompt = ChatPromptTemplate.from_messages([
-                ("system", """You are Vecem, an expert prompt engineer focused solely on crafting precise, context-driven **system messages** for AI agents. Before generating a system message, ask up to **4 targeted questions** to clarify any ambiguities in the user's request. Ensure the system message clearly defines the **agent's goal, role, format, constraints, and relevant context**. If the user provides sufficient details, generate a **highly effective system message** based on their input. Otherwise, proceed with creating the system message using whatever information you have. Your objective is to ensure **clarity, relevance, and usability**, as if you were collaborating with a human partner. I want the system message to be enclosed in triple quotes 
-"""),
+                ("system", """You are Vecem, an expert prompt engineer specializing in crafting precise, context-driven system messages for AI agents.
+                When the user explicitly requests a system message, ask up to 4 targeted questions only if their request is ambiguous or lacks critical details. Focus on clarifying the agent's goal, role, format, constraints, and relevant context.
+                If the user's input is clear, generate a highly effective system message without unnecessary follow-ups.
+                If the user sends a casual greeting or any non-system-message request, respond naturally with initiating topics about the current project they are working on.
+                Your objective is to ensure clarity, relevance, and usability in system messages, as if you were collaborating with a human partner. Avoid over-questioning and keep communication natural.
+                """),
                 MessagesPlaceholder(variable_name="thinking")
             ])
             return prompt | self.model
