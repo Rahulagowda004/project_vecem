@@ -709,25 +709,6 @@ const Community = () => {
             className="flex items-center space-x-4"
             whileHover={{ y: -2 }}
           >
-            {/* Updated Tag Selection */}
-            <div className="flex items-center space-x-2">
-              <div className="flex space-x-2">
-                {Object.entries(messageTagConfig).map(([tag, config]) => (
-                  <motion.button
-                    key={tag}
-                    onClick={() => setCurrentTag(tag as "general" | "issue")}
-                    className={`px-3 py-1 rounded-full flex items-center space-x-1.5 ${
-                      currentTag === tag
-                        ? config.color
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    <Tag className="w-3 h-3" />
-                    <span>{config.label}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
             <input
               type="text"
               value={newMessage}
