@@ -15,6 +15,7 @@ import { useAuth } from "./contexts/AuthContext";
 import DatasetEdit from "./pages/DatasetEdit";
 import OtherProfile from "./pages/OtherProfile";
 import Prompt from "./pages/Prompt";
+import { Toaster } from 'react-hot-toast';
 
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
@@ -33,115 +34,118 @@ function App() {
   }
 
   return (
-    <AppLayout>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route
-          path="/login"
-          element={user ? <Navigate to="/home" replace /> : <Login />}
-        />
-        <Route
-          path="/signup"
-          element={user ? <Navigate to="/home" replace /> : <Signup />}
-        />
+    <>
+      <Toaster position="top-right" />
+      <AppLayout>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/login"
+            element={user ? <Navigate to="/home" replace /> : <Login />}
+          />
+          <Route
+            path="/signup"
+            element={user ? <Navigate to="/home" replace /> : <Signup />}
+          />
 
-        {/* Protected Routes */}
-        <Route
-          path="/home"
-          element={
-            <PrivateRoute>
-              <HomePage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/upload"
-          element={
-            <PrivateRoute>
-              <UploadFile />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/community"
-          element={
-            <PrivateRoute>
-              <Community />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <PrivateRoute>
-              <Settings />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/documentation"
-          element={
-            <PrivateRoute>
-              <Documentation />
-            </PrivateRoute>
-          }
-        />
+          {/* Protected Routes */}
+          <Route
+            path="/home"
+            element={
+              <PrivateRoute>
+                <HomePage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/upload"
+            element={
+              <PrivateRoute>
+                <UploadFile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/community"
+            element={
+              <PrivateRoute>
+                <Community />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/documentation"
+            element={
+              <PrivateRoute>
+                <Documentation />
+              </PrivateRoute>
+            }
+          />
 
-        {/* Updated Dataset Routes */}
-        <Route
-          path="/:username/:datasetname"
-          element={
-            <PrivateRoute>
-              <DatasetDetail />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/:username/:datasetname/edit"
-          element={
-            <PrivateRoute>
-              <DatasetEdit />
-            </PrivateRoute>
-          }
-        />
+          {/* Updated Dataset Routes */}
+          <Route
+            path="/:username/:datasetname"
+            element={
+              <PrivateRoute>
+                <DatasetDetail />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/:username/:datasetname/edit"
+            element={
+              <PrivateRoute>
+                <DatasetEdit />
+              </PrivateRoute>
+            }
+          />
+          
+          {/* Add the new route before the profile route */}
+          <Route
+            path="/:username/view"
+            element={
+              <PrivateRoute>
+                <OtherProfile />
+              </PrivateRoute>
+            }
+          />
+
         
-        {/* Add the new route before the profile route */}
-        <Route
-          path="/:username/view"
-          element={
-            <PrivateRoute>
-              <OtherProfile />
-            </PrivateRoute>
-          }
-        />
 
-       
+          {/* Profile Route */}
+          <Route
+            path="/:username"
+            element={
+              <PrivateRoute>
+                <UserProfile />
+              </PrivateRoute>
+            }
+          />
 
-        {/* Profile Route */}
-        <Route
-          path="/:username"
-          element={
-            <PrivateRoute>
-              <UserProfile />
-            </PrivateRoute>
-          }
-        />
+          {/* Prompt Route */}
+          <Route
+            path="/prompt"
+            element={
+              <PrivateRoute>
+                <Prompt />
+              </PrivateRoute>
+            }
+          />
 
-        {/* Prompt Route */}
-        <Route
-          path="/prompt"
-          element={
-            <PrivateRoute>
-              <Prompt />
-            </PrivateRoute>
-          }
-        />
-
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AppLayout>
+          {/* Catch all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AppLayout>
+    </>
   );
 }
 

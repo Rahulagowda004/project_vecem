@@ -16,6 +16,7 @@ from src.routes import users
 from src.bot import FRIDAY
 from typing import Optional 
 from src.models.chat_models import General, Issue, IssueReply
+from src.database import mongodb
 
 app = FastAPI()
 
@@ -502,16 +503,38 @@ bot = FRIDAY()
 
 class ChatMessage(BaseModel):
     message: str
+    uid: str  # Add uid to request
     session_id: Optional[str] = None
 
 @app.post("/chat")
 async def chat_endpoint(chat_message: ChatMessage):
     try:
-        response = await bot.get_response(chat_message.message)
+        # Get user's API key from MongoDB
+        user = await user_profile_collection.find_one(
+            {"uid": chat_message.uid},
+            {"api_key": 1}
+        )
+        
+        if not user or not user.get("api_key"):
+            raise HTTPException(
+                status_code=401,
+                detail="API key not found. Please configure your API key."
+            )
+
+        # Get response using user's API key
+        response = await bot.get_response(
+            message=chat_message.message,
+            uid=chat_message.uid,
+            api_key=user["api_key"]
+        )
+        
         return {
             "response": response,
-            "session_id": None  # Since we don't need persistent sessions
+            "session_id": None
         }
+
+    except HTTPException as he:
+        raise he
     except Exception as e:
         logging.error(f"Chat endpoint error: {str(e)}")
         raise HTTPException(status_code=500, detail="Error processing chat message")
@@ -521,3 +544,28 @@ async def chat_endpoint(chat_message: ChatMessage):
 async def shutdown_db_client():
     logging.info("Operation: shutdown_db_client()")
     await close_db_client()
+
+class ApiKeyRequest(BaseModel):
+    uid: str
+    api_key: str
+
+@app.post("/save-api-key")
+async def save_api_key(request: ApiKeyRequest):
+    logging.info(f"Endpoint called: save_api_key() for UID: {request.uid}")
+    try:
+        success = await mongodb.save_api_key(request.uid, request.api_key)
+        if success:
+            return {"message": "API key saved successfully"}
+        raise HTTPException(status_code=404, detail="User not found")
+    except Exception as e:
+        CustomException(e, sys)
+
+@app.get("/check-api-key/{uid}")
+async def check_api_key(uid: str):
+    logging.info(f"Endpoint called: check_api_key() for UID: {uid}")
+    try:
+        has_key = await mongodb.check_api_key_exists(uid)
+        return {"hasKey": has_key}
+    except Exception as e:
+        logging.error(f"Error checking API key: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

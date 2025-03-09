@@ -117,5 +117,28 @@ async def delete_user_account(uid: str) -> bool:
         logging.error(f"MongoDB error during account deletion: {str(e)}")
         raise
 
+async def save_api_key(uid: str, api_key: str) -> bool:
+    try:
+        result = await user_profile_collection.update_one(
+            {"uid": uid},
+            {"$set": {"api_key": api_key}},
+            upsert=False
+        )
+        return result.modified_count > 0
+    except Exception as e:
+        logging.error(f"MongoDB error saving API key: {str(e)}")
+        raise
+
+async def check_api_key_exists(uid: str) -> bool:
+    try:
+        user = await user_profile_collection.find_one(
+            {"uid": uid},
+            {"api_key": 1}
+        )
+        return bool(user and user.get("api_key"))
+    except Exception as e:
+        logging.error(f"MongoDB error checking API key: {str(e)}")
+        raise
+
 async def close_db_client():
     client.close()

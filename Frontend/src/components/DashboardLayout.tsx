@@ -26,10 +26,19 @@ import { getUserProfileByUid } from "../services/userService";
 import { getUserDisplayName } from "../utils/userManagement";
 import { motion } from "framer-motion";
 import { ChatMessage, sendChatMessage } from "../services/chatService";
+import { checkApiKey, saveApiKey } from '../services/apiKeyService';
+import { toast } from 'react-hot-toast';
+
+interface Message {
+  id: string;
+  content: string;
+  sender: 'user' | 'bot';
+  timestamp: string;
+}
 
 const LogoutButton = () => {
   const { logout } = useAuth();
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleLogout = async () => {
     try {
@@ -77,6 +86,9 @@ const DashboardLayout = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isFullWidth, setIsFullWidth] = useState(false);
+  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [apiKeyError, setApiKeyError] = useState('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,7 +100,7 @@ const DashboardLayout = () => {
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim() || !user?.uid) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -102,7 +114,7 @@ const DashboardLayout = () => {
     setIsTyping(true);
 
     try {
-      const data = await sendChatMessage(chatInput);
+      const data = await sendChatMessage(chatInput, user.uid);
 
       const botMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -116,7 +128,7 @@ const DashboardLayout = () => {
       console.error("Chat error:", error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I encountered an error. Please try again.",
+        content: error instanceof Error ? error.message : "I encountered an error. Please try again.",
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
@@ -206,6 +218,40 @@ const DashboardLayout = () => {
     } catch (error) {
       console.error("Error fetching datasets:", error);
       setDatasets([]); // Set empty array on error
+    }
+  };
+
+  const handleChatbotClick = async () => {
+    if (!user?.uid) return;
+
+    try {
+      const hasApiKey = await checkApiKey(user.uid);
+      if (!hasApiKey) {
+        setShowApiKeyDialog(true);
+      } else {
+        setCurrentView('chatbot');
+      }
+    } catch (error) {
+      console.error('Error checking API key:', error);
+      toast.error('Failed to verify API key access');
+    }
+  };
+
+  const handleApiKeySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.uid) return;
+
+    try {
+      setApiKeyError('');
+      await saveApiKey(user.uid, apiKey);
+      setShowApiKeyDialog(false);
+      setCurrentView('chatbot');
+      setApiKey('');
+      toast.success('API key saved successfully');
+    } catch (error) {
+      console.error('Error saving API key:', error);
+      setApiKeyError('Failed to save API key. Please try again.');
+      toast.error('Failed to save API key');
     }
   };
 
@@ -402,7 +448,7 @@ const DashboardLayout = () => {
 
                {/* ChatBot Section */}
               <button
-                onClick={() => setCurrentView("chatbot")}
+                onClick={handleChatbotClick}
                 className={`flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 rounded-xl ${
                   currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
@@ -591,6 +637,50 @@ const DashboardLayout = () => {
           </main>
         </div>
       </div>
+
+      {/* API Key Dialog */}
+      {showApiKeyDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
+          >
+            <h2 className="text-xl font-bold text-white mb-4">Google AI Studio API Key Required</h2>
+            <p className="text-gray-300 text-sm mb-4">
+              Please enter your Google AI Studio API key to use the chatbot feature.
+            </p>
+            <form onSubmit={handleApiKeySubmit}>
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white mb-4"
+                placeholder="Enter your API key"
+                required
+              />
+              {apiKeyError && (
+                <p className="text-red-400 text-sm mb-4">{apiKeyError}</p>
+              )}
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setShowApiKeyDialog(false)}
+                  className="px-4 py-2 text-gray-300 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

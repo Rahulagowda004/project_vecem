@@ -16,18 +16,57 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 load_dotenv()
 
 class FRIDAY:
-    def __init__(self):
-        self.api_key = "AIzaSyCHHf95-Yx6F525N5p44Lz2uOuV0C6LXcQ"
-        if not self.api_key:
-            raise ValueError("API key not found in environment variables")
+    def __init__(self, api_key: Optional[str] = None):
+        self.api_key = api_key
+        self.chat_history = {}
+        self.rate_limits = {}  # Store rate limiting info per user
         
-        self.model = ChatGoogleGenerativeAI(
-            model="gemini-1.5-pro",
-            api_key=self.api_key,
-            temperature=0.7
-        )
-        self.chat_history = ChatMessageHistory()
-        self.output_parser = StrOutputParser()
+    def setup_model(self, api_key: str):
+        """Initialize model with user's API key"""
+        try:
+            self.model = ChatGoogleGenerativeAI(
+                model="gemini-1.5-pro",
+                api_key=api_key,
+                temperature=0.7
+            )
+            return True
+        except Exception as e:
+            logging.error(f"Error initializing model: {str(e)}")
+            return False
+
+    def check_rate_limit(self, uid: str) -> bool:
+        """Check if user has exceeded Google AI Studio free tier rate limits"""
+        now = datetime.now()
+        user_limits = self.rate_limits.get(uid, {
+            'requests': 0,
+            'reset_time': now + timedelta(minutes=1),  # Reset every minute
+            'daily_requests': 0,
+            'daily_reset': now + timedelta(days=1)
+        })
+
+        # Reset minute counter if time window has passed
+        if now >= user_limits['reset_time']:
+            user_limits['requests'] = 0
+            user_limits['reset_time'] = now + timedelta(minutes=1)
+
+        # Reset daily counter if day has passed
+        if now >= user_limits['daily_reset']:
+            user_limits['daily_requests'] = 0
+            user_limits['daily_reset'] = now + timedelta(days=1)
+
+        # Check request limits (60 requests per minute)
+        if user_limits['requests'] >= 60:
+            return False
+
+        # Check daily limit (free tier typically has a daily quota)
+        if user_limits['daily_requests'] >= 250:  # Conservative daily limit
+            return False
+
+        # Update limits
+        user_limits['requests'] += 1
+        user_limits['daily_requests'] += 1
+        self.rate_limits[uid] = user_limits
+        return True
 
     def setup_chain(self) -> RunnableWithMessageHistory:
         """Set up the prompt and chain with the model."""
@@ -46,31 +85,24 @@ class FRIDAY:
             logging.error(f"Error setting up chain: {str(e)}")
             raise
 
-    async def get_response(self, message: str) -> str:
-        """Handle a single message and return the response."""
+    async def get_response(self, message: str, uid: str, api_key: str) -> str:
+        """Handle a single message with rate limiting and user's API key"""
         try:
-            chain = self.setup_chain()
-            with_message_history = RunnableWithMessageHistory(
-                chain,
-                lambda _: self.chat_history  # Use single chat history for temporary storage
-            )
+            # Check rate limits
+            if not self.check_rate_limit(uid):
+                return "Rate limit exceeded. Please try again later."
 
-            config = {"configurable": {"session_id": "temp"}}
-            response_text = ""
+            # Setup/update model with user's API key
+            if not self.setup_model(api_key):
+                return "Error initializing chat model. Please check your API key."
 
-            async for chunk in with_message_history.astream(
-                [HumanMessage(content=message)],
-                config=config
-            ):
-                parsed_output = self.output_parser.parse(chunk.content)
-                cleaned_output = parsed_output.replace("*", "").replace("\n", " ").strip()
-                response_text += cleaned_output + " "
-
-            return response_text.strip()
+            # Process message
+            response = await self.model.apredict(message)
+            return response.content
 
         except Exception as e:
-            logging.error(f"Error processing message: {str(e)}")
-            return "I apologize, but I encountered an error. Please try again."
+            logging.error(f"Error in chat response: {str(e)}")
+            return "I encountered an error. Please try again."
 
     async def chat(self) -> None:
         """Main chat loop with error handling."""
