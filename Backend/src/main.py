@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
-from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile,datasets_collection, delete_user_account,deleted_datasets_collection
+from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile,datasets_collection, delete_user_account,deleted_datasets_collection,replies_collection,issues_collection,general_collection
 from src.models.models import UserProfile,UidRequest,SettingProfile
 from fastapi.encoders import jsonable_encoder
 from src.utils.exception import CustomException

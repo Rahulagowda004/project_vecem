@@ -13,6 +13,9 @@ db = client[DB_NAME]
 user_profile_collection = db.userprofile
 datasets_collection = db.datasets
 deleted_datasets_collection = db.deleteddatasets
+general_collection = db.general
+issues_collection = db.issues
+replies_collection = db.replies
 
 async def save_userprofile(userprofile: dict) -> str:
     try:
