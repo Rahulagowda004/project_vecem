@@ -1,7 +1,8 @@
 import sys
 import uuid
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 from bson import ObjectId
 from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -439,12 +440,12 @@ async def log_dataset_category(data: dict):
 @app.post("/community/general")
 async def create_general_message(message: dict):
     try:
-        # Create message document
+        ist = pytz.timezone('Asia/Kolkata')
         message_doc = {
             "title": message.get("title"),
             "description": message.get("description"),
             "uid": message.get("uid"),
-            "created_at": message.get("created_at")
+            "created_at": datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')
         }
         result = await general_collection.insert_one(message_doc)
         message_id = str(result.inserted_id)
@@ -456,12 +457,12 @@ async def create_general_message(message: dict):
 @app.post("/community/issue")
 async def create_issue_message(message: dict):
     try:
-        # Create message document
+        ist = pytz.timezone('Asia/Kolkata')
         message_doc = {
             "title": message.get("title"),
             "description": message.get("description"),
             "uid": message.get("uid"),
-            "created_at": message.get("created_at")
+            "created_at": datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')
         }
         result = await issues_collection.insert_one(message_doc)
         message_id = str(result.inserted_id)
@@ -473,13 +474,13 @@ async def create_issue_message(message: dict):
 @app.post("/community/reply")
 async def create_reply_message(message: dict):
     try:
-        # Create message document
+        ist = pytz.timezone('Asia/Kolkata')
         message_doc = {
             "issue_id": message.get("issue_id"),
             "title": message.get("title"),
             "description": message.get("description"),
             "uid": message.get("uid"),
-            "created_at": message.get("created_at")
+            "created_at": datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')
         }
         result = await replies_collection.insert_one(message_doc)
         message_id = str(result.inserted_id)
@@ -494,6 +495,7 @@ async def get_messages(tag: str):
         collection = general_collection if tag == "general" else issues_collection
         messages = await collection.find({}).sort("created_at", 1).to_list(None)
         
+        ist = pytz.timezone('Asia/Kolkata')
         processed_messages = []
         for msg in messages:
             user = await user_profile_collection.find_one({"uid": msg["uid"]})
@@ -523,7 +525,7 @@ async def get_messages(tag: str):
                 "userId": msg["uid"],
                 "userName": user.get("name", "Anonymous") if user else "Anonymous",
                 "userAvatar": user.get("profilePicture", ""),
-                "timestamp": msg["created_at"],
+                "timestamp": msg["created_at"],  # Already in IST format
                 "tag": tag,
                 "replies": replies
             }
