@@ -1,21 +1,21 @@
 from pydantic import BaseModel
+
 class General(BaseModel):
-    id: str
+    # Remove id since MongoDB will generate it
     title: str
     description: str
     uid: str
     created_at: str
 
-
 class Issue(BaseModel):
-    id: str
+    # Remove id since MongoDB will generate it
     title: str
     description: str
     uid: str
     created_at: str
 
 class IssueReply(BaseModel):
-    id: str
+    # Remove id since MongoDB will generate it
     issue_id: str
     title: str
     description: str

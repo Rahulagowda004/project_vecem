@@ -1,9 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Send, MessageSquare, HelpCircle, Tag, 
-  CornerDownRight, MessageCircle, X, Search,
-  ChevronRight, Home // Add these imports
+import {
+  Send,
+  MessageSquare,
+  HelpCircle,
+  Tag,
+  CornerDownRight,
+  MessageCircle,
+  X,
+  Search,
+  ChevronRight,
+  Home, // Add these imports
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Link } from "react-router-dom"; // Add this import
@@ -15,19 +22,26 @@ interface Message {
   userAvatar: string;
   content: string;
   timestamp: string;
-  tag: 'general' | 'issue';
+  tag: "general" | "issue";
   replies?: Message[];
+}
+
+interface MessagePayload {
+  title: string;
+  description: string;
+  uid: string;
+  created_at: string;
 }
 
 const messageTagConfig = {
   general: {
-    color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/20',
-    label: 'General'
+    color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/20",
+    label: "General",
   },
   issue: {
-    color: 'bg-rose-400/20 text-rose-300 border-rose-400/20',
-    label: 'Issue'
-  }
+    color: "bg-rose-400/20 text-rose-300 border-rose-400/20",
+    label: "Issue",
+  },
 };
 
 // Add new animation variants
@@ -36,22 +50,22 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 const messageVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       type: "spring",
       damping: 20,
-      stiffness: 300
-    }
-  }
+      stiffness: 300,
+    },
+  },
 };
 
 const Community = () => {
@@ -60,114 +74,258 @@ const Community = () => {
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState(""); // Add this line
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [selectedTag, setSelectedTag] = useState<'general' | 'issue'>('general');
-  const [selectedFilter, setSelectedFilter] = useState<'general' | 'issue'>('general');
+  const [selectedTag, setSelectedTag] = useState<"general" | "issue">(
+    "general"
+  );
+  const [selectedFilter, setSelectedFilter] = useState<"general" | "issue">(
+    "general"
+  );
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [currentTag, setCurrentTag] = useState<"general" | "issue">("general");
 
-  const handleSendMessage = () => {
+  const postMessage = async (content: string, tag: "general" | "issue") => {
+    try {
+      const payload = {
+        title: tag === "general" ? "General Message" : "Issue",
+        description: content,
+        uid: user?.uid,
+        created_at: new Date().toISOString(),
+      };
+
+      const response = await fetch(`http://127.0.0.1:5000/community/${tag}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to post message");
+      }
+
+      const result = await response.json();
+      return {
+        ...result,
+        payload, // Include the original payload in the response
+      };
+    } catch (error) {
+      console.error("Error posting message:", error);
+      throw error;
+    }
+  };
+
+  const postReply = async (issueId: string, content: string) => {
+    try {
+      const payload = {
+        issue_id: issueId,
+        title: "Reply",
+        description: content,
+        uid: user?.uid,
+        created_at: new Date().toISOString(),
+      };
+
+      const response = await fetch("http://127.0.0.1:5000/community/reply", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to post reply");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Error posting reply:", error);
+      throw error;
+    }
+  };
+
+  const fetchMessages = async (tag: "general" | "issue") => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/community/messages/${tag}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch messages");
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      const messages = await fetchMessages(selectedFilter);
+      setMessages(messages);
+    };
+    loadMessages();
+  }, [selectedFilter]); // Reload when filter changes
+
+  // Add these two useEffect hooks for auto-refresh and scrolling
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const messages = await fetchMessages(selectedFilter);
+      setMessages(messages);
+    }, 5000); // Refresh every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [selectedFilter]);
+
+  useEffect(() => {
+    const scrollToBottom = () => {
+      const messagesDiv = document.querySelector(".messages-container");
+      if (messagesDiv) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    };
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async () => {
     if (!newMessage.trim() || !user) return;
 
-    const newMsg: Message = {
-      id: Date.now(),
-      userId: user.uid,
-      userName: user.displayName || "Anonymous",
-      userAvatar: user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
-      content: newMessage,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      tag: selectedTag,
-      replies: []
-    };
+    try {
+      const result = await postMessage(newMessage, currentTag);
 
-    setMessages(prev => [...prev, newMsg]);
-    setNewMessage("");
+      const newMsg: Message = {
+        id: result.id, // Use the ID from the server response
+        userId: user.uid,
+        userName: user.displayName || "Anonymous",
+        userAvatar:
+          user.photoURL ||
+          `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
+        content: result.payload.description,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        tag: currentTag,
+        replies: [],
+      };
+
+      // Add new message to the end of the list
+      setMessages((prev) => [...prev, newMsg]);
+      setNewMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   // Add function to handle replies
-  const handleReply = (parentMessage: Message) => {
+  const handleReply = async (parentMessage: Message) => {
     if (!newMessage.trim() || !user) return;
 
-    const newReply: Message = {
-      id: Date.now(),
-      userId: user.uid,
-      userName: user.displayName || "Anonymous",
-      userAvatar: user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
-      content: newMessage,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      tag: selectedTag
-    };
+    try {
+      const result = await postReply(parentMessage.id.toString(), newMessage);
 
-    setMessages(prev => prev.map(msg => 
-      msg.id === parentMessage.id 
-        ? { ...msg, replies: [...(msg.replies || []), newReply] }
-        : msg
-    ));
+      const newReply: Message = {
+        id: result.id,
+        userId: user.uid,
+        userName: user.displayName || "Anonymous",
+        userAvatar:
+          user.photoURL ||
+          `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
+        content: newMessage,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        tag: selectedTag,
+      };
 
-    setNewMessage("");
-    setReplyingTo(null);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === parentMessage.id
+            ? { ...msg, replies: [...(msg.replies || []), newReply] }
+            : msg
+        )
+      );
+
+      setNewMessage("");
+      setReplyingTo(null);
+    } catch (error) {
+      console.error("Error sending reply:", error);
+    }
   };
 
-  const filteredMessages = messages.filter(message => 
-    message.tag === selectedFilter
+  const handleFilterChange = async (newFilter: "general" | "issue") => {
+    setSelectedFilter(newFilter);
+    setCurrentTag(newFilter);
+    const messages = await fetchMessages(newFilter);
+    setMessages(messages);
+  };
+
+  const filteredMessages = messages.filter(
+    (message) => message.tag === selectedFilter
   );
 
   // Add this function
-  const filteredIssueMessages = messages.filter(message => 
-    selectedFilter === 'issue' && message.tag === 'issue' &&
-    (message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     message.userName.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredIssueMessages = messages.filter(
+    (message) =>
+      selectedFilter === "issue" &&
+      message.tag === "issue" &&
+      (message.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        message.userName.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Add guidelines content
   const communityGuidelines = {
     title: "Community Guidelines",
-    description: "Welcome to our community! Please follow these guidelines to ensure effective communication and collaboration.",
+    description:
+      "Welcome to our community! Please follow these guidelines to ensure effective communication and collaboration.",
     tagGuidelines: {
       general: "For community updates, announcements, and general discussions",
-      issue: "For reporting problems, asking questions, or seeking help"
+      issue: "For reporting problems, asking questions, or seeking help",
     },
     rules: [
       {
         icon: "🏷️",
         title: "Use Appropriate Tags",
-        description: "Always select the right tag for your messages: General for regular discussions and Issue for problems."
+        description:
+          "Always select the right tag for your messages: General for regular discussions and Issue for problems.",
       },
       {
         icon: "❓",
         title: "Asking Questions",
-        description: "Use the 'Issue' tag when asking questions. Be clear and provide necessary details."
+        description:
+          "Use the 'Issue' tag when asking questions. Be clear and provide necessary details.",
       },
       {
         icon: "💡",
         title: "Providing Solutions",
-        description: "Ensure your answers are helpful and well-explained."
+        description: "Ensure your answers are helpful and well-explained.",
       },
       {
         icon: "💬",
         title: "General Discussion",
-        description: "Use the 'General' tag for announcements, updates, or general conversations."
+        description:
+          "Use the 'General' tag for announcements, updates, or general conversations.",
       },
       {
         icon: "🤝",
         title: "Be Respectful",
-        description: "Maintain a professional and respectful tone. Avoid inflammatory language."
+        description:
+          "Maintain a professional and respectful tone. Avoid inflammatory language.",
       },
       {
         icon: "✨",
         title: "Quality Content",
-        description: "Keep messages clear, relevant, and constructive. Avoid spam or off-topic discussions."
-      }
-    ]
+        description:
+          "Keep messages clear, relevant, and constructive. Avoid spam or off-topic discussions.",
+      },
+    ],
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="h-screen flex bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900"
@@ -194,8 +352,12 @@ const Community = () => {
                     <HelpCircle className="w-6 h-6 text-cyan-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">{communityGuidelines.title}</h2>
-                    <p className="text-sm text-gray-400">{communityGuidelines.description}</p>
+                    <h2 className="text-xl font-bold text-white">
+                      {communityGuidelines.title}
+                    </h2>
+                    <p className="text-sm text-gray-400">
+                      {communityGuidelines.description}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -208,10 +370,12 @@ const Community = () => {
 
               {/* Add Tag Guidelines Section */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Message Tags</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  Message Tags
+                </h3>
                 <div className="grid grid-cols-1 gap-3">
                   {Object.entries(messageTagConfig).map(([tag, config]) => (
-                    <div 
+                    <div
                       key={tag}
                       className={`p-4 rounded-xl ${config.color} border border-opacity-20`}
                     >
@@ -220,7 +384,11 @@ const Community = () => {
                         <span className="font-medium">{config.label}</span>
                       </div>
                       <p className="text-sm mt-2 text-gray-300">
-                        {communityGuidelines.tagGuidelines[tag as keyof typeof communityGuidelines.tagGuidelines]}
+                        {
+                          communityGuidelines.tagGuidelines[
+                            tag as keyof typeof communityGuidelines.tagGuidelines
+                          ]
+                        }
                       </p>
                     </div>
                   ))}
@@ -240,8 +408,12 @@ const Community = () => {
                     <div className="flex items-start space-x-3">
                       <span className="text-2xl">{rule.icon}</span>
                       <div>
-                        <h3 className="font-medium text-white mb-1">{rule.title}</h3>
-                        <p className="text-sm text-gray-400">{rule.description}</p>
+                        <h3 className="font-medium text-white mb-1">
+                          {rule.title}
+                        </h3>
+                        <p className="text-sm text-gray-400">
+                          {rule.description}
+                        </p>
                       </div>
                     </div>
                   </motion.div>
@@ -271,25 +443,24 @@ const Community = () => {
           className="px-6 py-2 bg-gray-900/80 border-b border-cyan-500/10"
         >
           <nav className="flex items-center space-x-2 text-sm">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="flex items-center text-gray-400 hover:text-cyan-400 transition-colors"
             >
               <Home className="w-4 h-4 mr-1" />
               Home
             </Link>
-           
-           
+
             <ChevronRight className="w-4 h-4 text-gray-600" />
             <span className="text-cyan-400 flex items-center">
-  <MessageCircle className="w-4 h-4 mr-1 inline-block" />
-  Community
-</span>
+              <MessageCircle className="w-4 h-4 mr-1 inline-block" />
+              Community
+            </span>
           </nav>
         </motion.div>
 
         {/* Chat Header */}
-        <motion.div 
+        <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="px-6 py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
@@ -307,16 +478,19 @@ const Community = () => {
               <div className="flex items-center space-x-4">
                 {/* Updated Tag Filters */}
                 <div className="flex items-center space-x-2">
-                
                   <div className="flex space-x-2">
                     {Object.entries(messageTagConfig).map(([tag, config]) => (
                       <motion.button
                         key={tag}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => setSelectedFilter(tag as any)}
+                        onClick={() =>
+                          handleFilterChange(tag as "general" | "issue")
+                        }
                         className={`px-3 py-1 rounded-full flex items-center space-x-1.5 ${
-                          selectedFilter === tag ? config.color : 'text-gray-400 hover:text-white'
+                          selectedFilter === tag
+                            ? config.color
+                            : "text-gray-400 hover:text-white"
                         }`}
                       >
                         <Tag className="w-3 h-3" />
@@ -342,10 +516,10 @@ const Community = () => {
 
             {/* Add the animated search bar */}
             <AnimatePresence>
-              {selectedFilter === 'issue' && (
+              {selectedFilter === "issue" && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
+                  animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
@@ -363,7 +537,7 @@ const Community = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => setSearchQuery('')}
+                        onClick={() => setSearchQuery("")}
                         className="p-1 rounded-lg hover:bg-gray-700/50"
                       >
                         <X className="w-4 h-4 text-gray-400" />
@@ -377,13 +551,13 @@ const Community = () => {
         </motion.div>
 
         {/* Messages Area */}
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-800/50"
+          className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-800/50 messages-container"
         >
-          {(selectedFilter === 'issue' && searchQuery
+          {(selectedFilter === "issue" && searchQuery
             ? filteredIssueMessages
             : filteredMessages
           ).map((message) => (
@@ -392,10 +566,12 @@ const Community = () => {
               variants={messageVariants}
               layout
               className={`group flex items-start space-x-4 ${
-                message.userId === user?.uid ? 'flex-row-reverse space-x-reverse' : ''
+                message.userId === user?.uid
+                  ? "flex-row-reverse space-x-reverse"
+                  : ""
               }`}
             >
-              <motion.div 
+              <motion.div
                 whileHover={{ scale: 1.05 }}
                 className="relative flex-shrink-0"
               >
@@ -407,28 +583,32 @@ const Community = () => {
                 <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black" />
               </motion.div>
 
-              <div className={`flex-1 flex flex-col ${
-                message.userId === user?.uid ? 'items-end' : 'items-start'
-              }`}>
+              <div
+                className={`flex-1 flex flex-col ${
+                  message.userId === user?.uid ? "items-end" : "items-start"
+                }`}
+              >
                 <motion.div
                   whileHover={{ scale: 1.01 }}
                   className={`max-w-md rounded-2xl p-4 ${
                     message.userId === user?.uid
-                      ? 'bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10'
-                      : 'bg-white/5 hover:bg-cyan-900/20'
+                      ? "bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10"
+                      : "bg-white/5 hover:bg-cyan-900/20"
                   }`}
                 >
                   <div className="flex items-center space-x-2 mb-2">
-                    <motion.span 
+                    <motion.span
                       whileHover={{ scale: 1.05 }}
-                      className={`px-2 py-0.5 rounded-full text-xs ${messageTagConfig[message.tag].color}`}
+                      className={`px-2 py-0.5 rounded-full text-xs ${
+                        messageTagConfig[message.tag].color
+                      }`}
                     >
                       {messageTagConfig[message.tag].label}
                     </motion.span>
                   </div>
                   <p className="text-white text-sm">{message.content}</p>
                 </motion.div>
-                
+
                 <div className="flex items-center mt-1 space-x-2 text-xs">
                   <span className="text-cyan-400">{message.userName}</span>
                   <span className="text-gray-500">{message.timestamp}</span>
@@ -439,7 +619,7 @@ const Community = () => {
         </motion.div>
 
         {/* Input Area - unchanged but now full width */}
-        <motion.div 
+        <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="p-6 bg-gray-900/50 border-t border-cyan-500/10 backdrop-blur-xl"
@@ -455,22 +635,21 @@ const Community = () => {
               </button>
             </div>
           )}
-          <motion.div 
+          <motion.div
             className="flex items-center space-x-4"
             whileHover={{ y: -2 }}
           >
             {/* Updated Tag Selection */}
             <div className="flex items-center space-x-2">
-              
               <div className="flex space-x-2">
                 {Object.entries(messageTagConfig).map(([tag, config]) => (
                   <motion.button
                     key={tag}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setSelectedTag(tag as any)}
+                    onClick={() => setCurrentTag(tag as "general" | "issue")}
                     className={`px-3 py-1 rounded-full flex items-center space-x-1.5 ${
-                      selectedTag === tag ? config.color : 'text-gray-400 hover:text-white'
+                      currentTag === tag
+                        ? config.color
+                        : "text-gray-400 hover:text-white"
                     }`}
                   >
                     <Tag className="w-3 h-3" />
@@ -479,26 +658,23 @@ const Community = () => {
                 ))}
               </div>
             </div>
-
-            <div className="flex-1 flex items-center space-x-4 bg-cyan-950/20 rounded-xl p-2">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={e => setNewMessage(e.target.value)}
-                onKeyPress={e => e.key === 'Enter' && (replyingTo ? handleReply(replyingTo) : handleSendMessage())}
-                placeholder={replyingTo ? `Reply to ${replyingTo.userName}...` : `Type your message...`}
-                className="flex-1 bg-transparent px-4 py-2 text-white placeholder-gray-400 focus:outline-none"
-              />
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={replyingTo ? () => handleReply(replyingTo) : handleSendMessage}
-                disabled={!newMessage.trim()}
-                className="p-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white disabled:opacity-50 disabled:hover:bg-opacity-50"
-              >
-                <Send className="w-5 h-5" />
-              </motion.button>
-            </div>
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder={`Type your ${currentTag} message...`}
+              className="flex-1 bg-gray-800/50 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none"
+            />
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={
+                replyingTo ? () => handleReply(replyingTo) : handleSendMessage
+              }
+              className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all duration-300"
+            >
+              <Send className="w-5 h-5" />
+            </motion.button>
           </motion.div>
         </motion.div>
       </div>

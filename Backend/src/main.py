@@ -15,6 +15,7 @@ from src.utils.logger import logging
 from src.routes import users
 from src.bot import FRIDAY
 from typing import Optional 
+from src.models.chat_models import General, Issue, IssueReply
 
 app = FastAPI()
 
@@ -415,6 +416,85 @@ async def log_dataset_category(data: dict):
         }
     except Exception as e:
         logging.error(f"Error in log_dataset_category: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/community/general")
+async def create_general_message(message: dict):
+    try:
+        # Create message document
+        message_doc = {
+            "title": message.get("title"),
+            "description": message.get("description"),
+            "uid": message.get("uid"),
+            "created_at": message.get("created_at")
+        }
+        result = await general_collection.insert_one(message_doc)
+        message_id = str(result.inserted_id)
+        return {"id": message_id, "status": "success"}
+    except Exception as e:
+        logging.error(f"Error creating general message: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/community/issue")
+async def create_issue_message(message: dict):
+    try:
+        # Create message document
+        message_doc = {
+            "title": message.get("title"),
+            "description": message.get("description"),
+            "uid": message.get("uid"),
+            "created_at": message.get("created_at")
+        }
+        result = await issues_collection.insert_one(message_doc)
+        message_id = str(result.inserted_id)
+        return {"id": message_id, "status": "success"}
+    except Exception as e:
+        logging.error(f"Error creating issue message: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/community/reply")
+async def create_reply_message(message: dict):
+    try:
+        # Create message document
+        message_doc = {
+            "issue_id": message.get("issue_id"),
+            "title": message.get("title"),
+            "description": message.get("description"),
+            "uid": message.get("uid"),
+            "created_at": message.get("created_at")
+        }
+        result = await replies_collection.insert_one(message_doc)
+        message_id = str(result.inserted_id)
+        return {"id": message_id, "status": "success"}
+    except Exception as e:
+        logging.error(f"Error creating reply message: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/community/messages/{tag}")
+async def get_messages(tag: str):
+    try:
+        collection = general_collection if tag == "general" else issues_collection
+        # Change sort order to ascending (oldest first)
+        messages = await collection.find({}).sort("created_at", 1).to_list(None)
+        
+        # Get user details for each message
+        processed_messages = []
+        for msg in messages:
+            user = await user_profile_collection.find_one({"uid": msg["uid"]})
+            processed_msg = {
+                "id": str(msg["_id"]),
+                "content": msg["description"],
+                "userId": msg["uid"],
+                "userName": user.get("name", "Anonymous") if user else "Anonymous",
+                "userAvatar": user.get("profilePicture", ""),
+                "timestamp": msg["created_at"],
+                "tag": tag
+            }
+            processed_messages.append(processed_msg)
+            
+        return jsonable_encoder(processed_messages)
+    except Exception as e:
+        logging.error(f"Error fetching {tag} messages: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Initialize the chatbot
