@@ -651,11 +651,9 @@ const Community = () => {
                     <div className="flex items-center justify-between mb-2">
                       <motion.span
                         whileHover={{ scale: 1.05 }}
-                        className={`px-2 py-0.5 rounded-full text-xs ${
-                          messageTagConfig[message.tag].color
-                        }`}
+                        className="text-sm text-cyan-400"
                       >
-                        {messageTagConfig[message.tag].label}
+                        {message.userName}
                       </motion.span>
                       {message.tag === "issue" && (
                         <motion.button
