@@ -582,7 +582,7 @@ const Settings = () => {
               </div>
 
               {/* GitHub Section */}
-              <div className="pt-6 border-t border-gray-700/50">
+              <div className="pt-1">
                 <div className="flex items-center gap-2 mb-2">
                   <Github className="w-4 h-4 text-cyan-400" />
                   <h3 className="text-sm font-medium text-gray-400">
@@ -610,7 +610,7 @@ const Settings = () => {
               </div>
 
               {/* About Section */}
-              <div className="pt-6 border-t border-gray-700/50">
+              <div className="pt-1">
                 {isEditing ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -735,7 +735,7 @@ const Settings = () => {
                     >
                       <path
                         fillRule="evenodd"
-                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 10-2 0v1H7V3a1 1 00-1-1zm0 5a1 1 000 2h8a1 1 100-2H6z"
+                        d="M6 2a1 1 00-1 1v1H4a2 2 00-2 2v10a2 2 00-2 2h12a2 2 00-2-2V6a2 2 00-2-2h-1V3a1 1 10-2 0v1H7V3a1 1 00-1-1zm0 5a1 1 000 2h8a1 1 100-2H6z"
                         clipRule="evenodd"
                       />
                     </svg>
