@@ -14,7 +14,7 @@ import Documentation from "./pages/Documentation";
 import { useAuth } from "./contexts/AuthContext";
 import DatasetEdit from "./pages/DatasetEdit";
 import OtherProfile from "./pages/OtherProfile";
-import Prompt from "./pages/Prompt";
+import Prompts from "./pages/Prompts";
 import { Toaster } from 'react-hot-toast';
 
 
@@ -119,7 +119,14 @@ function App() {
             }
           />
 
-        
+          <Route
+            path="/prompts"
+            element={
+              <PrivateRoute>
+                <Prompts />
+              </PrivateRoute>
+            }
+          />
 
           {/* Profile Route */}
           <Route

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Upload } from "lucide-react";
+import { MessageSquarePlus } from 'lucide-react';
 import {
   getUserProfile,
   getUserProfileByUsername,
@@ -311,16 +312,28 @@ const UserProfile = () => {
                     </span>
                   </motion.div>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate("/upload")}
-                  className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
-                    hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
-                >
-                  <Upload size={18} />
-                  Upload Dataset
-                </motion.button>
+                <div className="flex items-center space-x-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate("/upload")}
+                    className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
+                      hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
+                  >
+                    <Upload size={18} />
+                    Upload Dataset
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate("/prompts")}
+                    className="flex items-center gap-2 px-4 py-2 bg-cyan-600/20 text-cyan-400 rounded-lg 
+                      hover:bg-cyan-600/30 transition-all shadow-lg shadow-cyan-600/10 border border-cyan-500/20"
+                  >
+                    <MessageSquarePlus size={18} />
+                    Upload Prompt
+                  </motion.button>
+                </div>
               </div>
             </div>
 
