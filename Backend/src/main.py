@@ -8,8 +8,8 @@ from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.routes.upload_router import router as upload_router
-from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile,datasets_collection, delete_user_account,deleted_datasets_collection,replies_collection,issues_collection,general_collection
-from src.models.models import UserProfile,UidRequest,SettingProfile
+from src.database.mongodb import close_db_client, user_profile_collection, update_user_profile,datasets_collection, delete_user_account,deleted_datasets_collection,replies_collection,issues_collection,general_collection,prompts_collection
+from src.models.models import UserProfile,UidRequest,SettingProfile,Prompts
 from fastapi.encoders import jsonable_encoder
 from src.utils.exception import CustomException
 from src.utils.logger import logging
@@ -606,4 +606,17 @@ async def check_api_key(uid: str):
         return {"hasKey": has_key}
     except Exception as e:
         logging.error(f"Error checking API key: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/prompts")
+async def create_prompt(prompt: Prompts):
+    try:
+        prompt_doc = prompt.dict()
+        result = await prompts_collection.insert_one(prompt_doc)
+        return {
+            "id": str(result.inserted_id),
+            "message": "Prompt saved successfully"
+        }
+    except Exception as e:
+        logging.error(f"Error saving prompt: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

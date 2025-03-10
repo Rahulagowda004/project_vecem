@@ -16,6 +16,7 @@ deleted_datasets_collection = db.deleteddatasets
 general_collection = db.general
 issues_collection = db.issues
 replies_collection = db.replies
+prompts_collection = db.prompts
 
 async def save_userprofile(userprofile: dict) -> str:
     try:

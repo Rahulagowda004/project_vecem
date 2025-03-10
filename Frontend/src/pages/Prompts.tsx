@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Plus, Minus, Save, User, ChevronRight } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { getUserProfileByUid } from "../services/userService";
+import { saveUserPrompt } from "../services/promptService";
 
 const Prompts = () => {
   const navigate = useNavigate();
@@ -11,7 +12,9 @@ const Prompts = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [prompts, setPrompts] = useState<string[]>([""]);
-  const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ username: string } | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -44,8 +47,29 @@ const Prompts = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement prompt submission logic
-    navigate(`/${user?.displayName}`);
+    try {
+      if (!userProfile?.username) {
+        throw new Error("Username not found");
+      }
+
+      // Save each prompt individually
+      for (const prompt of prompts) {
+        if (prompt.trim()) {
+          await saveUserPrompt({
+            username: userProfile.username,
+            prompt_name: name,
+            prompt_description: description,
+            prompt: prompt,
+          });
+        }
+      }
+
+      // Navigate to user profile after successful save
+      navigate(`/${userProfile.username}`);
+    } catch (error) {
+      console.error("Error saving prompts:", error);
+      // TODO: Add error handling UI feedback
+    }
   };
 
   return (
@@ -54,8 +78,8 @@ const Prompts = () => {
         {/* Breadcrumb navigation */}
         <nav className="flex mb-6 text-sm text-gray-400">
           {userProfile?.username ? (
-            <Link 
-              to={`/${userProfile.username}`} 
+            <Link
+              to={`/${userProfile.username}`}
               className="flex items-center hover:text-cyan-400 transition-colors"
             >
               <User className="w-4 h-4 mr-1" />

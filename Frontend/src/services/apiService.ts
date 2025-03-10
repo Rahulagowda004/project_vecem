@@ -9,6 +9,7 @@ import {
   updateUserData,
   deleteUserDocument,
 } from "./userService";
+import { saveUserPrompt } from "./promptService";
 
 export {
   uploadDataset,
@@ -18,4 +19,5 @@ export {
   getUserData,
   updateUserData,
   deleteUserDocument,
+  saveUserPrompt,
 };
