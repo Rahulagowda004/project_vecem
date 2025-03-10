@@ -1,6 +1,10 @@
 import React, { useState, useRef, FormEvent, useEffect } from "react";
 import { FileType, Image, Mic, Video, ChevronRight, User } from "lucide-react";
-import { uploadDataset, DatasetForm, checkDatasetNameAvailability } from "../services/uploadService";
+import {
+  uploadDataset,
+  DatasetForm,
+  checkDatasetNameAvailability,
+} from "../services/uploadService";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { getUserProfileByUid } from "../services/userService";
@@ -23,7 +27,7 @@ interface DatasetForm {
   domain: string;
   dimensions?: number;
   vectorDatabase?: string;
-  modelName?: string;  // Add this line
+  modelName?: string; // Add this line
 }
 
 const UploadFile = () => {
@@ -48,9 +52,12 @@ const UploadFile = () => {
     description: "",
     domain: "",
   });
-  const [totalSize, setTotalSize] = useState<{ raw: number; vectorized: number }>({
+  const [totalSize, setTotalSize] = useState<{
+    raw: number;
+    vectorized: number;
+  }>({
     raw: 0,
-    vectorized: 0
+    vectorized: 0,
   });
   const [nameError, setNameError] = useState<string>("");
   const [isCheckingName, setIsCheckingName] = useState<boolean>(false);
@@ -65,7 +72,9 @@ const UploadFile = () => {
     success: boolean;
     message: string;
   }>({ show: false, success: false, message: "" });
-  const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ username: string } | null>(
+    null
+  );
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const domains = [
@@ -87,16 +96,22 @@ const UploadFile = () => {
 
   const fileTypeMap = {
     Image: {
-      mimeTypes: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
-      extensions: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic"]
+      mimeTypes: [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/heic",
+      ],
+      extensions: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic"],
     },
     Audio: {
       mimeTypes: ["audio/mpeg", "audio/wav", "audio/ogg"],
-      extensions: [".mp3", ".wav", ".ogg"]
+      extensions: [".mp3", ".wav", ".ogg"],
     },
     Video: {
       mimeTypes: ["video/mp4", "video/webm", "video/ogg"],
-      extensions: [".mp4", ".webm", ".ogg"]
+      extensions: [".mp4", ".webm", ".ogg"],
     },
     Text: {
       mimeTypes: [
@@ -108,8 +123,8 @@ const UploadFile = () => {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "application/msword",
       ],
-      extensions: [".txt", ".csv", ".json", ".pdf", ".docx", ".xlsx", ".doc"]
-    }
+      extensions: [".txt", ".csv", ".json", ".pdf", ".docx", ".xlsx", ".doc"],
+    },
   };
 
   // Update handleFileInputChange to remove file type validation
@@ -124,28 +139,32 @@ const UploadFile = () => {
     }
 
     const filesArray = Array.from(files);
-    
+
     if (type === "raw") {
       const allowedExtensions = fileTypeMap[fileType].extensions;
-      const invalidFiles = filesArray.filter(file => {
-        const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+      const invalidFiles = filesArray.filter((file) => {
+        const extension = "." + file.name.split(".").pop()?.toLowerCase();
         return !allowedExtensions.includes(extension);
       });
 
       if (invalidFiles.length > 0) {
-        setError(`Invalid file types detected. Allowed extensions: ${allowedExtensions.join(', ')}`);
-        if (event.target) event.target.value = '';
+        setError(
+          `Invalid file types detected. Allowed extensions: ${allowedExtensions.join(
+            ", "
+          )}`
+        );
+        if (event.target) event.target.value = "";
         return;
       }
     }
 
     // Create a new FileList-like object with the filtered files
     const filteredFiles = new DataTransfer();
-    filesArray.forEach(file => filteredFiles.items.add(file));
-    
-    setSelectedFiles({ 
+    filesArray.forEach((file) => filteredFiles.items.add(file));
+
+    setSelectedFiles({
       files: filteredFiles.files,
-      type 
+      type,
     });
     setShowConfirmation(true);
   };
@@ -176,9 +195,9 @@ const UploadFile = () => {
 
     // Calculate total size and update progress immediately
     const totalBytes = filesArray.reduce((acc, file) => acc + file.size, 0);
-    setTotalSize(prev => ({
+    setTotalSize((prev) => ({
       ...prev,
-      [type]: totalBytes
+      [type]: totalBytes,
     }));
 
     setUploadProgress({ progress: 0, status: "uploading" });
@@ -209,7 +228,7 @@ const UploadFile = () => {
   };
 
   const formatDatasetName = (name: string) => {
-    return name.replace(/\s+/g, '_');
+    return name.replace(/\s+/g, "_");
   };
 
   const validateDatasetName = async (name: string) => {
@@ -227,7 +246,9 @@ const UploadFile = () => {
         setNameError("");
       }
     } catch (error) {
-      setNameError(error instanceof Error ? error.message : "Error checking dataset name");
+      setNameError(
+        error instanceof Error ? error.message : "Error checking dataset name"
+      );
     } finally {
       setIsCheckingName(false);
     }
@@ -237,7 +258,7 @@ const UploadFile = () => {
     const formattedName = formatDatasetName(e.target.value);
     setFormData({
       ...formData,
-      name: formattedName
+      name: formattedName,
     });
 
     // Clear any existing timeout
@@ -301,7 +322,7 @@ const UploadFile = () => {
     if (datasetType === "Both") {
       const rawFiles = rawInputRef.current?.files;
       const vectorizedFiles = vectorizedInputRef.current?.files;
-      
+
       if (!rawFiles?.length || !vectorizedFiles?.length) {
         setError("Both raw and vectorized files are required");
         setIsUploading(false);
@@ -324,6 +345,10 @@ const UploadFile = () => {
         ...formData,
         datasetId,
         file_type: fileType.toLowerCase(),
+        // Add vectorized settings to the dataset info
+        model_name: formData.modelName,
+        dimensions: parseInt(formData.dimensions as string),
+        vector_database: formData.vectorDatabase,
       };
 
       if (datasetType === "Both") {
@@ -372,9 +397,9 @@ const UploadFile = () => {
         setUploadStatus({
           show: true,
           success: true,
-          message: "Dataset uploaded successfully!"
+          message: "Dataset uploaded successfully!",
         });
-        
+
         // Wait for 4 seconds, then redirect to user profile
         setTimeout(() => {
           if (userProfile?.username) {
@@ -388,7 +413,7 @@ const UploadFile = () => {
         setUploadStatus({
           show: true,
           success: false,
-          message: result?.message || "Failed to upload dataset"
+          message: result?.message || "Failed to upload dataset",
         });
 
         // Hide error message after 4 seconds
@@ -403,7 +428,8 @@ const UploadFile = () => {
       setUploadStatus({
         show: true,
         success: false,
-        message: error instanceof Error ? error.message : "Failed to upload dataset"
+        message:
+          error instanceof Error ? error.message : "Failed to upload dataset",
       });
       setError(
         error instanceof Error ? error.message : "Failed to upload dataset"
@@ -419,9 +445,9 @@ const UploadFile = () => {
 
   // Add helper function to format file size
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const sizes = ["B", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
@@ -432,7 +458,8 @@ const UploadFile = () => {
       <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-md w-full mx-4">
         <h3 className="text-xl font-semibold mb-4">Confirm File Upload</h3>
         <p className="text-gray-300 mb-4">
-          {selectedFiles?.files?.length} files selected. Are you sure you want to proceed with these files?
+          {selectedFiles?.files?.length} files selected. Are you sure you want
+          to proceed with these files?
         </p>
         <div className="flex justify-end gap-4">
           <button
@@ -442,7 +469,8 @@ const UploadFile = () => {
               if (selectedFiles?.type === "raw") {
                 if (rawInputRef.current) rawInputRef.current.value = "";
               } else if (selectedFiles?.type === "vectorized") {
-                if (vectorizedInputRef.current) vectorizedInputRef.current.value = "";
+                if (vectorizedInputRef.current)
+                  vectorizedInputRef.current.value = "";
               } else if (fileInputRef.current) {
                 fileInputRef.current.value = "";
               }
@@ -473,22 +501,22 @@ const UploadFile = () => {
 
     return (
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div 
+        <div
           className={`p-8 rounded-xl ${
-            uploadStatus.success ? 'bg-green-800/90' : 'bg-red-800/90'
+            uploadStatus.success ? "bg-green-800/90" : "bg-red-800/90"
           } shadow-lg max-w-md mx-4 text-center transform transition-all duration-300 scale-100`}
         >
-          <div className={`text-6xl mb-4 ${
-            uploadStatus.success ? 'text-green-400' : 'text-red-400'
-          }`}>
-            {uploadStatus.success ? '✓' : '✕'}
+          <div
+            className={`text-6xl mb-4 ${
+              uploadStatus.success ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {uploadStatus.success ? "✓" : "✕"}
           </div>
           <h3 className="text-2xl font-semibold mb-2 text-white">
-            {uploadStatus.success ? 'Success!' : 'Upload Failed'}
+            {uploadStatus.success ? "Success!" : "Upload Failed"}
           </h3>
-          <p className="text-lg text-gray-200">
-            {uploadStatus.message}
-          </p>
+          <p className="text-lg text-gray-200">{uploadStatus.message}</p>
           {uploadStatus.success && (
             <p className="text-sm text-gray-300 mt-4">
               Redirecting to your profile...
@@ -501,7 +529,8 @@ const UploadFile = () => {
 
   // Update file inputs to bypass system dialog checks
   const fileInputProps = {
-    className: "w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 file:transition-colors",
+    className:
+      "w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 file:transition-colors",
     multiple: true,
   };
 
@@ -513,8 +542,8 @@ const UploadFile = () => {
         {/* Updated breadcrumb navigation */}
         <nav className="flex mb-6 text-sm text-gray-400">
           {userProfile?.username ? (
-            <Link 
-              to={`/${userProfile.username}`} 
+            <Link
+              to={`/${userProfile.username}`}
               className="flex items-center hover:text-cyan-400 transition-colors"
             >
               <User className="w-4 h-4 mr-1" />
@@ -535,7 +564,8 @@ const UploadFile = () => {
             Data Specifications
           </h1>
           <h5 className="text-white text-center items-center mb-8">
-            Specify your dataset, select the format, ensure compatibility, and track uploads in real time.
+            Specify your dataset, select the format, ensure compatibility, and
+            track uploads in real time.
           </h5>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -551,18 +581,19 @@ const UploadFile = () => {
                 onChange={handleNameChange}
                 required
                 className={`w-full px-4 py-2 rounded-xl bg-gray-700/50 border 
-                  ${nameError ? 'border-red-500' : 'border-gray-600'}
+                  ${nameError ? "border-red-500" : "border-gray-600"}
                   text-white placeholder-gray-400
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition`}
                 placeholder="Enter dataset name *"
               />
               {isCheckingName && (
-                <p className="text-sm text-gray-400 mt-1">Checking dataset name...</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Checking dataset name...
+                </p>
               )}
               {nameError && (
                 <p className="text-sm text-red-400 mt-1">{nameError}</p>
               )}
-
             </div>
 
             {/* Description */}
@@ -615,9 +646,10 @@ const UploadFile = () => {
                   key={type}
                   onClick={() => setDatasetType(type as typeof datasetType)}
                   className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all duration-200 
-                    ${datasetType === type
-                      ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
-                      : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
+                    ${
+                      datasetType === type
+                        ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                        : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
                     }`}
                 >
                   {type}
@@ -632,7 +664,7 @@ const UploadFile = () => {
                   Vectorized Settings
                 </h3>
                 <div className="space-y-6">
-                <div>
+                  <div>
                     <label className="block text-sm font-medium mb-2 text-white">
                       Model Name
                     </label>
@@ -662,28 +694,28 @@ const UploadFile = () => {
                         text-white placeholder-gray-400
                         focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
                       placeholder="Enter dimensions *"
-                      min="100"        
-                      max="5000" 
+                      min="100"
+                      max="5000"
                     />
                   </div>
-                  
+
                   <div>
-                      <label className="block text-sm font-medium mb-2 text-white">
-                        Vector Database
-                      </label>
-                      <input
-                        type="text"
-                        name="vectorDatabase"
-                        value={formData.vectorDatabase || ""}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                    <label className="block text-sm font-medium mb-2 text-white">
+                      Vector Database
+                    </label>
+                    <input
+                      type="text"
+                      name="vectorDatabase"
+                      value={formData.vectorDatabase || ""}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
                           text-white placeholder-gray-400
                           focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                        placeholder="Enter vector database name *"
-                        pattern="[A-Za-z]+"
-                        title="Only letters are allowed"
-                      />
+                      placeholder="Enter vector database name *"
+                      pattern="[A-Za-z]+"
+                      title="Only letters are allowed"
+                    />
                   </div>
                 </div>
               </div>
@@ -698,15 +730,16 @@ const UploadFile = () => {
                 { type: "Image", icon: Image },
                 { type: "Audio", icon: Mic },
                 { type: "Text", icon: FileType },
-                { type: "Video", icon: Video }
+                { type: "Video", icon: Video },
               ].map(({ type, icon: Icon }) => (
                 <button
                   key={type}
                   onClick={() => setFileType(type as typeof fileType)}
                   className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 
-                    ${fileType === type
-                      ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
-                      : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
+                    ${
+                      fileType === type
+                        ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                        : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
                     }`}
                 >
                   <Icon className="w-6 h-6 mb-2" />
@@ -735,9 +768,9 @@ const UploadFile = () => {
                         onChange={(e) => handleFileInputChange(e, "raw")}
                         onClick={(e) => {
                           const element = e.target as HTMLInputElement;
-                          element.value = '';
+                          element.value = "";
                         }}
-                        accept={fileTypeMap[fileType].extensions.join(',')}
+                        accept={fileTypeMap[fileType].extensions.join(",")}
                       />
                     </div>
 
@@ -753,9 +786,9 @@ const UploadFile = () => {
                         onChange={(e) => handleFileInputChange(e, "vectorized")}
                         onClick={(e) => {
                           const element = e.target as HTMLInputElement;
-                          element.value = '';
+                          element.value = "";
                         }}
-                        accept={fileTypeMap[fileType].extensions.join(',')}
+                        accept={fileTypeMap[fileType].extensions.join(",")}
                       />
                     </div>
                   </>
@@ -764,26 +797,33 @@ const UploadFile = () => {
                     {...fileInputProps}
                     type="file"
                     ref={fileInputRef}
-                    onChange={(e) => handleFileInputChange(e, datasetType.toLowerCase() as "raw" | "vectorized")}
+                    onChange={(e) =>
+                      handleFileInputChange(
+                        e,
+                        datasetType.toLowerCase() as "raw" | "vectorized"
+                      )
+                    }
                     onClick={(e) => {
                       const element = e.target as HTMLInputElement;
-                      element.value = '';
+                      element.value = "";
                     }}
-                    accept={datasetType.toLowerCase() === "raw" ? fileTypeMap[fileType].extensions.join(',') : undefined}
+                    accept={
+                      datasetType.toLowerCase() === "raw"
+                        ? fileTypeMap[fileType].extensions.join(",")
+                        : undefined
+                    }
                   />
                 )}
               </div>
 
               {/* Error message */}
-              {error && (
-                <p className="text-sm text-red-400 mt-2">
-                  {error}
-                </p>
-              )}
+              {error && <p className="text-sm text-red-400 mt-2">{error}</p>}
 
               {/* Help text */}
               <p className="mt-2 text-sm text-gray-400">
-                {datasetType === "Vectorized" ? "Select a folder containing vectorized data files" : `Select a folder containing only ${fileType.toLowerCase()} files`}
+                {datasetType === "Vectorized"
+                  ? "Select a folder containing vectorized data files"
+                  : `Select a folder containing only ${fileType.toLowerCase()} files`}
               </p>
             </div>
 

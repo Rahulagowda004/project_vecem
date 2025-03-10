@@ -21,7 +21,9 @@ class DatasetInfo(BaseModel):
     uid: str = Field(..., description="User ID is required")
     domain: Optional[str] = None
     file_type: Optional[str] = None
-
+    model_name: Optional[str] = None
+    dimensions: Optional[int] = None
+    vector_database: Optional[str] = None
 
 class UploadResponse(BaseModel):
     success: bool
