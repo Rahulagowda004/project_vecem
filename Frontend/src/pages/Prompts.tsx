@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Minus, Save } from "lucide-react";
-import NavbarPro from "../components/NavbarPro";
+import { Plus, Minus, Save, User, ChevronRight } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { getUserProfileByUid } from "../services/userService";
 
 const Prompts = () => {
   const navigate = useNavigate();
@@ -11,6 +11,21 @@ const Prompts = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [prompts, setPrompts] = useState<string[]>([""]);
+  const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.uid) {
+        try {
+          const profile = await getUserProfileByUid(user.uid);
+          setUserProfile(profile);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+    fetchUserProfile();
+  }, [user]);
 
   const handleAddPrompt = () => {
     setPrompts([...prompts, ""]);
@@ -34,15 +49,34 @@ const Prompts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <NavbarPro />
-      <div className="max-w-4xl mx-auto px-4 py-8 pt-24">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
+        {/* Breadcrumb navigation */}
+        <nav className="flex mb-6 text-sm text-gray-400">
+          {userProfile?.username ? (
+            <Link 
+              to={`/${userProfile.username}`} 
+              className="flex items-center hover:text-cyan-400 transition-colors"
+            >
+              <User className="w-4 h-4 mr-1" />
+              {userProfile.username}
+            </Link>
+          ) : (
+            <span className="flex items-center">
+              <User className="w-4 h-4 mr-1" />
+              Loading...
+            </span>
+          )}
+          <ChevronRight className="w-4 h-4 mx-2" />
+          <span className="text-white">Upload Prompt</span>
+        </nav>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800 rounded-xl p-8 shadow-xl border border-gray-700"
+          className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 shadow-xl border border-gray-700/50"
         >
-          <h1 className="text-3xl font-bold text-white mb-8">Create Prompt</h1>
+          <h1 className="text-3xl font-bold text-white mb-8">Upload Prompt</h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
