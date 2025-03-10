@@ -10,11 +10,28 @@ const Prompts = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [prompts, setPrompts] = useState<string[]>([""]);
-  const [userProfile, setUserProfile] = useState<{ username: string } | null>(
-    null
-  );
+  const [prompt, setPrompt] = useState("");
+  const [domain, setDomain] = useState("");
+  const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const domains = [
+    "Health",
+    "Education",
+    "Automobile",
+    "Finance",
+    "Business",
+    "Banking",
+    "Retail",
+    "Government",
+    "Sports",
+    "Social Media",
+    "Entertainment",
+    "Telecommunication",
+    "Energy",
+    "E-Commerce",
+  ];
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -30,51 +47,37 @@ const Prompts = () => {
     fetchUserProfile();
   }, [user]);
 
-  const handleAddPrompt = () => {
-    setPrompts([...prompts, ""]);
-  };
-
-  const handleRemovePrompt = (index: number) => {
-    const newPrompts = prompts.filter((_, i) => i !== index);
-    setPrompts(newPrompts);
-  };
-
-  const handlePromptChange = (index: number, value: string) => {
-    const newPrompts = [...prompts];
-    newPrompts[index] = value;
-    setPrompts(newPrompts);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
     try {
       if (!userProfile?.username) {
         throw new Error("Username not found");
       }
 
-      // Save each prompt individually
-      for (const prompt of prompts) {
-        if (prompt.trim()) {
-          await saveUserPrompt({
-            username: userProfile.username,
-            prompt_name: name,
-            prompt_description: description,
-            prompt: prompt,
-          });
-        }
-      }
+      await saveUserPrompt({
+        username: userProfile.username,
+        prompt_name: name,
+        prompt: prompt,
+        domain: domain,
+      });
 
-      // Navigate to user profile after successful save
+      // Show success message
+      alert("Prompt saved successfully!");
       navigate(`/${userProfile.username}`);
     } catch (error) {
-      console.error("Error saving prompts:", error);
-      // TODO: Add error handling UI feedback
+      console.error("Error saving prompt:", error);
+      setError("Failed to save prompt. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
-      <div className="min-h-screen w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
+    <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
+      <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
         {/* Breadcrumb navigation */}
         <nav className="flex mb-6 text-sm text-gray-400">
           {userProfile?.username ? (
@@ -95,90 +98,91 @@ const Prompts = () => {
           <span className="text-white">Upload Prompt</span>
         </nav>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 shadow-xl border border-gray-700/50"
-        >
-          <h1 className="text-3xl font-bold text-white mb-8">Upload Prompt</h1>
+        <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
+          <h1 className="text-3xl font-bold text-white mb-6">
+            Create Prompt
+          </h1>
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Prompt Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none"
-                placeholder="Enter prompt name"
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-200">
+                  Prompt Name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
+                    text-white placeholder-gray-400"
+                  placeholder="Enter prompt name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-200">
+                  Domain
+                </label>
+                <select
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
+                    text-white placeholder-gray-400"
+                  required
+                >
+                  <option value="">Select a domain</option>
+                  {domains.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Description
+              <label className="block text-sm font-medium mb-2 text-gray-200">
+                Prompt Content
               </label>
               <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none resize-none h-32"
-                placeholder="Enter prompt description"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
+                  text-white placeholder-gray-400 resize-none h-64"
+                placeholder="Enter your prompt content"
                 required
               />
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-300">
-                  Prompts
-                </label>
-                <button
-                  type="button"
-                  onClick={handleAddPrompt}
-                  className="flex items-center gap-2 px-3 py-1 bg-cyan-600/20 text-cyan-400 rounded-lg hover:bg-cyan-600/30 transition-all"
-                >
-                  <Plus size={16} />
-                  Add Prompt
-                </button>
-              </div>
-              {prompts.map((prompt, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={prompt}
-                    onChange={(e) => handlePromptChange(index, e.target.value)}
-                    className="flex-1 px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 outline-none"
-                    placeholder={`Prompt ${index + 1}`}
-                    required
-                  />
-                  {prompts.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemovePrompt(index)}
-                      className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
-                    >
-                      <Minus size={20} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end">
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-6 py-2.5 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="px-6 py-2 bg-gray-700 text-white rounded-lg 
+                  hover:bg-gray-600 transition-colors"
               >
-                <Save size={18} />
-                Save Prompts
-              </motion.button>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex items-center gap-2 px-6 py-2 bg-cyan-600 
+                  text-white rounded-lg hover:bg-cyan-700 transition-colors
+                  disabled:bg-gray-500 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <span>Saving...</span>
+                ) : (
+                  <>
+                    <Save size={18} />
+                    Save
+                  </>
+                )}
+              </button>
             </div>
           </form>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
