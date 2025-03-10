@@ -131,15 +131,7 @@ function App() {
             }
           />
 
-          {/* Prompt Route */}
-          <Route
-            path="/prompt"
-            element={
-              <PrivateRoute>
-                <Prompt />
-              </PrivateRoute>
-            }
-          />
+        
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
