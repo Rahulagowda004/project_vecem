@@ -270,20 +270,53 @@ const UploadFile = () => {
     setError("");
     setUploadProgress({ progress: 0, status: "uploading" });
     setUploadStatus({ show: false, success: false, message: "" });
-    setIsUploading(true); // Set uploading state to true
+    setIsUploading(true);
 
-    if (nameError) {
-      setError(nameError);
-      setIsUploading(false); // Reset uploading state
-      return;
+    // Validate all mandatory fields
+    const mandatoryFields = {
+      name: "Dataset name",
+      description: "Dataset description",
+      domain: "Domain",
+    };
+
+    // Additional mandatory fields for vectorized data
+    if (datasetType === "Vectorized" || datasetType === "Both") {
+      Object.assign(mandatoryFields, {
+        modelName: "Model name",
+        dimensions: "Dataset dimensions",
+        vectorDatabase: "Vector database",
+      });
     }
 
-    if (!formData.name.trim()) {
-      setError("Please provide a dataset name");
-      setIsUploading(false); // Reset uploading state
-      return;
+    // Check for empty mandatory fields
+    for (const [field, label] of Object.entries(mandatoryFields)) {
+      if (!formData[field as keyof DatasetForm]) {
+        setError(`${label} is required`);
+        setIsUploading(false);
+        return;
+      }
     }
 
+    // Validate file selection
+    if (datasetType === "Both") {
+      const rawFiles = rawInputRef.current?.files;
+      const vectorizedFiles = vectorizedInputRef.current?.files;
+      
+      if (!rawFiles?.length || !vectorizedFiles?.length) {
+        setError("Both raw and vectorized files are required");
+        setIsUploading(false);
+        return;
+      }
+    } else {
+      const files = fileInputRef.current?.files;
+      if (!files?.length) {
+        setError(`Please select ${fileType.toLowerCase()} files to upload`);
+        setIsUploading(false);
+        return;
+      }
+    }
+
+    // Continue with existing upload logic
     try {
       let result;
       const datasetId = `${formData.name}_${Date.now()}`;
@@ -516,11 +549,12 @@ const UploadFile = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleNameChange}
+                required
                 className={`w-full px-4 py-2 rounded-xl bg-gray-700/50 border 
                   ${nameError ? 'border-red-500' : 'border-gray-600'}
                   text-white placeholder-gray-400
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition`}
-                placeholder="Enter dataset name"
+                placeholder="Enter dataset name *"
               />
               {isCheckingName && (
                 <p className="text-sm text-gray-400 mt-1">Checking dataset name...</p>
@@ -540,10 +574,11 @@ const UploadFile = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
+                required
                 className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
                   text-white placeholder-gray-400
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition h-32"
-                placeholder="Enter dataset description"
+                placeholder="Enter dataset description *"
               />
             </div>
 
@@ -556,11 +591,12 @@ const UploadFile = () => {
                 name="domain"
                 value={formData.domain}
                 onChange={handleInputChange}
+                required
                 className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
                   text-white placeholder-gray-400
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
               >
-                <option value="">Select a domain</option>
+                <option value="">Select a domain *</option>
                 {domains.map((domain) => (
                   <option key={domain} value={domain}>
                     {domain}
@@ -605,10 +641,11 @@ const UploadFile = () => {
                       name="modelName"
                       value={formData.modelName || ""}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
                         text-white placeholder-gray-400
                         focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter the model name used for vectorizing the data"
+                      placeholder="Enter the model name *"
                     />
                   </div>
                   <div>
@@ -620,10 +657,11 @@ const UploadFile = () => {
                       name="dimensions"
                       value={formData.dimensions || ""}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
                         text-white placeholder-gray-400
                         focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter dimensions"
+                      placeholder="Enter dimensions *"
                       min="100"        
                       max="5000" 
                     />
@@ -638,10 +676,11 @@ const UploadFile = () => {
                         name="vectorDatabase"
                         value={formData.vectorDatabase || ""}
                         onChange={handleInputChange}
+                        required
                         className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
                           text-white placeholder-gray-400
                           focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                        placeholder="Enter vector database name"
+                        placeholder="Enter vector database name *"
                         pattern="[A-Za-z]+"
                         title="Only letters are allowed"
                       />
@@ -735,16 +774,20 @@ const UploadFile = () => {
                 )}
               </div>
 
+              {/* Error message */}
               {error && (
                 <p className="text-sm text-red-400 mt-2">
                   {error}
                 </p>
               )}
+
+              {/* Help text */}
               <p className="mt-2 text-sm text-gray-400">
                 {datasetType === "Vectorized" ? "Select a folder containing vectorized data files" : `Select a folder containing only ${fileType.toLowerCase()} files`}
               </p>
             </div>
 
+            {/* Submit button */}
             <button
               type="submit"
               disabled={isUploading}
