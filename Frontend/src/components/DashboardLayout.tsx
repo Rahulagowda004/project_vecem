@@ -449,7 +449,7 @@ const DashboardLayout = () => {
                {/* ChatBot Section */}
               <button
                 onClick={handleChatbotClick}
-                className={`flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 rounded-xl ${
+                className={`flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 rounded-xl ${
                   currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
