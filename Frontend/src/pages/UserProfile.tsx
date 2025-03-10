@@ -42,6 +42,7 @@ const UserProfile = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+  const [activeView, setActiveView] = useState<'datasets' | 'prompts'>('datasets');
 
   const formatDate = (dateString: string) => {
     try {
@@ -188,6 +189,14 @@ const UserProfile = () => {
     }
   };
 
+  // Add this after other useMemo hooks
+  const activeViewCount = useMemo(() => {
+    if (!userData) return 0;
+    return activeView === 'datasets' 
+      ? userData.datasets.length 
+      : userData.prompts?.length || 0;
+  }, [userData, activeView]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -301,14 +310,16 @@ const UserProfile = () => {
             <div className="border-b border-gray-700/50 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <h2 className="text-2xl font-bold text-gray-100">Datasets</h2>
+                  <h2 className="text-2xl font-bold text-gray-100">
+                    {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
+                  </h2>
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20"
                   >
                     <span className="text-cyan-400 font-medium">
-                      {userData.datasets.length}
+                      {activeViewCount}
                     </span>
                   </motion.div>
                 </div>
@@ -340,14 +351,39 @@ const UserProfile = () => {
             {/* Dataset Filters and Search */}
             <div className="p-4 border-b border-gray-700/50">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+                {/* View Selector */}
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setActiveView('datasets')}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      activeView === 'datasets'
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        : 'text-gray-400 hover:text-cyan-400'
+                    }`}
+                  >
+                    Datasets
+                  </button>
+                  <button
+                    onClick={() => setActiveView('prompts')}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      activeView === 'prompts'
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        : 'text-gray-400 hover:text-cyan-400'
+                    }`}
+                  >
+                    Prompts
+                  </button>
+                </div>
+
+                {/* Center Search Bar */}
+                <div className="flex-1 max-w-md mx-4">
                   <div className="relative">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search datasets..."
-                      className="bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500 w-64"
+                      placeholder={`Search ${activeView}...`}
+                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500"
                     />
                     <svg
                       className="w-5 h-5 absolute right-3 top-2.5 text-gray-400"
@@ -363,6 +399,10 @@ const UserProfile = () => {
                       />
                     </svg>
                   </div>
+                </div>
+
+                {/* Right Side Filters */}
+                <div className="flex items-center space-x-4">
                   <select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
@@ -372,12 +412,12 @@ const UserProfile = () => {
                     <option value="name">Sort by: Name</option>
                     <option value="size">Sort by: Size</option>
                   </select>
+                  {searchQuery && (
+                    <div className="text-gray-400">
+                      Found {filteredAndSortedDatasets.length} results
+                    </div>
+                  )}
                 </div>
-                {searchQuery && (
-                  <div className="text-gray-400">
-                    Found {filteredAndSortedDatasets.length} results
-                  </div>
-                )}
               </div>
             </div>
 
