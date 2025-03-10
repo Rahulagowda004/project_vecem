@@ -29,6 +29,15 @@ interface UserProfileData {
     updatedAt: string;
     timestamp: string;
   }[];
+  prompts?: {
+    id: string;
+    name: string;
+    description: string; 
+    domain: string;
+    prompt: string;
+    createdAt: string;
+    updatedAt?: string;
+  }[];
 }
 
 const UserProfile = () => {
@@ -79,26 +88,29 @@ const UserProfile = () => {
           throw new Error("Username is required");
         }
 
-        // Get profile data by username
         const profileData = await getUserProfileByUsername(username);
-        console.log("Profile data received:", profileData); // Debug log
+        console.log("Profile data received:", profileData);
 
         if (!profileData) {
           throw new Error("Profile not found");
         }
 
-        // Set the name to display name from profile or getUserDisplayName as fallback
         const displayName = profileData.name || getUserDisplayName(user);
 
-        // Ensure datasets array exists
+        // Process both datasets and prompts
         const processedData = {
           ...profileData,
           name: displayName,
-          datasets: profileData.datasets.map(dataset => ({
+          datasets: (profileData.datasets || []).map(dataset => ({
             ...dataset,
             uploadedAt: formatDate(dataset.timestamp),
-            updatedAt: formatDate(dataset.updatedAt || dataset.timestamp || new Date().toISOString()) // Ensure updatedAt is also formatted
-          })) || [],
+            updatedAt: formatDate(dataset.updatedAt || dataset.timestamp || new Date().toISOString())
+          })),
+          prompts: (profileData.prompts || []).map(prompt => ({
+            ...prompt,
+            uploadedAt: formatDate(prompt.createdAt),
+            updatedAt: formatDate(prompt.updatedAt || prompt.createdAt || new Date().toISOString())
+          }))
         };
 
         setUserData(processedData);
@@ -146,13 +158,49 @@ const UserProfile = () => {
     return result;
   }, [userData?.datasets, searchQuery, sortOption]);
 
-  const paginatedDatasets = useMemo(() => {
+  // Add this after the filteredAndSortedDatasets useMemo
+  const filteredAndSortedPrompts = useMemo(() => {
+    if (!userData?.prompts) return [];
+
+    let result = [...userData.prompts];
+
+    if (searchQuery) {
+      result = result.filter(
+        (prompt) =>
+          prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          prompt.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    switch (sortOption) {
+      case "name":
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "latest":
+      default:
+        result.sort(
+          (a, b) =>
+            new Date(b.updatedAt || 0).getTime() -
+            new Date(a.updatedAt || 0).getTime()
+        );
+        break;
+    }
+
+    return result;
+  }, [userData?.prompts, searchQuery, sortOption]);
+
+  const paginatedItems = useMemo(() => {
+    const items = activeView === 'datasets' ? filteredAndSortedDatasets : filteredAndSortedPrompts;
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredAndSortedDatasets.slice(startIndex, endIndex);
-  }, [filteredAndSortedDatasets, currentPage]);
+    return items.slice(startIndex, endIndex);
+  }, [filteredAndSortedDatasets, filteredAndSortedPrompts, currentPage, activeView]);
 
-  const totalPages = Math.ceil(filteredAndSortedDatasets.length / itemsPerPage);
+  // Update the totalPages calculation to use the active view
+  const totalPages = Math.ceil(
+    (activeView === 'datasets' ? filteredAndSortedDatasets.length : filteredAndSortedPrompts.length) 
+    / itemsPerPage
+  );
 
   const handlePreviousPage = () => {
     setCurrentPage((prevPage) => Math.max(prevPage, 1));
@@ -186,6 +234,34 @@ const UserProfile = () => {
       console.error("Error logging dataset click:", error);
       // Still navigate even if logging fails
       navigate(`/${username}/${datasetName}`);
+    }
+  };
+
+  // Add handlePromptClick handler
+  const handlePromptClick = async (promptId: string, promptName: string) => {
+    try {
+      // Log the prompt click to backend (if needed)
+      const response = await fetch("http://127.0.0.1:5000/prompt-click", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: userData?.uid,
+          promptName: promptName,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to log prompt click");
+      }
+
+      // Navigate to prompt detail page
+      navigate(`/${username}/prompts/${promptName}`);
+    } catch (error) {
+      console.error("Error logging prompt click:", error);
+      // Still navigate even if logging fails
+      navigate(`/${username}/prompts/${promptName}`);
     }
   };
 
@@ -414,7 +490,9 @@ const UserProfile = () => {
                   </select>
                   {searchQuery && (
                     <div className="text-gray-400">
-                      Found {filteredAndSortedDatasets.length} results
+                      Found {activeView === 'datasets' 
+                        ? filteredAndSortedDatasets.length 
+                        : filteredAndSortedPrompts.length} results
                     </div>
                   )}
                 </div>
@@ -428,64 +506,103 @@ const UserProfile = () => {
               animate="show"
               className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
             >
-              {paginatedDatasets.map((dataset) => (
-                <motion.li
-                  key={dataset.id}
-                  variants={item}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => handleDatasetClick(dataset.id, dataset.name)}
-                  className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
-                >
-                  <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                    {dataset.name}
-                  </h3>
-                  <p className="text-gray-300 mb-4">{dataset.description}</p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-400">
-                    <span className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {dataset.upload_type || "Unknown Type"}
-                    </span>
-                    <span className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {new Date(dataset.updatedAt).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                </motion.li>
-              ))}
+              {activeView === 'datasets' ? (
+                paginatedItems.map((dataset) => (
+                  <motion.li
+                    key={dataset.id}
+                    variants={item}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => handleDatasetClick(dataset.id, dataset.name)}
+                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                  >
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      {dataset.name}
+                    </h3>
+                    <p className="text-gray-300 mb-4">{dataset.description}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                          <path
+                            fillRule="evenodd"
+                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {dataset.upload_type || "Unknown Type"}
+                      </span>
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {new Date(dataset.updatedAt).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                  </motion.li>
+                ))
+              ) : (
+                paginatedItems.map((prompt) => (
+                  <motion.li
+                    key={prompt.id}
+                    variants={item}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => handlePromptClick(prompt.id, prompt.name)}
+                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                  >
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      {prompt.name}
+                    </h3>
+                    <p className="text-gray-300 mb-4">{prompt.description}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center">
+                        <MessageSquarePlus className="w-4 h-4 mr-1" />
+                        {prompt.domain || "General"}
+                      </span>
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {formatDate(prompt.updatedAt || prompt.createdAt)}
+                      </span>
+                    </div>
+                  </motion.li>
+                ))
+              )}
             </motion.ul>
 
-            {/* Show pagination only if there are datasets */}
-            {filteredAndSortedDatasets.length > 0 && (
+            {/* Show pagination only if there are items */}
+            {(activeView === 'datasets' ? filteredAndSortedDatasets : filteredAndSortedPrompts).length > 0 && (
               <div className="border-t border-gray-700/50 p-4">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={handlePreviousPage}
-                    className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
+                    className={`text-gray-400 hover:text-cyan-400 flex items-center space-x-2 ${
+                      currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                     disabled={currentPage === 1}
                   >
                     <svg
@@ -520,7 +637,9 @@ const UserProfile = () => {
                   </div>
                   <button
                     onClick={handleNextPage}
-                    className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
+                    className={`text-gray-400 hover:text-cyan-400 flex items-center space-x-2 ${
+                      currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                     disabled={currentPage === totalPages}
                   >
                     <span>Next</span>
