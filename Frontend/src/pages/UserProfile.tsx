@@ -245,15 +245,19 @@ const UserProfile = () => {
   // Add handlePromptClick handler
   const handlePromptClick = async (promptId: string, promptName: string) => {
     try {
+      // Log the click first
       try {
         await logPromptClick(userData?.uid || '', promptName);
       } catch (error) {
         console.warn('Failed to log prompt click:', error);
       }
 
-      // Fetch prompt details
+      const loadingToast = toast.loading('Loading prompt details...');
+
       const promptData = await getPromptDetails(username || '', promptName);
       
+      toast.dismiss(loadingToast);
+
       setSelectedPrompt({
         name: promptData.prompt_name,
         domain: promptData.domain || 'General',
@@ -261,8 +265,9 @@ const UserProfile = () => {
       });
       setIsPromptCardOpen(true);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load prompt details';
       console.error('Error fetching prompt details:', error);
-      toast.error('Failed to load prompt details. Please try again later.');
+      toast.error(errorMessage);
     }
   };
 
@@ -569,7 +574,6 @@ const UserProfile = () => {
                     <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
                       {prompt.name}
                     </h3>
-                    <p className="text-gray-300 mb-4">{prompt.description}</p>
                     <div className="flex items-center space-x-4 text-sm text-gray-400">
                       <span className="flex items-center">
                         <MessageSquarePlus className="w-4 h-4 mr-1" />

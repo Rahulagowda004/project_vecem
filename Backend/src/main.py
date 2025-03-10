@@ -613,6 +613,56 @@ async def chat_endpoint(chat_message: ChatMessage):
         logging.error(f"Chat endpoint error: {str(e)}")
         raise HTTPException(status_code=500, detail="Error processing chat message")
 
+# Add these new endpoints before the shutdown event
+@app.post("/prompt-click")
+async def log_prompt_click(data: dict):
+    logging.info(f"Endpoint called: log_prompt_click() for UID: {data.get('uid')}, prompt: {data.get('promptName')}")
+    try:
+        uid = data.get('uid')
+        prompt_name = data.get('promptName')
+        
+        if not uid or not prompt_name:
+            raise HTTPException(status_code=400, detail="UID and promptName are required")
+            
+        # Log the click (you can add more detailed logging if needed)
+        logging.info(f"Prompt click logged - UID: {uid}, Prompt: {prompt_name}")
+        
+        return {"status": "success", "message": "Prompt click logged successfully"}
+        
+    except Exception as e:
+        logging.error(f"Error logging prompt click: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/prompts/{username}/{prompt_name}")
+async def get_prompt_details(username: str, prompt_name: str):
+    logging.info(f"Endpoint called: get_prompt_details() for username: {username}, prompt: {prompt_name}")
+    try:
+        # Find the prompt in the prompts collection
+        prompt = await prompts_collection.find_one({
+            "username": username,
+            "prompt_name": prompt_name
+        })
+        
+        if not prompt:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+            
+        # Convert ObjectId to string for JSON serialization
+        prompt["_id"] = str(prompt["_id"])
+        
+        return {
+            "prompt_name": prompt["prompt_name"],
+            "domain": prompt.get("domain", "General"),
+            "prompt_content": prompt["prompt"],  # Frontend expects prompt_content
+            "prompt_description": prompt.get("prompt_description", ""),
+            "created_at": prompt.get("created_at", datetime.now().isoformat())
+        }
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logging.error(f"Error fetching prompt details: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
