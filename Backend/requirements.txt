@@ -11,4 +11,6 @@ azure-storage-blob==12.19.0
 langchain_community
 langchain_core
 langchain_google_genai
+termcolor
+pytz
 -e .
