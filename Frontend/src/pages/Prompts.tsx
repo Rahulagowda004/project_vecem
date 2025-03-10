@@ -11,8 +11,11 @@ const Prompts = () => {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
+  const [promptDescription, setPromptDescription] = useState("");
   const [domain, setDomain] = useState("");
-  const [userProfile, setUserProfile] = useState<{ username: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ username: string } | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,17 +62,19 @@ const Prompts = () => {
 
       await saveUserPrompt({
         username: userProfile.username,
-        prompt_name: name,
-        prompt: prompt,
+        prompt_name: name.trim(),
+        prompt_description: promptDescription.trim(),
+        prompt: prompt.trim(),
         domain: domain,
       });
 
       // Show success message
       alert("Prompt saved successfully!");
       navigate(`/${userProfile.username}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving prompt:", error);
-      setError("Failed to save prompt. Please try again.");
+      setError(error.message || "Failed to save prompt. Please try again.");
+      alert(error.message || "Failed to save prompt. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -99,9 +104,7 @@ const Prompts = () => {
         </nav>
 
         <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
-          <h1 className="text-3xl font-bold text-white mb-6">
-            Create Prompt
-          </h1>
+          <h1 className="text-3xl font-bold text-white mb-6">Create Prompt</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -138,6 +141,21 @@ const Prompts = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2 text-gray-200">
+                  Description
+                </label>
+                <input
+                  type="text"
+                  value={promptDescription}
+                  onChange={(e) => setPromptDescription(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
+                    text-white placeholder-gray-400"
+                  placeholder="Enter prompt description"
+                  required
+                />
               </div>
             </div>
 
