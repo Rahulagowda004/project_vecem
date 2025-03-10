@@ -42,7 +42,6 @@ class SettingProfile(BaseModel):
 class Prompts(BaseModel):
     username: str
     prompt_name: str
-    prompt_description: str
     prompt : str
 
 # Profile Models

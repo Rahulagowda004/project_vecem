@@ -11,7 +11,6 @@ const Prompts = () => {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
-  const [promptDescription, setPromptDescription] = useState("");
   const [domain, setDomain] = useState("");
   const [userProfile, setUserProfile] = useState<{ username: string } | null>(
     null
@@ -63,7 +62,6 @@ const Prompts = () => {
       await saveUserPrompt({
         username: userProfile.username,
         prompt_name: name.trim(),
-        prompt_description: promptDescription.trim(),
         prompt: prompt.trim(),
         domain: domain,
       });
@@ -141,21 +139,6 @@ const Prompts = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-200">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  value={promptDescription}
-                  onChange={(e) => setPromptDescription(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
-                    text-white placeholder-gray-400"
-                  placeholder="Enter prompt description"
-                  required
-                />
               </div>
             </div>
 
