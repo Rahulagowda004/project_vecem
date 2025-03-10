@@ -17,6 +17,11 @@ const Prompts = () => {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<{
+    show: boolean;
+    success: boolean;
+    message: string;
+  }>({ show: false, success: false, message: "" });
 
   const domains = [
     "Health",
@@ -49,10 +54,42 @@ const Prompts = () => {
     fetchUserProfile();
   }, [user]);
 
+  const StatusMessage = () => {
+    if (!uploadStatus.show) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div
+          className={`p-8 rounded-xl ${
+            uploadStatus.success ? "bg-green-800/90" : "bg-red-800/90"
+          } shadow-lg max-w-md mx-4 text-center transform transition-all duration-300 scale-100`}
+        >
+          <div
+            className={`text-6xl mb-4 ${
+              uploadStatus.success ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {uploadStatus.success ? "✓" : "✕"}
+          </div>
+          <h3 className="text-2xl font-semibold mb-2 text-white">
+            {uploadStatus.success ? "Success!" : "Upload Failed"}
+          </h3>
+          <p className="text-lg text-gray-200">{uploadStatus.message}</p>
+          {uploadStatus.success && (
+            <p className="text-sm text-gray-300 mt-4">
+              Redirecting to your profile...
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setUploadStatus({ show: false, success: false, message: "" });
 
     try {
       if (!userProfile?.username) {
@@ -66,13 +103,29 @@ const Prompts = () => {
         domain: domain,
       });
 
-      // Show success message
-      alert("Prompt saved successfully!");
-      navigate(`/${userProfile.username}`);
+      setUploadStatus({
+        show: true,
+        success: true,
+        message: "Prompt saved successfully!",
+      });
+
+      // Wait for 2 seconds before redirecting
+      setTimeout(() => {
+        navigate(`/${userProfile.username}`);
+      }, 2000);
     } catch (error: any) {
       console.error("Error saving prompt:", error);
       setError(error.message || "Failed to save prompt. Please try again.");
-      alert(error.message || "Failed to save prompt. Please try again.");
+      setUploadStatus({
+        show: true,
+        success: false,
+        message: error.message || "Failed to save prompt",
+      });
+
+      // Hide error message after 4 seconds
+      setTimeout(() => {
+        setUploadStatus({ show: false, success: false, message: "" });
+      }, 4000);
     } finally {
       setIsLoading(false);
     }
@@ -80,6 +133,7 @@ const Prompts = () => {
 
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
+      {uploadStatus.show && <StatusMessage />}
       <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
         {/* Breadcrumb navigation */}
         <nav className="flex mb-6 text-sm text-gray-400">
