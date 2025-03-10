@@ -25,6 +25,7 @@ export const saveUserPrompt = async (promptData: PromptData): Promise<any> => {
 
     return await response.json();
   } catch (error) {
+    console.error("Error in saveUserPrompt:", error);
     throw error;
   }
 };
