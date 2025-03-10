@@ -4,6 +4,8 @@ from src.utils.logger import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 from dotenv import load_dotenv
+import textwrap
+from termcolor import colored
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.chat_history import BaseChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
@@ -11,6 +13,7 @@ from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
+from itertools import chain
 
 # Load environment variables
 load_dotenv()
@@ -20,6 +23,8 @@ class FRIDAY:
         self.api_key = api_key
         self.chat_history = {}
         self.rate_limits = {}  # Store rate limiting info per user
+        self.terminal_width = os.get_terminal_size().columns
+        self.output_parser = StrOutputParser()
         
     def setup_model(self, api_key: str):
         """Initialize model with user's API key"""
@@ -102,11 +107,85 @@ class FRIDAY:
 
         except Exception as e:
             logging.error(f"Error in chat response: {str(e)}")
-            return "I encountered an error. Please try again."
+            return "The provided API key is invalid or has exceeded the rate limit. Please verify your key and try again."
+
+    def format_response(self, text: str) -> str:
+        """Format the response with enhanced justification and styling"""
+        width = min(self.terminal_width - 12, 80)  # Reduced width for better readability
+        
+        # Split into paragraphs and clean up
+        paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
+        formatted_paragraphs = []
+        
+        for paragraph in paragraphs:
+            if paragraph.startswith(('*', '-', '1.')):  # List items
+                # Handle lists with proper indentation
+                lines = paragraph.split('\n')
+                formatted_lines = [' ' * 4 + line.strip() for line in lines]
+                formatted_paragraphs.append('\n'.join(formatted_lines))
+            else:
+                # Regular paragraph justification
+                words = paragraph.split()
+                lines = []
+                current_line = []
+                current_length = 0
+                
+                for word in words:
+                    word_length = len(word)
+                    if current_length + word_length + len(current_line) <= width:
+                        current_line.append(word)
+                        current_length += word_length
+                    else:
+                        if current_line:
+                            # Justify the line
+                            if len(current_line) > 1:
+                                spaces_needed = width - current_length
+                                gaps = len(current_line) - 1
+                                space_per_gap = spaces_needed // gaps
+                                extra_spaces = spaces_needed % gaps
+                                
+                                justified = ''
+                                for i, w in enumerate(current_line[:-1]):
+                                    extra = 1 if i < extra_spaces else 0
+                                    justified += w + ' ' * (space_per_gap + extra)
+                                justified += current_line[-1]
+                                lines.append(justified)
+                            else:
+                                lines.append(current_line[0])
+                        
+                        current_line = [word]
+                        current_length = word_length
+                
+                # Handle the last line
+                if current_line:
+                    lines.append(' '.join(current_line))
+                
+                formatted_paragraphs.append('\n'.join(lines))
+        
+        # Add decorative borders with extra padding
+        border = '═' * (width + 6)
+        formatted_text = '╔' + border + '╗\n'
+        
+        # Add paragraphs with proper spacing
+        for i, paragraph in enumerate(formatted_paragraphs):
+            formatted_text += '║  ' + ' ' * 2
+            paragraph_lines = paragraph.split('\n')
+            
+            for j, line in enumerate(paragraph_lines):
+                if j > 0:
+                    formatted_text += '║  ' + ' ' * 2
+                formatted_text += line.ljust(width) + '  ║\n'
+            
+            # Add spacing between paragraphs
+            if i < len(formatted_paragraphs) - 1:
+                formatted_text += '║' + ' ' * (width + 6) + '║\n'
+        
+        formatted_text += '╚' + border + '╝'
+        return formatted_text
 
     async def chat(self) -> None:
         """Main chat loop with error handling."""
-        bot_name = "FRIDAY"
+        bot_name = colored("FRIDAY", 'cyan', attrs=['bold'])
         try:
             chain = self.setup_chain()
             with_message_history = RunnableWithMessageHistory(
@@ -114,38 +193,39 @@ class FRIDAY:
                 lambda _: self.chat_history  # Use single chat history for temporary storage
             )
             logging.info("Chat session started")
-            print(f"{bot_name}: Hey, how can I help you today?\n")
+            print(f"\n{bot_name}: Hey, how can I help you today?\n")
 
             while True:
                 try:
-                    user_input = input("you: ").strip()
+                    user_input = input(colored("\nYou: ", 'green')).strip()
                     if not user_input:
                         continue
                         
                     if user_input.lower() in ['exit', 'quit', 'bye']:
-                        print(f"{bot_name}: Goodbye, Have a nice day.")
+                        print(f"\n{bot_name}: Goodbye, Have a nice day.")
                         break
 
                     config = {"configurable": {"session_id": "temp"}}
-                    print(f"{bot_name}: ", end="", flush=True)
+                    print(f"\n{bot_name}:", end="\n\n")
 
+                    response_chunks = []
                     async for chunk in with_message_history.astream(
                         [HumanMessage(content=user_input)],
                         config=config
                     ):
-                        parsed_output = self.output_parser.parse(chunk.content)
-                        cleaned_output = parsed_output.replace("*", "").replace("\n", " ").strip()
-                        structured_output = " ".join(cleaned_output.split())
-                        print(structured_output, end=" ", flush=True)
-                    print()
+                        response_chunks.append(chunk.content)
+                    
+                    full_response = ' '.join(response_chunks)
+                    formatted_response = self.format_response(full_response)
+                    print(formatted_response + "\n")
 
                 except Exception as e:
                     logging.error(f"Error processing message: {str(e)}")
-                    print(f"{bot_name}: I apologize, but I encountered an error. Please try again.")
+                    print(f"\n{bot_name}: I apologize, but I encountered an error. Please try again.\n")
 
         except Exception as e:
             logging.error(f"Fatal error in chat session: {str(e)}")
-            print(f"{bot_name}: I'm sorry, but I'm experiencing technical difficulties.")
+            print(f"\n{bot_name}: I'm sorry, but I'm experiencing technical difficulties.\n")
 
 if __name__ == "__main__":
     import asyncio
