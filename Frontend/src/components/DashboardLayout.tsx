@@ -459,18 +459,7 @@ const DashboardLayout = () => {
                 </span>
               </button>
 
-              {/* Prompt Section */}
-              <Link
-                to="/prompt"
-                className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
-              >
-                <div className="flex items-center">
-                  <Laptop2Icon className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                  <span className="group-hover:text-cyan-400 transition-colors">
-                    Prompt
-                  </span>
-                </div>
-              </Link>
+             
             </nav>
           </div>
         </div>
