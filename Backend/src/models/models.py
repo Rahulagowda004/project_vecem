@@ -14,6 +14,11 @@ class UidRequest(BaseModel):
     email: str
     name: str
 
+class VectorizedSettings(BaseModel):
+    dimensions: Optional[int] = None
+    vector_database: Optional[str] = None
+    model_name: Optional[str] = None
+
 class DatasetInfo(BaseModel):
     name: str
     description: Optional[str] = None
@@ -21,7 +26,10 @@ class DatasetInfo(BaseModel):
     uid: str = Field(..., description="User ID is required")
     domain: Optional[str] = None
     file_type: Optional[str] = None
-
+    dimensions: Optional[int] = None
+    vector_database: Optional[str] = None
+    model_name: Optional[str] = None
+    vectorized_settings: Optional[VectorizedSettings] = None
 
 class UploadResponse(BaseModel):
     success: bool
@@ -40,7 +48,6 @@ class SettingProfile(BaseModel):
 class Prompts(BaseModel):
     username: str
     prompt_name: str
-    prompt_description: str
     prompt : str
 
 # Profile Models

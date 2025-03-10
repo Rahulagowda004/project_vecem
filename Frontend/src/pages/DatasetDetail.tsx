@@ -14,7 +14,7 @@ import {
   ChevronRight,
   ExternalLink,
   Home,
-  UserCircle2 // Add this import
+  UserCircle2, // Add this import
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -28,8 +28,8 @@ const fadeIn = {
 const DatasetDetail = () => {
   const { username, datasetname } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();  // Add this line
-  const isFromHome = location.state?.from === 'home';  // Add this line to get the state
+  const location = useLocation(); // Add this line
+  const isFromHome = location.state?.from === "home"; // Add this line to get the state
   const { user } = useAuth(); // Add this near the top with other hooks
   const [dataset, setDataset] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,7 @@ const DatasetDetail = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            Accept: "application/json",
           },
           body: JSON.stringify({
             username,
@@ -88,15 +88,23 @@ const DatasetDetail = () => {
           files: data.files,
           base_directory: data.base_directory,
           vectorizedSettings: {
-            dimensions: data.vectorized_settings?.dimensions || 768,
-            vectorDatabase: data.vectorized_settings?.vectorDatabase || "Pinecone",
-            modelName: data.vectorized_settings?.modelName || "Unknown"  // Add model name
+            dimensions:
+              data.dataset_info.dimensions ||
+              data.dataset_info.vectorized_settings?.dimensions,
+            vectorDatabase:
+              data.dataset_info.vector_database ||
+              data.dataset_info.vectorized_settings?.vector_database,
+            modelName:
+              data.dataset_info.model_name ||
+              data.dataset_info.vectorized_settings?.model_name,
           },
         });
       } catch (error) {
         console.error("Error fetching dataset:", error);
-        toast.error(error instanceof Error ? error.message : "Failed to load dataset");
-        navigate("/"); 
+        toast.error(
+          error instanceof Error ? error.message : "Failed to load dataset"
+        );
+        navigate("/");
       } finally {
         setLoading(false);
       }
@@ -112,9 +120,9 @@ const DatasetDetail = () => {
     }
 
     const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.owner}/${dataset.name}/${fileType}.zip`;
-    
+
     // Create an anchor element and trigger download
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = downloadUrl;
     link.download = `${dataset.name}_${fileType}`;
     document.body.appendChild(link);
@@ -173,8 +181,10 @@ data = dataset.get_files()  # For raw files`,
         className="px-6 py-4 bg-gray-900/90 border-b border-cyan-500/10 backdrop-blur-sm"
       >
         <nav className="flex items-center space-x-2 text-sm">
-          <Link 
-            to={`/${username}${user?.uid === dataset?.owner_uid ? '' : '/view'}`}
+          <Link
+            to={`/${username}${
+              user?.uid === dataset?.owner_uid ? "" : "/view"
+            }`}
             className="text-gray-400 hover:text-cyan-400 transition-colors"
           >
             <UserCircle2 className="w-4 h-4 mr-1 inline-block" />
@@ -182,9 +192,9 @@ data = dataset.get_files()  # For raw files`,
           </Link>
           <ChevronRight className="w-4 h-4 text-gray-600" />
           <span className="text-cyan-400 flex items-center">
-  <Database className="w-4 h-4 mr-1 inline-block" />
-  {dataset?.name || 'Loading...'}
-</span>
+            <Database className="w-4 h-4 mr-1 inline-block" />
+            {dataset?.name || "Loading..."}
+          </span>
         </nav>
       </motion.div>
 
@@ -277,23 +287,29 @@ data = dataset.get_files()  # For raw files`,
                 { label: "Size", value: dataset.size.raw, icon: Database },
                 { label: "Type", value: dataset.fileType, icon: FileType },
                 { label: "Domain", value: dataset.domain, icon: Box },
-                ...(dataset.datasetType.toLowerCase() === "vectorized" || dataset.datasetType.toLowerCase() === "both" ? [
-                  { 
-                    label: "Model Name", 
-                    value: dataset.vectorizedSettings.modelName || "Not specified", 
-                    icon: Code 
-                  },
-                  { 
-                    label: "Dimensions", 
-                    value: dataset.vectorizedSettings.dimensions, 
-                    icon: Box 
-                  },
-                  { 
-                    label: "Vector DB", 
-                    value: dataset.vectorizedSettings.vectorDatabase, 
-                    icon: Database 
-                  }
-                ] : [])
+                ...(dataset.datasetType.toLowerCase() === "vectorized" ||
+                dataset.datasetType.toLowerCase() === "both"
+                  ? [
+                      {
+                        label: "Dimensions",
+                        value:
+                          dataset.vectorizedSettings?.dimensions?.toString() ||
+                          "N/A",
+                        icon: Box,
+                      },
+                      {
+                        label: "Model",
+                        value: dataset.vectorizedSettings?.modelName || "N/A",
+                        icon: Code,
+                      },
+                      {
+                        label: "Vector DB",
+                        value:
+                          dataset.vectorizedSettings?.vectorDatabase || "N/A",
+                        icon: Database,
+                      },
+                    ]
+                  : []),
               ].map((stat, index) => (
                 <motion.div
                   key={stat.label}
@@ -303,7 +319,9 @@ data = dataset.get_files()  # For raw files`,
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <stat.icon className="w-5 h-5 text-cyan-400" />
-                    <div className="text-sm font-medium text-cyan-200">{stat.label}</div>
+                    <div className="text-sm font-medium text-cyan-200">
+                      {stat.label}
+                    </div>
                   </div>
                   <div className="text-lg font-semibold text-white">
                     {stat.value}
@@ -320,9 +338,13 @@ data = dataset.get_files()  # For raw files`,
               <h2 className="text-2xl font-semibold text-white mb-6">
                 About This Dataset
               </h2>
-              <p className={`text-gray-200 text-lg leading-relaxed ${
-                dataset.datasetType.toLowerCase() === "raw" ? "min-h-[230px]" : "min-h-[100px]"
-              }`}>
+              <p
+                className={`text-gray-200 text-lg leading-relaxed ${
+                  dataset.datasetType.toLowerCase() === "raw"
+                    ? "min-h-[230px]"
+                    : "min-h-[100px]"
+                }`}
+              >
                 {dataset.description}
               </p>
             </motion.div>
@@ -347,7 +369,11 @@ data = dataset.get_files()  # For raw files`,
                     <button
                       onClick={() => handleCopy(pythonExamples.basic.code)}
                       className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
-                      style={{ position: 'absolute', top: '10px', right: '10px' }}
+                      style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                      }}
                     >
                       {copied ? (
                         <Check className="w-4 h-4 text-green-400" />
@@ -381,10 +407,10 @@ data = dataset.get_files()  # For raw files`,
                 <p className="text-cyan-100">
                   Upload Date:{" "}
                   <span className="text-white">
-                    {new Date(dataset.uploadDate).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
+                    {new Date(dataset.uploadDate).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
                     })}
                   </span>
                 </p>

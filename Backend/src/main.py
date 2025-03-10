@@ -99,6 +99,11 @@ async def get_user_profile(uid: str):
             }
         ).to_list(None)
 
+        # Get user's prompts
+        prompts = await prompts_collection.find(
+            {"username": user_profile["username"]}
+        ).to_list(None)
+
         # Format datasets
         formatted_datasets = [
             {
@@ -106,16 +111,33 @@ async def get_user_profile(uid: str):
                 "name": dataset.get("dataset_info", {}).get("name", "Untitled"),
                 "description": dataset.get("dataset_info", {}).get("description", ""),
                 "upload_type": dataset.get("upload_type", "unknown"),
-                "updatedAt": dataset.get("timestamp", "")
+                "updatedAt": dataset.get("timestamp", ""),
+                "timestamp": dataset.get("timestamp", "")
             }
             for dataset in datasets
         ]
 
-        # Add datasets to user profile
+        # Format prompts
+        formatted_prompts = [
+            {
+                "id": str(prompt["_id"]),
+                "name": prompt.get("prompt_name", "Untitled"),
+                "description": prompt.get("description", ""),
+                "domain": prompt.get("domain", "General"),
+                "prompt": prompt.get("prompt", ""),
+                "createdAt": prompt.get("createdAt", ""),
+                "updatedAt": prompt.get("updatedAt", prompt.get("createdAt", ""))
+            }
+            for prompt in prompts
+        ]
+
+        # Add datasets and prompts to user profile
         user_profile_data = user_profile_serializer(user_profile)
         user_profile_data["datasets"] = formatted_datasets
+        user_profile_data["prompts"] = formatted_prompts
 
         return jsonable_encoder(user_profile_data)
+        
     except HTTPException as he:
         raise he
     except Exception as e:
@@ -126,21 +148,18 @@ async def get_user_profile(uid: str):
 async def get_user_profile_by_username(username: str):
     logging.info(f"Endpoint called: get_user_profile_by_username() for username: {username}")
     try:
-        # Get user profile
         user_profile = await user_profile_collection.find_one({"username": username})
         if not user_profile:
             raise HTTPException(status_code=404, detail="User profile not found")
 
         # Get user's datasets
         datasets = await datasets_collection.find(
-            {"uid": user_profile["uid"]},
-            {
-                "dataset_id": 1,
-                "dataset_info.name": 1,
-                "dataset_info.description": 1,
-                "upload_type": 1,
-                "timestamp": 1
-            }
+            {"uid": user_profile["uid"]}
+        ).to_list(None)
+
+        # Get user's prompts
+        prompts = await prompts_collection.find(
+            {"username": username}
         ).to_list(None)
 
         # Format datasets
@@ -150,16 +169,33 @@ async def get_user_profile_by_username(username: str):
                 "name": dataset.get("dataset_info", {}).get("name", "Untitled"),
                 "description": dataset.get("dataset_info", {}).get("description", ""),
                 "upload_type": dataset.get("upload_type", "unknown"),
-                "updatedAt": dataset.get("timestamp", "")
+                "updatedAt": dataset.get("timestamp", ""),
+                "timestamp": dataset.get("timestamp", "")
             }
             for dataset in datasets
         ]
 
-        # Add datasets to user profile
+        # Format prompts
+        formatted_prompts = [
+            {
+                "id": str(prompt["_id"]),
+                "name": prompt.get("prompt_name", "Untitled"),
+                "description": prompt.get("description", ""),
+                "domain": prompt.get("domain", "General"),
+                "prompt": prompt.get("prompt", ""),
+                "createdAt": prompt.get("createdAt", ""),
+                "updatedAt": prompt.get("updatedAt", prompt.get("createdAt", ""))
+            }
+            for prompt in prompts
+        ]
+
+        # Add datasets and prompts to user profile
         user_profile_data = user_profile_serializer(user_profile)
         user_profile_data["datasets"] = formatted_datasets
+        user_profile_data["prompts"] = formatted_prompts
 
         return jsonable_encoder(user_profile_data)
+
     except HTTPException as he:
         raise he
     except Exception as e:
