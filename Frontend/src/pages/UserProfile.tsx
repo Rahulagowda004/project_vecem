@@ -327,8 +327,8 @@ const UserProfile = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => navigate("/prompts")}
-                    className="flex items-center gap-2 px-4 py-2 bg-cyan-600/20 text-cyan-400 rounded-lg 
-                      hover:bg-cyan-600/30 transition-all shadow-lg shadow-cyan-600/10 border border-cyan-500/20"
+                    className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
+                      hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
                   >
                     <MessageSquarePlus size={18} />
                     Upload Prompt
