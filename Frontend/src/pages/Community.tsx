@@ -84,6 +84,96 @@ const Community = () => {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [currentTag, setCurrentTag] = useState<"general" | "issue">("general");
 
+  // Update the formatWhatsAppTimestamp function
+const formatWhatsAppTimestamp = (dateString: string | Date) => {
+  try {
+    // Debug log to see what we're receiving
+    console.log('Raw timestamp:', dateString);
+
+    // Handle different date formats
+    let messageDate: Date;
+
+    if (typeof dateString === 'string') {
+      // Try parsing the string directly first
+      messageDate = new Date(dateString);
+      
+      if (isNaN(messageDate.getTime())) {
+        // If parsing failed, try different formats
+        if (dateString.includes(' ')) {
+          // Handle MySQL format: "YYYY-MM-DD HH:mm:ss"
+          const [date, time] = dateString.split(' ');
+          messageDate = new Date(`${date}T${time}`);
+        } else if (dateString.includes('/')) {
+          // Handle date format with slashes
+          const [month, day, year] = dateString.split('/');
+          messageDate = new Date(Number(year), Number(month) - 1, Number(day));
+        }
+      }
+    } else if (dateString instanceof Date) {
+      messageDate = dateString;
+    } else {
+      console.error('Unsupported date format:', dateString);
+      return dateString.toString();
+    }
+
+    // Validate the parsed date
+    if (!messageDate || isNaN(messageDate.getTime())) {
+      console.error('Invalid date:', dateString);
+      return dateString.toString();
+    }
+
+    // Format the date
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (messageDate.toDateString() === now.toDateString()) {
+      const formattedTime = messageDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      console.log('Today\'s formatted time:', formattedTime);
+      return formattedTime.toLowerCase();
+    }
+
+    // Rest of the formatting logic remains the same
+    if (messageDate.toDateString() === yesterday.toDateString()) {
+      return `Yesterday ${messageDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).toLowerCase()}`;
+    }
+
+    if (messageDate.getFullYear() === now.getFullYear()) {
+      return `${messageDate.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      })} ${messageDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).toLowerCase()}`;
+    }
+
+    return `${messageDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })} ${messageDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).toLowerCase()}`;
+
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    // Return the original string if we can't parse it
+    return String(dateString);
+  }
+};
+
   const postMessage = async (content: string, tag: "general" | "issue") => {
     try {
       const payload = {
@@ -145,21 +235,33 @@ const Community = () => {
     }
   };
 
-  const fetchMessages = async (tag: "general" | "issue") => {
-    try {
-      const response = await fetch(
-        `http://127.0.0.1:5000/community/messages/${tag}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch messages");
-      }
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error fetching messages:", error);
-      return [];
+  // Update the fetchMessages function to properly format timestamps
+const fetchMessages = async (tag: "general" | "issue") => {
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:5000/community/messages/${tag}`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch messages");
     }
-  };
+    const data = await response.json();
+    console.log('Raw message data:', data); // Debug log
+
+    return data.map((message: any) => {
+      // Log each message's timestamp for debugging
+      console.log('Message timestamp:', message.created_at || message.timestamp);
+      
+      return {
+        ...message,
+        // Ensure we have a valid timestamp
+        timestamp: message.created_at || message.timestamp || new Date().toISOString()
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    return [];
+  }
+};
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -179,7 +281,7 @@ const Community = () => {
     return () => clearInterval(interval);
   }, [selectedFilter]);
 
-  useEffect(() => {
+  useEffect(() => { // This is correct
     const scrollToBottom = () => {
       const messagesDiv = document.querySelector(".messages-container");
       if (messagesDiv) {
@@ -189,72 +291,68 @@ const Community = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
+  // Update handleSendMessage function
+const handleSendMessage = async () => {
+  if (!newMessage.trim() || !user) return;
 
-    try {
-      const result = await postMessage(newMessage, currentTag);
+  try {
+    const timestamp = new Date().toISOString();
+    const result = await postMessage(newMessage, currentTag);
+    console.log('Message post response:', result);
 
-      const newMsg: Message = {
-        id: result.id, // Use the ID from the server response
-        userId: user.uid,
-        userName: user.displayName || "Anonymous",
-        userAvatar:
-          user.photoURL ||
-          `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
-        content: result.payload.description,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        tag: currentTag,
-        replies: [],
-      };
+    const newMsg: Message = {
+      id: result.id,
+      userId: user.uid,
+      userName: user.displayName || "Anonymous",
+      userAvatar: user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
+      content: result.payload.description,
+      // Use the most reliable timestamp source
+      timestamp: result.created_at || result.timestamp || timestamp,
+      tag: currentTag,
+      replies: [],
+    };
 
-      // Add new message to the end of the list
-      setMessages((prev) => [...prev, newMsg]);
-      setNewMessage("");
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
-  };
+    console.log('New message timestamp:', newMsg.timestamp);
+    setMessages((prev) => [...prev, newMsg]);
+    setNewMessage("");
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+};
 
   // Add function to handle replies
-  const handleReply = async (parentMessage: Message) => {
-    if (!newMessage.trim() || !user) return;
+  // Update handleReply function
+const handleReply = async (parentMessage: Message) => {
+  if (!newMessage.trim() || !user) return;
 
-    try {
-      const result = await postReply(parentMessage.id.toString(), newMessage);
+  try {
+    const result = await postReply(parentMessage.id.toString(), newMessage);
+    console.log('Reply response:', result); // Debug log
 
-      const newReply: Message = {
-        id: result.id,
-        userId: user.uid,
-        userName: user.displayName || "Anonymous",
-        userAvatar:
-          user.photoURL ||
-          `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
-        content: newMessage,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        tag: selectedTag,
-      };
+    const newReply: Message = {
+      id: result.id,
+      userId: user.uid,
+      userName: user.displayName || "Anonymous",
+      userAvatar: user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
+      content: newMessage,
+      timestamp: result.timestamp || result.created_at,
+      tag: selectedTag,
+    };
 
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === parentMessage.id
-            ? { ...msg, replies: [...(msg.replies || []), newReply] }
-            : msg
-        )
-      );
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === parentMessage.id
+          ? { ...msg, replies: [...(msg.replies || []), newReply] }
+          : msg
+      )
+    );
 
-      setNewMessage("");
-      setReplyingTo(null);
-    } catch (error) {
-      console.error("Error sending reply:", error);
-    }
-  };
+    setNewMessage("");
+    setReplyingTo(null);
+  } catch (error) {
+    console.error("Error sending reply:", error);
+  }
+};
 
   const handleFilterChange = async (newFilter: "general" | "issue") => {
     setSelectedFilter(newFilter);
@@ -347,6 +445,7 @@ const Community = () => {
             animate={{ opacity: 1 }}
             className="pl-4 flex items-start space-x-4"
           >
+
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="relative flex-shrink-0"
@@ -366,14 +465,17 @@ const Community = () => {
                     : "bg-white/5 hover:bg-cyan-900/10"
                 }`}
               >
+                <div className="mb-1">
+                  <span className="text-cyan-400 text-sm">{reply.userName}</span>
+                  {reply.userId === user?.uid && (
+                    <span className="text-xs text-cyan-400/50 ml-2">(You)</span>
+                  )}
+                </div>
                 <p className="text-white text-sm">{reply.content}</p>
               </motion.div>
-              <div className="flex items-center mt-1 space-x-2 text-xs">
-                {reply.userId === user?.uid && (
-                  <span className="text-xs text-cyan-400/50">(You)</span>
-                )}
-                <span className="text-cyan-400">{reply.userName}</span>
-                <span className="text-gray-500">{reply.timestamp}</span>
+              {/* Add timestamp below the reply */}
+              <div className="mt-1 text-xs text-gray-500">
+                {formatWhatsAppTimestamp(reply.timestamp)}
               </div>
             </div>
           </motion.div>
@@ -416,6 +518,9 @@ const Community = () => {
                   className="text-sm text-cyan-400"
                 >
                   {message.userName}
+                  {isOwnMessage && (
+                    <span className="text-xs text-cyan-400/50 ml-2">(You)</span>
+                  )}
                 </motion.span>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -429,12 +534,9 @@ const Community = () => {
               </div>
               <p className="text-white text-sm">{message.content}</p>
             </motion.div>
-
-            <div className="flex items-center mt-1 space-x-2 text-xs">
-              {isOwnMessage && (
-                <span className="text-xs text-cyan-400/50">(You)</span>
-              )}
-              <span className="text-gray-500">{message.timestamp}</span>
+            {/* Add timestamp below the message */}
+            <div className="mt-1 text-xs text-gray-500">
+              {formatWhatsAppTimestamp(message.timestamp)}
             </div>
           </div>
         </div>
@@ -480,7 +582,7 @@ const Community = () => {
             {isOwnMessage && (
               <span className="text-xs text-cyan-400/50">(You)</span>
             )}
-            <span className="text-gray-500">{message.timestamp}</span>
+            <span className="text-gray-500">{formatWhatsAppTimestamp(message.timestamp)}</span>
           </div>
         </div>
       </div>

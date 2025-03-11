@@ -16,7 +16,6 @@ import DatasetEdit from "./pages/DatasetEdit";
 import OtherProfile from "./pages/OtherProfile";
 import Prompts from "./pages/Prompts";
 import { Toaster } from 'react-hot-toast';
-import PromptDetails from "./pages/PromptDetails"; // Import PromptDetails
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return <div className="min-h-screen bg-gray-900">{children}</div>;
@@ -124,16 +123,6 @@ function App() {
             element={
               <PrivateRoute>
                 <Prompts />
-              </PrivateRoute>
-            }
-          />
-
-          {/* Add Prompt Detail Routes */}
-          <Route
-            path="/:username/:promptname/view"
-            element={
-              <PrivateRoute>
-                <PromptDetails />
               </PrivateRoute>
             }
           />

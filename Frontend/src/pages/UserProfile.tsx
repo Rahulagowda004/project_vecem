@@ -12,6 +12,9 @@ import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 import NavbarPro from "../components/NavbarPro";
 import { getUserDisplayName, getUserUsername } from "../utils/userManagement";
+import PromptCard from '../components/PromptCard';
+import { getPromptDetails, logPromptClick } from "../services/promptService";
+import { toast } from "react-hot-toast";
 
 interface UserProfileData {
   uid: string;
@@ -52,6 +55,8 @@ const UserProfile = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const [activeView, setActiveView] = useState<'datasets' | 'prompts'>('datasets');
+  const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
+  const [isPromptCardOpen, setIsPromptCardOpen] = useState(false);
 
   const formatDate = (dateString: string) => {
     try {
@@ -240,28 +245,29 @@ const UserProfile = () => {
   // Add handlePromptClick handler
   const handlePromptClick = async (promptId: string, promptName: string) => {
     try {
-      // Log the prompt click to backend (if needed)
-      const response = await fetch("http://127.0.0.1:5000/prompt-click", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uid: userData?.uid,
-          promptName: promptName,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to log prompt click");
+      // Log the click first
+      try {
+        await logPromptClick(userData?.uid || '', promptName);
+      } catch (error) {
+        console.warn('Failed to log prompt click:', error);
       }
 
-      // Navigate to prompt detail page
-      navigate(`/${username}/prompts/${promptName}`);
+      const loadingToast = toast.loading('Loading prompt details...');
+
+      const promptData = await getPromptDetails(username || '', promptName);
+      
+      toast.dismiss(loadingToast);
+
+      setSelectedPrompt({
+        name: promptData.prompt_name,
+        domain: promptData.domain || 'General',
+        prompt: promptData.prompt
+      });
+      setIsPromptCardOpen(true);
     } catch (error) {
-      console.error("Error logging prompt click:", error);
-      // Still navigate even if logging fails
-      navigate(`/${username}/prompts/${promptName}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load prompt details';
+      console.error('Error fetching prompt details:', error);
+      toast.error(errorMessage);
     }
   };
 
@@ -568,7 +574,6 @@ const UserProfile = () => {
                     <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
                       {prompt.name}
                     </h3>
-                    <p className="text-gray-300 mb-4">{prompt.description}</p>
                     <div className="flex items-center space-x-4 text-sm text-gray-400">
                       <span className="flex items-center">
                         <MessageSquarePlus className="w-4 h-4 mr-1" />
@@ -663,6 +668,12 @@ const UserProfile = () => {
           </div>
         </motion.div>
       </div>
+      {/* Add the PromptCard component */}
+      <PromptCard
+        prompt={selectedPrompt}
+        isOpen={isPromptCardOpen}
+        onClose={() => setIsPromptCardOpen(false)}
+      />
     </div>
   );
 };

@@ -191,11 +191,12 @@ const DatasetEdit = () => {
         // Update form values with dataset information
         setName(data.dataset_info.name || datasetname); // Set name from URL if not in response
         setDescription(data.dataset_info.description || "");
-        setDatasetType(data.upload_type || "Both");
+        setDatasetType(data.upload_type || "Raw"); // Make sure we get upload_type
         setDomain(data.dataset_info.domain || "");
         setFileType(data.dataset_info.file_type || "");
         
-        if (data.vectorized_settings) {
+        // Only set vectorized settings if upload_type is 'Raw' or 'Both'
+        if (data.vectorized_settings && (data.upload_type === 'Raw' || data.upload_type === 'Both')) {
           setVectorizedSettings({
             dimensions: data.vectorized_settings.dimensions || 768,
             vectorDatabase: data.vectorized_settings.vectorDatabase || "Pinecone",
@@ -426,6 +427,151 @@ const DatasetEdit = () => {
     </motion.div>
   );
 
+  const getStatsCards = () => {
+    const baseStats = [
+      {
+        label: "Dataset Type",
+        value: datasetType,
+        icon: Database,
+        isReadOnly: true,
+      },
+      {
+        label: "File Type",
+        value: fileType,
+        icon: FileType,
+        isSelect: true,
+        options: Object.entries(fileTypes).map(([type, data]) => ({
+          value: type,
+          label: data.label,
+        })),
+        setter: setFileType,
+      },
+      {
+        label: "Domain",
+        value: domain,
+        icon: Box,
+        isSelect: true,
+        options: domains,
+        setter: setDomain,
+      },
+    ];
+
+    // Only add vectorized settings for Raw or Both types
+    const vectorizedStats = datasetType !== "Vectorized" ? [
+      {
+        label: "Model Name",
+        value: vectorizedSettings.modelName || "Not specified",
+        icon: Code,
+        isInput: true,
+        setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, modelName: value }))
+      },
+      {
+        label: "Dimensions",
+        value: vectorizedSettings.dimensions,
+        icon: Box,
+        isInput: true,
+        type: "number",
+        setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, dimensions: parseInt(value) }))
+      },
+      {
+        label: "Vector DB",
+        value: vectorizedSettings.vectorDatabase,
+        icon: Database,
+        isInput: true,
+        setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, vectorDatabase: value }))
+      }
+    ] : [];
+
+    return [...baseStats, ...vectorizedStats];
+  };
+
+  const renderRightColumn = () => (
+    <motion.div variants={fadeIn} className="space-y-6">
+      {/* Upload Section */}
+      {(datasetType === "Raw" || datasetType === "Vectorized") && (
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">
+              {datasetType === "Raw" ? "Upload Vectorized File" : "Upload Raw File"}
+            </h2>
+            <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-sm border border-cyan-500/20">
+              {datasetType === "Raw" ? "Add Vectorization" : "Add Raw Data"}
+            </span>
+          </div>
+          <p className="text-sm text-gray-400 mb-4">
+            {datasetType === "Raw" 
+              ? "Convert your raw data into vector embeddings for advanced search capabilities."
+              : "Add the original raw data to complement your vectorized dataset."
+            }
+          </p>
+
+          <div className="space-y-4">
+            <div className="relative">
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileChange}
+                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
+                  text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
+                  file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
+                  hover:file:bg-cyan-700 file:transition-colors"
+                multiple
+                directory=""
+                webkitdirectory=""
+              />
+              <Upload className="absolute right-3 top-2.5 text-cyan-400 w-5 h-5" />
+            </div>
+
+            {uploadProgress > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-gray-400">
+                  <span>Upload Progress</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-cyan-500 transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Both type message */}
+      {datasetType === "Both" && (
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="flex items-center gap-3 text-gray-400">
+            <Database className="w-5 h-5" />
+            <p>This dataset already contains both raw and vectorized files.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Dataset Status */}
+      <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+        <h3 className="text-sm font-medium text-gray-400 mb-3">Dataset Status</h3>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-400">Raw Data</span>
+            <span className={fileSize.raw > 0 ? "text-green-400" : "text-gray-500"}>
+              {fileSize.raw > 0 ? "Available" : "Not Available"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-400">Vectorized Data</span>
+            <span className={fileSize.vectorized > 0 ? "text-green-400" : "text-gray-500"}>
+              {fileSize.vectorized > 0 ? "Available" : "Not Available"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
       {/* Breadcrumb Navigation */}
@@ -524,57 +670,7 @@ const DatasetEdit = () => {
           <motion.div className="lg:col-span-2 space-y-8">
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {[
-                {
-                  label: "Dataset Type",
-                  value: datasetType,
-                  icon: Database,
-                  isReadOnly: true,
-                },
-                {
-                  label: "File Type",
-                  value: fileType,
-                  icon: FileType,
-                  isSelect: true,
-                  options: Object.entries(fileTypes).map(([type, data]) => ({
-                    value: type,
-                    label: data.label,
-                  })),
-                  setter: setFileType,
-                },
-                {
-                  label: "Domain",
-                  value: domain,
-                  icon: Box,
-                  isSelect: true,
-                  options: domains,
-                  setter: setDomain,
-                },
-                ...(datasetType === "Vectorized" || datasetType === "Both" ? [
-                  {
-                    label: "Model Name",
-                    value: vectorizedSettings.modelName || "Not specified",
-                    icon: Code,
-                    isInput: true,
-                    setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, modelName: value }))
-                  },
-                  {
-                    label: "Dimensions",
-                    value: vectorizedSettings.dimensions,
-                    icon: Box,
-                    isInput: true,
-                    type: "number",
-                    setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, dimensions: parseInt(value) }))
-                  },
-                  {
-                    label: "Vector DB",
-                    value: vectorizedSettings.vectorDatabase,
-                    icon: Database,
-                    isInput: true,
-                    setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, vectorDatabase: value }))
-                  }
-                ] : [])
-              ].map((stat) => (
+              {getStatsCards().map((stat) => (
                 <motion.div
                   key={stat.label}
                   variants={fadeIn}
@@ -642,79 +738,7 @@ const DatasetEdit = () => {
           </motion.div>
 
           {/* Right Column - Settings */}
-          <motion.div variants={fadeIn} className="space-y-6">
-            {/* Only show File Upload and Dataset Type sections if datasetType is not "Both" */}
-            {datasetType !== "Both" && (
-              <>
-                {/* File Upload Section */}
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <h2 className="text-lg font-semibold text-white mb-4">
-                    Update {datasetType === "Raw" ? "Vectorized" : "Raw"} File
-                  </h2>
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        onChange={handleFileChange}
-                        className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
-                          text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
-                          file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
-                          hover:file:bg-cyan-700 file:transition-colors"
-                        multiple
-                        directory=""
-                        webkitdirectory=""
-                      />
-                      <Upload className="absolute right-3 top-2.5 text-cyan-400 w-5 h-5" />
-                    </div>
-
-                    {uploadProgress > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm text-gray-400">
-                          <span>Upload Progress</span>
-                          <span>{uploadProgress}%</span>
-                        </div>
-                        <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-cyan-500 transition-all duration-300"
-                            style={{ width: `${uploadProgress}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Dataset Type */}
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <h2 className="text-lg font-semibold text-white mb-4">
-                    Dataset Type
-                  </h2>
-                  <select
-                    value={datasetType}
-                    onChange={(e) => setDatasetType(e.target.value)}
-                    className="w-full bg-gray-900/50 text-white rounded-lg p-2 border border-gray-700 
-                      focus:border-cyan-500 outline-none"
-                  >
-                    <option value="Raw">Raw</option>
-                    <option value="Vectorized">Vectorized</option>
-                    <option value="Both">Both</option>
-                  </select>
-                </div>
-              </>
-            )}
-            
-            {/* Show a message when type is Both */}
-            {datasetType === "Both" && (
-              <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <div className="flex items-center gap-3 text-gray-400">
-                  <Database className="w-5 h-5" />
-                  <p>This dataset contains both raw and vectorized files.</p>
-                </div>
-              </div>
-            )}
-          </motion.div>
+          {renderRightColumn()}
         </div>
       </motion.div>
       <AnimatePresence>{showDeleteModal && <DeleteModal />}</AnimatePresence>
