@@ -259,9 +259,11 @@ const UserProfile = () => {
       toast.dismiss(loadingToast);
 
       setSelectedPrompt({
-        name: promptData.prompt_name,
+        name: promptData.prompt_name || promptName,
         domain: promptData.domain || 'General',
-        prompt: promptData.prompt
+        prompt: promptData.prompt || '',
+        createdAt: promptData.createdAt,
+        updatedAt: promptData.updatedAt
       });
       setIsPromptCardOpen(true);
     } catch (error) {

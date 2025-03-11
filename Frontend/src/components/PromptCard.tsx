@@ -7,6 +7,8 @@ interface PromptCardProps {
     name: string;
     domain: string;
     prompt: string;
+    createdAt?: string;
+    updatedAt?: string;
   } | null;
   isOpen: boolean;
   onClose: () => void;
@@ -40,12 +42,12 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
           className="bg-gradient-to-b from-gray-800/90 to-gray-900/90 rounded-2xl border border-white/10 p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl backdrop-blur-xl"
         >
           {/* Header */}
-          <div className="flex justify-between items-start mb-6">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-white">{prompt.name}</h2>
-              <div className="flex items-center gap-2 text-cyan-400">
-                <Tag className="w-4 h-4" />
-                <span>{prompt.domain}</span>
+          <div className="flex justify-between items-start mb-4">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-white break-words">{prompt.name}</h2>
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4 text-cyan-400" />
+                <span className="text-cyan-400 font-medium">{prompt.domain}</span>
               </div>
             </div>
             <button
@@ -57,18 +59,32 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
           </div>
 
           {/* Prompt Content */}
-          <div className="mt-4">
-            <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700/50 relative">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-gray-200">Prompt</h3>
+          <div className="mt-6">
+            <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-700/50">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold text-gray-200">Prompt Content</h3>
                 <button
                   onClick={handleCopy}
-                  className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors text-gray-400 hover:text-white"
+                  className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors flex items-center gap-2 text-gray-400 hover:text-white"
                 >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span className="text-sm">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      <span className="text-sm">Copy</span>
+                    </>
+                  )}
                 </button>
               </div>
-              <p className="text-gray-300 whitespace-pre-wrap">{prompt.prompt}</p>
+              <div className="bg-gray-950/50 rounded-lg p-4 border border-gray-800">
+                <p className="text-gray-300 whitespace-pre-wrap font-mono text-sm leading-relaxed">
+                  {prompt.prompt}
+                </p>
+              </div>
             </div>
           </div>
         </motion.div>
