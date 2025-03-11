@@ -5,7 +5,6 @@ import { PrivateRoute } from "./components/PrivateRoute";
 import HomePage from "./pages/HomePage";
 import UserProfile from "./pages/UserProfile"; // Changed from Profile
 import UploadFile from "./pages/UploadFile";
-import Community from "./pages/Community";
 import DatasetDetail from "./pages/DatasetDetail";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -65,14 +64,7 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route
-            path="/community"
-            element={
-              <PrivateRoute>
-                <Community />
-              </PrivateRoute>
-            }
-          />
+          
           <Route
             path="/settings"
             element={
