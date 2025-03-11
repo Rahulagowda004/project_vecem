@@ -3,8 +3,8 @@ import { API_BASE_URL } from "../config";
 export interface PromptData {
   username: string;
   prompt_name: string;
-  prompt_description: string; // Added to match backend model
   prompt: string;
+  domain: string;
 }
 
 export const saveUserPrompt = async (promptData: PromptData): Promise<any> => {

@@ -48,7 +48,8 @@ class SettingProfile(BaseModel):
 class Prompts(BaseModel):
     username: str
     prompt_name: str
-    prompt : str
+    prompt: str
+    domain: str
 
 # Profile Models
 class UserProfile(BaseModel):

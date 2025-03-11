@@ -647,7 +647,11 @@ async def check_api_key(uid: str):
 @app.post("/prompts")
 async def create_prompt(prompt: Prompts):
     try:
-        prompt_doc = prompt.dict()
+        ist = pytz.timezone('Asia/Kolkata')
+        prompt_doc = {
+            **prompt.dict(),
+            "createdAt": datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')
+        }
         result = await prompts_collection.insert_one(prompt_doc)
         return {
             "id": str(result.inserted_id),
