@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Tag, Copy, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface PromptCardProps {
   prompt: {
@@ -17,6 +18,7 @@ interface PromptCardProps {
 
 const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
 
   if (!prompt || !isOpen) return null;
 
@@ -24,6 +26,11 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
     navigator.clipboard.writeText(prompt.prompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleUsernameClick = (username: string) => {
+    navigate(`/${username}/view`);
+    onClose(); // Close the modal after navigation
   };
 
   return (
@@ -62,7 +69,15 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
               </div>
               <div className="flex items-center gap-2 bg-gray-700/30 px-3 py-1.5 rounded-full">
                 <span className="text-gray-400">by</span>
-                <span className="text-gray-200 font-medium">{prompt.username}</span>
+                <button
+                  onClick={() => handleUsernameClick(prompt.username)}
+                  className="flex items-center text-sm group relative"
+                >
+                  <span className="text-gray-200 hover:text-cyan-400 transition-all duration-300 font-medium relative">
+                    {prompt.username}
+                    <span className="absolute left-0 bottom-0 w-0 h-0.5 bg-cyan-400 group-hover:w-full transition-all duration-300"></span>
+                  </span>
+                </button>
               </div>
             </div>
           </div>

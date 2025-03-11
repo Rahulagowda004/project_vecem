@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Tag, TerminalSquare } from 'lucide-react';
+import { Tag, TerminalSquare, User } from 'lucide-react';
 import PromptCard from './PromptCard';
+import { useNavigate } from 'react-router-dom';
 
 interface Prompt {
   _id: string;
@@ -19,6 +20,12 @@ interface PromptsGridProps {
 
 const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+  const navigate = useNavigate();
+
+  const handleUsernameClick = (e: React.MouseEvent, username: string) => {
+    e.stopPropagation(); // Prevent the prompt card from opening
+    navigate(`/${username}/view`);
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -62,11 +69,18 @@ const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
                   {prompt.prompt_name}
                 </h3>
               </div>
-              <div className="flex items-center space-x-4 text-sm text-gray-400 mt-3">
-                <span className="flex items-center">
+              <div className="flex items-center justify-between mt-3">
+                <span className="flex items-center space-x-4 text-sm text-gray-400">
                   <Tag className="w-4 h-4 mr-1" />
                   {prompt.domain || "General"}
                 </span>
+                <button
+                  onClick={(e) => handleUsernameClick(e, prompt.username)}
+                  className="flex items-center text-sm text-gray-400 hover:text-cyan-400 transition-colors"
+                >
+                  <User className="w-4 h-4 mr-1" />
+                  {prompt.username}
+                </button>
               </div>
             </div>
           </motion.li>
