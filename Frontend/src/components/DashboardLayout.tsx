@@ -513,8 +513,11 @@ const DashboardLayout = () => {
         <div className={`flex-1 ${isFullWidth ? "ml-64" : "ml-64"} h-full`}>
           <main className="h-full relative">
             {currentView === "community" ? (
-              <div className="h-full">
-                <Community />
+              <div className="flex flex-col h-[calc(100vh-4rem)]">
+                
+                <div className="flex-1 overflow-y-auto">
+                  <Community />
+                </div>
               </div>
             ) : currentView === "chatbot" ? (
               <div className="flex flex-col h-[calc(100vh-5rem)] -mt-4 -mx-6">
