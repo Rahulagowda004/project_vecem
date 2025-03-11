@@ -584,7 +584,7 @@ const UploadFile = () => {
                   ${nameError ? "border-red-500" : "border-gray-600"}
                   text-white placeholder-gray-400
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition`}
-                placeholder="Enter dataset name *"
+                placeholder="Enter dataset name "
               />
               {isCheckingName && (
                 <p className="text-sm text-gray-400 mt-1">
@@ -609,7 +609,7 @@ const UploadFile = () => {
                 className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
                   text-white placeholder-gray-400
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition h-32"
-                placeholder="Enter dataset description *"
+                placeholder="Enter dataset description "
               />
             </div>
 
@@ -627,7 +627,7 @@ const UploadFile = () => {
                   text-white placeholder-gray-400
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
               >
-                <option value="">Select a domain *</option>
+                <option value="">Select a domain </option>
                 {domains.map((domain) => (
                   <option key={domain} value={domain}>
                     {domain}
