@@ -51,31 +51,6 @@ const OtherProfile = () => {
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [isPromptCardOpen, setIsPromptCardOpen] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return new Date().toLocaleDateString(undefined, {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
-      }
-      return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return new Date().toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    }
-  };
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -95,7 +70,39 @@ const OtherProfile = () => {
           return;
         }
 
-        setUserData(profileData);
+        // Process the dates in datasets and prompts
+        const processedData = {
+          ...profileData,
+          datasets: (profileData.datasets || []).map(dataset => ({
+            ...dataset,
+            uploadedAt: new Date(dataset.timestamp || dataset.uploadedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            }),
+            updatedAt: new Date(dataset.updatedAt || dataset.timestamp || dataset.uploadedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })
+          })),
+          prompts: (profileData.prompts || []).map(prompt => ({
+            ...prompt,
+            createdAt: new Date(prompt.createdAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            }),
+            updatedAt: prompt.updatedAt ? new Date(prompt.updatedAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            }) : undefined
+          }))
+        };
+
+        console.log("Processed profile data:", processedData);
+        setUserData(processedData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile");
         console.error("Error fetching profile:", err);
@@ -491,7 +498,7 @@ const OtherProfile = () => {
                             clipRule="evenodd"
                           />
                         </svg>
-                        {formatDate(dataset.uploadedAt)}
+                        {dataset.uploadedAt}
                       </span>
                     </div>
                   </motion.li>
