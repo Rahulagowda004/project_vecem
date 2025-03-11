@@ -40,6 +40,15 @@ const Prompts = () => {
     "E-Commerce",
   ];
 
+  const formatPromptName = (value: string) => {
+    return value.replace(/\s+/g, '_');
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedName = formatPromptName(e.target.value);
+    setName(formattedName);
+  };
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user?.uid) {
@@ -167,11 +176,13 @@ const Prompts = () => {
                 <input
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={handleNameChange}
                   className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
                     text-white placeholder-gray-400"
-                  placeholder="Enter prompt name"
+                  placeholder="Enter_prompt_name"
                   required
+                  pattern="[A-Za-z0-9_]+"
+                  title="Only letters, numbers and underscores are allowed"
                 />
               </div>
 
