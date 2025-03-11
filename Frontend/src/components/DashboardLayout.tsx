@@ -28,12 +28,22 @@ import { motion } from "framer-motion";
 import { ChatMessage, sendChatMessage } from "../services/chatService";
 import { checkApiKey, saveApiKey } from '../services/apiKeyService';
 import { toast } from 'react-hot-toast';
+import PromptsGrid from "./PromptsGrid";
 
 interface Message {
   id: string;
   content: string;
   sender: 'user' | 'bot';
   timestamp: string;
+}
+
+interface Prompt {
+  name: string;
+  domain: string;
+  prompt: string;
+  username: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const LogoutButton = () => {
@@ -89,30 +99,27 @@ const DashboardLayout = () => {
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [apiKeyError, setApiKeyError] = useState('');
-  const [prompts, setPrompts] = useState([
+  const [prompts] = useState<Prompt[]>([
     {
-      id: 1,
-      title: "Image Classification",
-      description: "Classify images into predefined categories",
-      category: "Computer Vision",
-      complexity: "Medium",
-      usage: 1234
+      name: "Image Classification",
+      domain: "Computer Vision",
+      prompt: "Analyze this image and classify it into one of the following categories...",
+      username: "AIResearcher",
+      createdAt: new Date().toISOString(),
     },
     {
-      id: 2,
-      title: "Text Summarization",
-      description: "Generate concise summaries of longer texts",
-      category: "NLP",
-      complexity: "High",
-      usage: 856
+      name: "Text Summarization",
+      domain: "NLP",
+      prompt: "Generate a concise summary of the following text while maintaining...",
+      username: "NLPExpert",
+      createdAt: new Date().toISOString(),
     },
     {
-      id: 3,
-      title: "Sentiment Analysis",
-      description: "Analyze text sentiment (positive/negative/neutral)",
-      category: "NLP",
-      complexity: "Low",
-      usage: 2341
+      name: "Sentiment Analysis",
+      domain: "NLP",
+      prompt: "Analyze the sentiment of this text and classify it as positive...",
+      username: "DataScientist",
+      createdAt: new Date().toISOString(),
     }
   ]);
 
@@ -618,29 +625,7 @@ const DashboardLayout = () => {
                 </div>
               </div>
             ) : currentView === "prompts" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                {prompts.map((prompt) => (
-                  <div
-                    key={prompt.id}
-                    className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 hover:bg-gray-800/70 transition-all duration-200 group"
-                  >
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-lg font-semibold text-cyan-400">{prompt.title}</h3>
-                      <span className="px-3 py-1 bg-gray-700/50 rounded-full text-xs text-gray-300">
-                        {prompt.complexity}
-                      </span>
-                    </div>
-                    <p className="text-gray-400 text-sm mb-4">{prompt.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">{prompt.category}</span>
-                      <div className="flex items-center space-x-1 text-gray-500">
-                        <Users className="w-3 h-3" />
-                        <span className="text-xs">{prompt.usage}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <PromptsGrid prompts={prompts} />
             ) : (
               <>
                 {/* Enhanced User Welcome Section */}
