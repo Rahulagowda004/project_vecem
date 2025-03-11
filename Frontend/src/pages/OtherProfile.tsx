@@ -5,6 +5,36 @@ import { getUserProfileByUsername } from "../services/userService";
 import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 import NavbarPro from "../components/NavbarPro";
+import { MessageSquarePlus } from 'lucide-react';
+import PromptCard from '../components/PromptCard';
+import { getPromptDetails, logPromptClick } from "../services/promptService";
+import { toast } from "react-hot-toast";
+
+interface UserProfileData {
+  uid: string;
+  username: string;
+  name: string;
+  profilePicture?: string;
+  bio?: string;
+  githubUrl?: string;
+  datasets: {
+    id: string;
+    name: string;
+    description: string;
+    upload_type?: string;
+    uploadedAt: string;
+    updatedAt: string;
+  }[];
+  prompts?: {
+    id: string;
+    name: string;
+    description: string;
+    domain: string;
+    prompt: string;
+    createdAt: string;
+    updatedAt?: string;
+  }[];
+}
 
 const OtherProfile = () => {
   const { username } = useParams();
@@ -17,6 +47,9 @@ const OtherProfile = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
+  const [activeView, setActiveView] = useState<'datasets' | 'prompts'>('datasets');
+  const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
+  const [isPromptCardOpen, setIsPromptCardOpen] = useState(false);
 
   const formatDate = (dateString: string) => {
     try {
@@ -142,13 +175,83 @@ const OtherProfile = () => {
     return result;
   }, [userData?.datasets, searchQuery, sortOption]);
 
-  const paginatedDatasets = useMemo(() => {
+  const filteredAndSortedPrompts = useMemo(() => {
+    if (!userData?.prompts) return [];
+
+    let result = [...userData.prompts];
+
+    if (searchQuery) {
+      result = result.filter(
+        (prompt) =>
+          prompt.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          prompt.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    switch (sortOption) {
+      case "name":
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "latest":
+      default:
+        result.sort(
+          (a, b) =>
+            new Date(b.updatedAt || 0).getTime() -
+            new Date(a.updatedAt || 0).getTime()
+        );
+        break;
+    }
+
+    return result;
+  }, [userData?.prompts, searchQuery, sortOption]);
+
+  const paginatedItems = useMemo(() => {
+    const items = activeView === 'datasets' ? filteredAndSortedDatasets : filteredAndSortedPrompts;
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredAndSortedDatasets.slice(startIndex, endIndex);
-  }, [filteredAndSortedDatasets, currentPage]);
+    return items.slice(startIndex, endIndex);
+  }, [filteredAndSortedDatasets, filteredAndSortedPrompts, currentPage, activeView]);
 
-  const totalPages = Math.ceil(filteredAndSortedDatasets.length / itemsPerPage);
+  const totalPages = Math.ceil(
+    (activeView === 'datasets' ? filteredAndSortedDatasets.length : filteredAndSortedPrompts.length) 
+    / itemsPerPage
+  );
+
+  const handlePromptClick = async (promptId: string, promptName: string) => {
+    try {
+      try {
+        await logPromptClick(userData?.uid || '', promptName);
+      } catch (error) {
+        console.warn('Failed to log prompt click:', error);
+      }
+
+      const loadingToast = toast.loading('Loading prompt details...');
+
+      const promptData = await getPromptDetails(username || '', promptName);
+      
+      toast.dismiss(loadingToast);
+
+      setSelectedPrompt({
+        name: promptData.prompt_name || promptName,
+        domain: promptData.domain || 'General',
+        prompt: promptData.prompt || '',
+        createdAt: promptData.createdAt,
+        updatedAt: promptData.updatedAt
+      });
+      setIsPromptCardOpen(true);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load prompt details';
+      console.error('Error fetching prompt details:', error);
+      toast.error(errorMessage);
+    }
+  };
+
+  const activeViewCount = useMemo(() => {
+    if (!userData) return 0;
+    return activeView === 'datasets' 
+      ? userData.datasets.length 
+      : userData.prompts?.length || 0;
+  }, [userData, activeView]);
 
   if (loading) {
     return (
@@ -248,14 +351,16 @@ const OtherProfile = () => {
             <div className="border-b border-gray-700/50 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <h2 className="text-2xl font-bold text-gray-100">Datasets</h2>
+                  <h2 className="text-2xl font-bold text-gray-100">
+                    {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
+                  </h2>
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20"
                   >
                     <span className="text-cyan-400 font-medium">
-                      {userData.datasets.length}
+                      {activeViewCount}
                     </span>
                   </motion.div>
                 </div>
@@ -265,14 +370,39 @@ const OtherProfile = () => {
             {/* Dataset Filters and Search */}
             <div className="p-4 border-b border-gray-700/50">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+                {/* View Selector */}
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setActiveView('datasets')}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      activeView === 'datasets'
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        : 'text-gray-400 hover:text-cyan-400'
+                    }`}
+                  >
+                    Datasets
+                  </button>
+                  <button
+                    onClick={() => setActiveView('prompts')}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      activeView === 'prompts'
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        : 'text-gray-400 hover:text-cyan-400'
+                    }`}
+                  >
+                    Prompts
+                  </button>
+                </div>
+
+                {/* Center Search Bar */}
+                <div className="flex-1 max-w-md mx-4">
                   <div className="relative">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search datasets..."
-                      className="bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500 w-64"
+                      placeholder={`Search ${activeView}...`}
+                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500"
                     />
                     <svg
                       className="w-5 h-5 absolute right-3 top-2.5 text-gray-400"
@@ -288,6 +418,10 @@ const OtherProfile = () => {
                       />
                     </svg>
                   </div>
+                </div>
+
+                {/* Right Side Filters */}
+                <div className="flex items-center space-x-4">
                   <select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
@@ -295,63 +429,107 @@ const OtherProfile = () => {
                   >
                     <option value="latest">Sort by: Latest</option>
                     <option value="name">Sort by: Name</option>
+                    <option value="size">Sort by: Size</option>
                   </select>
+                  {searchQuery && (
+                    <div className="text-gray-400">
+                      Found {activeView === 'datasets' 
+                        ? filteredAndSortedDatasets.length 
+                        : filteredAndSortedPrompts.length} results
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Dataset Grid */}
+            {/* Grid View */}
             <motion.ul
               variants={container}
               initial="hidden"
               animate="show"
               className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
             >
-              {paginatedDatasets.map((dataset) => (
-                <motion.li
-                  key={dataset.id}
-                  variants={item}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => handleDatasetClick(dataset.id, dataset.name)}
-                  className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
-                >
-                  <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                    {dataset.name}
-                  </h3>
-                  <p className="text-gray-300 mb-4">{dataset.description}</p>
-                  <div className="flex items-center space-x-4 text-sm text-gray-400">
-                    <span className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {dataset.upload_type || "Unknown Type"}
-                    </span>
-                    <span className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {formatDate(dataset.uploadedAt)}
-                    </span>
-                  </div>
-                </motion.li>
-              ))}
+              {activeView === 'datasets' ? (
+                paginatedItems.map((dataset) => (
+                  <motion.li
+                    key={dataset.id}
+                    variants={item}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => handleDatasetClick(dataset.id, dataset.name)}
+                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                  >
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      {dataset.name}
+                    </h3>
+                    <p className="text-gray-300 mb-4">{dataset.description}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                          <path
+                            fillRule="evenodd"
+                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {dataset.upload_type || "Unknown Type"}
+                      </span>
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {formatDate(dataset.uploadedAt)}
+                      </span>
+                    </div>
+                  </motion.li>
+                ))
+              ) : (
+                paginatedItems.map((prompt) => (
+                  <motion.li
+                    key={prompt.id}
+                    variants={item}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => handlePromptClick(prompt.id, prompt.name)}
+                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                  >
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      {prompt.name}
+                    </h3>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center">
+                        <MessageSquarePlus className="w-4 h-4 mr-1" />
+                        {prompt.domain || "General"}
+                      </span>
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {formatDate(prompt.updatedAt || prompt.createdAt)}
+                      </span>
+                    </div>
+                  </motion.li>
+                ))
+              )}
             </motion.ul>
 
             {/* Show pagination only if there are datasets */}
@@ -419,6 +597,12 @@ const OtherProfile = () => {
           </div>
         </motion.div>
       </div>
+      
+      <PromptCard
+        prompt={selectedPrompt}
+        isOpen={isPromptCardOpen}
+        onClose={() => setIsPromptCardOpen(false)}
+      />
     </div>
   );
 };
