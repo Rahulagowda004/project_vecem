@@ -16,7 +16,7 @@ import {
   BookOpen,
   Bot,
   Send,
-  TerminalIcon,
+  TerminalSquare,
   ComputerIcon,
   Laptop,
   Laptop2Icon,
@@ -109,7 +109,7 @@ const DashboardLayout = () => {
           throw new Error('Failed to fetch prompts');
         }
         const data = await response.json();
-        setPrompts(data.slice(0, 15)); // Just limit to 15 prompts without sorting
+        setPrompts(data.slice(0, 12)); // Changed from 15 to 12 prompts
       } catch (error) {
         console.error('Error fetching prompts:', error);
         setPrompts([]);
@@ -456,7 +456,7 @@ const DashboardLayout = () => {
                 }`}
               >
                 <div className="flex items-center">
-                  <TerminalIcon className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                  <TerminalSquare className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
                   <span className="group-hover:text-cyan-400 transition-colors">
                     Prompts
                   </span>
@@ -620,8 +620,6 @@ const DashboardLayout = () => {
                   </div>
                 </div>
               </div>
-            ) : currentView === "prompts" ? (
-              <PromptsGrid prompts={prompts} />
             ) : (
               <>
                 {/* Enhanced User Welcome Section */}
@@ -661,11 +659,15 @@ const DashboardLayout = () => {
                 )}
 
                 <div className="w-full">
-                  <DatasetGrid
-                    searchQuery={searchQuery}
-                    category={selectedCategory}
-                    datasets={datasets}
-                  />
+                  {currentView === "prompts" ? (
+                    <PromptsGrid prompts={prompts} />
+                  ) : (
+                    <DatasetGrid
+                      searchQuery={searchQuery}
+                      category={selectedCategory}
+                      datasets={datasets}
+                    />
+                  )}
                 </div>
               </>
             )}

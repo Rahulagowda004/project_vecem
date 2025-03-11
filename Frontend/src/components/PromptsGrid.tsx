@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Tag } from 'lucide-react';
+import { Tag, TerminalSquare } from 'lucide-react';
 import PromptCard from './PromptCard';
 
 interface Prompt {
@@ -49,16 +49,25 @@ const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
             variants={item}
             whileHover={{ scale: 1.02 }}
             onClick={() => setSelectedPrompt(prompt)}
-            className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+            className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer overflow-hidden"
           >
-            <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-              {prompt.prompt_name}
-            </h3>
-            <div className="flex items-center space-x-4 text-sm text-gray-400">
-              <span className="flex items-center">
-                <Tag className="w-4 h-4 mr-1" />
-                {prompt.domain || "General"}
-              </span>
+            <div className="absolute inset-0">
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300 blur-md" />
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center space-x-2">
+                <TerminalSquare className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 transition-colors" />
+                <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300">
+                  {prompt.prompt_name}
+                </h3>
+              </div>
+              <div className="flex items-center space-x-4 text-sm text-gray-400 mt-3">
+                <span className="flex items-center">
+                  <Tag className="w-4 h-4 mr-1" />
+                  {prompt.domain || "General"}
+                </span>
+              </div>
             </div>
           </motion.li>
         ))}
