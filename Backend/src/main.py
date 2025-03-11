@@ -595,12 +595,8 @@ async def chat_endpoint(chat_message: ChatMessage):
                 detail="API key not found. Please configure your API key."
             )
 
-        # Get response using user's API key
-        response = await bot.get_response(
-            message=chat_message.message,
-            uid=chat_message.uid,
-            api_key=user["api_key"]
-        )
+        # Get response using only the message parameter
+        response = await bot.get_response(message=chat_message.message)
         
         return {
             "response": response,
