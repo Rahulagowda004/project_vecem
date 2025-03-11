@@ -29,6 +29,7 @@ import { ChatMessage, sendChatMessage } from "../services/chatService";
 import { checkApiKey, saveApiKey } from '../services/apiKeyService';
 import { toast } from 'react-hot-toast';
 import PromptsGrid from "./PromptsGrid";
+import Community from "../pages/Community";
 
 interface Message {
   id: string;
@@ -82,7 +83,7 @@ const DashboardLayout = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [currentView, setCurrentView] = useState("datasets"); // Add this state
+  const [currentView, setCurrentView] = useState<"datasets" | "chatbot" | "prompts" | "community">("datasets");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -464,8 +465,8 @@ const DashboardLayout = () => {
               </button>
 
               {/* Community Section */}
-              <Link
-                to="/community"
+              <button
+                onClick={() => setCurrentView("community")}
                 className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
               >
                 <div className="flex items-center">
@@ -474,7 +475,7 @@ const DashboardLayout = () => {
                     Community
                   </span>
                 </div>
-              </Link>
+              </button>
 
               {/* Documentation Section */}
               <Link
@@ -619,6 +620,10 @@ const DashboardLayout = () => {
                     </form>
                   </div>
                 </div>
+              </div>
+            ) : currentView === "community" ? (
+              <div className="h-[calc(100vh-4rem)] -mt-4 -mx-6">
+                <Community />
               </div>
             ) : (
               <>
