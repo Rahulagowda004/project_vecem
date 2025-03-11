@@ -284,8 +284,12 @@ data = dataset.get_files()  # For raw files`,
             {/* Stats Cards - Updated grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {[
-                { label: "Size", value: dataset.size.raw, icon: Database },
-                { label: "Type", value: dataset.fileType, icon: FileType },
+                { 
+                  label: "Dataset Type", 
+                  value: dataset.datasetType.charAt(0).toUpperCase() + dataset.datasetType.slice(1), 
+                  icon: Database 
+                },
+                { label: "File Type", value: dataset.fileType, icon: FileType },
                 { label: "Domain", value: dataset.domain, icon: Box },
                 ...(dataset.datasetType.toLowerCase() === "vectorized" ||
                 dataset.datasetType.toLowerCase() === "both"
