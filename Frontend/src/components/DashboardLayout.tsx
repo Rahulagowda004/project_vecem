@@ -110,7 +110,7 @@ const DashboardLayout = () => {
           throw new Error('Failed to fetch prompts');
         }
         const data = await response.json();
-        setPrompts(data.slice(0, 12)); // Changed from 15 to 12 prompts
+        setPrompts(data.slice(0, 15)); // Changed from 12 to 15 prompts
       } catch (error) {
         console.error('Error fetching prompts:', error);
         setPrompts([]);
