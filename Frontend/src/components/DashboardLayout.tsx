@@ -511,8 +511,12 @@ const DashboardLayout = () => {
 
         {/* Main Content */}
         <div className={`flex-1 ${isFullWidth ? "ml-64" : "ml-64"} h-full`}>
-          <main className="h-full px-6 py-4">
-            {currentView === "chatbot" ? (
+          <main className="h-full relative">
+            {currentView === "community" ? (
+              <div className="h-full">
+                <Community />
+              </div>
+            ) : currentView === "chatbot" ? (
               <div className="flex flex-col h-[calc(100vh-5rem)] -mt-4 -mx-6">
                 {/* Messages Area */}
                 <div className="flex-1 overflow-y-auto px-6">
@@ -620,10 +624,6 @@ const DashboardLayout = () => {
                     </form>
                   </div>
                 </div>
-              </div>
-            ) : currentView === "community" ? (
-              <div className="h-[calc(100vh-4rem)] -mt-4 -mx-6">
-                <Community />
               </div>
             ) : (
               <>

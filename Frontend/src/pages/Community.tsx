@@ -593,7 +593,7 @@ const handleReply = async (parentMessage: Message) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="h-screen flex bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900"
+      className="h-full flex-1 flex flex-col relative bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900"
     >
       {/* Guidelines Modal */}
       <AnimatePresence>
@@ -700,12 +700,12 @@ const handleReply = async (parentMessage: Message) => {
       </AnimatePresence>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Chat Header */}
+      <div className="flex-1 flex flex-col h-full relative">
+        {/* Chat Header - Fixed */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="px-6 py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
+          className="sticky top-0 left-0 right-0 z-20 px-6 py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
         >
           <div className="flex flex-col space-y-4">
             <div className="flex justify-between items-center">
@@ -792,7 +792,7 @@ const handleReply = async (parentMessage: Message) => {
           </div>
         </motion.div>
 
-        {/* Messages Area */}
+        {/* Messages Area - Scrollable */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -815,46 +815,43 @@ const handleReply = async (parentMessage: Message) => {
           ))}
         </motion.div>
 
-        {/* Input Area */}
+        {/* Input Area - Fixed */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="p-6 bg-gray-900/50 border-t border-cyan-500/10 backdrop-blur-xl"
+          className="sticky bottom-0 left-0 right-0 z-20 border-t border-gray-800/50 bg-gray-900/80 backdrop-blur-xl"
         >
-          {replyingTo && (
-            <div className="mb-2 p-2 bg-gray-700 rounded flex justify-between items-center">
-              <div className="flex items-center text-gray-400">
-                <CornerDownRight className="w-4 h-4 mr-2" />
-                Replying to {replyingTo.userName}
+          <div className="px-6 py-4">
+            {replyingTo && (
+              <div className="mb-2 p-2 bg-gray-700/50 rounded-lg flex justify-between items-center">
+                <div className="flex items-center text-gray-400">
+                  <CornerDownRight className="w-4 h-4 mr-2" />
+                  Replying to {replyingTo.userName}
+                </div>
+                <button onClick={() => setReplyingTo(null)}>
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button onClick={() => setReplyingTo(null)}>
-                <X className="w-4 h-4" />
-              </button>
+            )}
+            <div className="flex items-center space-x-4">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={`Type your ${currentTag} message...`}
+                className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
+              />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={replyingTo ? () => handleReply(replyingTo) : handleSendMessage}
+                className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
+              >
+                <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </motion.button>
             </div>
-          )}
-          <motion.div
-            className="flex items-center space-x-4"
-            whileHover={{ y: -2 }}
-          >
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={`Type your ${currentTag} message...`}
-              className="flex-1 bg-gray-800/50 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none"
-            />
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={
-                replyingTo ? () => handleReply(replyingTo) : handleSendMessage
-              }
-              className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-all duration-300"
-            >
-              <Send className="w-5 h-5" />
-            </motion.button>
-          </motion.div>
+          </div>
         </motion.div>
       </div>
     </motion.div>
