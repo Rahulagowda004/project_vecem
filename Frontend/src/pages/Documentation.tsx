@@ -58,7 +58,7 @@ const faqItems = [
 ];
 
 const Documentation = () => {
-  const [activeSection, setActiveSection] = useState("getting-started");
+  const [activeSection, setActiveSection] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFaqQuestion, setActiveFaqQuestion] = useState<number | null>(null);
 
@@ -79,7 +79,75 @@ const Documentation = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const Welcome = () => (
+    <div className="space-y-6 flex items-center justify-center min-h-[calc(100vh-12rem)]">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative p-8 rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl overflow-hidden w-full max-w-4xl mx-auto"
+      >
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+
+        <div className="relative text-center space-y-8">
+          <motion.div
+            initial={{ scale: 0.95 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-cyan-300 to-blue-400 bg-clip-text text-transparent">
+              Welcome to Vecem Documentation
+            </h1>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="grid grid-cols-2 gap-4 max-w-2xl mx-auto"
+          >
+            {sections.map((section, index) => {
+              const Icon = section.icon;
+              return (
+                <motion.button
+                  key={section.id}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => scrollToSection(section.id)}
+                  className="flex flex-col items-center p-4 rounded-xl bg-gray-800/50 border border-gray-700/50 hover:border-cyan-500/20 hover:bg-gray-800/80 transition-all group w-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
+                >
+                  <Icon className="w-8 h-8 text-cyan-400 mb-2 group-hover:text-cyan-300 transition-colors" />
+                  <span className="text-gray-300 group-hover:text-cyan-400 transition-colors text-sm">
+                    {section.title}
+                  </span>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="text-lg text-gray-400 max-w-2xl mx-auto mt-8"
+          >
+            Explore our comprehensive guides to make the most of Vecem's features. Select a topic above or from the sidebar to begin your journey.
+          </motion.p>
+        </div>
+      </motion.div>
+    </div>
+  );
+
   const renderContent = () => {
+    if (!activeSection) {
+      return <Welcome />;
+    }
+
     switch (activeSection) {
       case "getting-started":
         return (
@@ -427,6 +495,34 @@ const Documentation = () => {
     }
   };
 
+  const sidebarVariants = {
+    hidden: { x: -300, opacity: 0 },
+    visible: { 
+      x: 0, 
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        duration: 0.4
+      }
+    }
+  };
+
+  const mainContentVariants = {
+    hidden: { x: 20, opacity: 0 },
+    visible: { 
+      x: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        duration: 0.4
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
       <NavbarPro />
@@ -447,8 +543,9 @@ const Documentation = () => {
         <div className="flex">
           {/* Sidebar - Adjust top padding */}
           <motion.aside
-            initial={{ x: -300 }}
-            animate={{ x: isMobileMenuOpen ? 0 : (window.innerWidth >= 1024 ? 0 : -300) }}
+            variants={sidebarVariants}
+            initial="hidden"
+            animate="visible"
             className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-900/95 backdrop-blur-sm border-r border-gray-800 z-40 
               lg:translate-x-0 transition-transform duration-300 w-64`}
           >
@@ -474,16 +571,23 @@ const Documentation = () => {
 
           {/* Main Content */}
           <main className="flex-1 lg:pl-64">
-            <div className="documentation-container w-full px-6 py-6 lg:px-8">
+            <motion.div
+              variants={mainContentVariants}
+              initial="hidden"
+              animate="visible"
+              className="documentation-container w-full px-6 py-6 lg:px-8"
+            >
               <section className="space-y-6 w-full max-w-6xl">
-                <h2 className="text-2xl font-semibold text-cyan-400 mb-4">
-                  {sections.find(s => s.id === activeSection)?.title}
-                </h2>
+                {activeSection && (
+                  <h2 className="text-2xl font-semibold text-cyan-400 mb-4">
+                    {sections.find(s => s.id === activeSection)?.title}
+                  </h2>
+                )}
                 <div className="prose prose-invert prose-lg max-w-none">
                   {renderContent()}
                 </div>
               </section>
-            </div>
+            </motion.div>
           </main>
 
           {/* Overlay for mobile */}
