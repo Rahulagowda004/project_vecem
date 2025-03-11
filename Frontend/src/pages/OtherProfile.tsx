@@ -51,6 +51,25 @@ const OtherProfile = () => {
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [isPromptCardOpen, setIsPromptCardOpen] = useState(false);
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Date not available';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        throw new Error('Invalid date');
+      }
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date not available';
+    }
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -70,39 +89,7 @@ const OtherProfile = () => {
           return;
         }
 
-        // Process the dates in datasets and prompts
-        const processedData = {
-          ...profileData,
-          datasets: (profileData.datasets || []).map(dataset => ({
-            ...dataset,
-            uploadedAt: new Date(dataset.timestamp || dataset.uploadedAt).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            }),
-            updatedAt: new Date(dataset.updatedAt || dataset.timestamp || dataset.uploadedAt).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })
-          })),
-          prompts: (profileData.prompts || []).map(prompt => ({
-            ...prompt,
-            createdAt: new Date(prompt.createdAt).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            }),
-            updatedAt: prompt.updatedAt ? new Date(prompt.updatedAt).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            }) : undefined
-          }))
-        };
-
-        console.log("Processed profile data:", processedData);
-        setUserData(processedData);
+        setUserData(profileData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load profile");
         console.error("Error fetching profile:", err);
@@ -498,7 +485,7 @@ const OtherProfile = () => {
                             clipRule="evenodd"
                           />
                         </svg>
-                        {dataset.uploadedAt}
+                        {formatDate(dataset.updatedAt || dataset.uploadedAt)}
                       </span>
                     </div>
                   </motion.li>
@@ -615,4 +602,4 @@ const OtherProfile = () => {
   );
 };
 
-export default OtherProfile;
+export default OtherProfile;
