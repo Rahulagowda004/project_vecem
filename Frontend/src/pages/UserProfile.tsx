@@ -245,7 +245,6 @@ const UserProfile = () => {
   // Add handlePromptClick handler
   const handlePromptClick = async (promptId: string, promptName: string) => {
     try {
-      // Log the click first
       try {
         await logPromptClick(userData?.uid || '', promptName);
       } catch (error) {
@@ -259,9 +258,10 @@ const UserProfile = () => {
       toast.dismiss(loadingToast);
 
       setSelectedPrompt({
-        name: promptData.prompt_name || promptName,
-        domain: promptData.domain || 'General',
-        prompt: promptData.prompt || '',
+        name: promptData.name,
+        domain: promptData.domain,
+        prompt: promptData.prompt,
+        username: promptData.username, // Make sure username is included here
         createdAt: promptData.createdAt,
         updatedAt: promptData.updatedAt
       });

@@ -635,30 +635,22 @@ async def log_prompt_click(data: dict):
 
 @app.get("/api/prompts/{username}/{prompt_name}")
 async def get_prompt_details(username: str, prompt_name: str):
-    logging.info(f"Endpoint called: get_prompt_details() for username: {username}, prompt: {prompt_name}")
     try:
         # Find the prompt in the prompts collection
-        prompt = await prompts_collection.find_one({
-            "username": username,
-            "prompt_name": prompt_name
-        })
+        prompt = await prompts_collection.find_one({"username": username, "prompt_name": prompt_name})
         
         if not prompt:
             raise HTTPException(status_code=404, detail="Prompt not found")
             
-        # Convert ObjectId to string for JSON serialization
-        prompt["_id"] = str(prompt["_id"])
-        
         return {
-            "prompt_name": prompt["prompt_name"],
+            "prompt_name": prompt.get("prompt_name"),
             "domain": prompt.get("domain", "General"),
-            "prompt_content": prompt["prompt"],  # Frontend expects prompt_content
-            "prompt_description": prompt.get("prompt_description", ""),
-            "created_at": prompt.get("created_at", datetime.now().isoformat())
+            "prompt_content": prompt.get("prompt"),
+            "username": prompt.get("username"),  # Make sure username is included
+            "created_at": prompt.get("createdAt", ""),
+            "updated_at": prompt.get("updatedAt", "")
         }
         
-    except HTTPException as he:
-        raise he
     except Exception as e:
         logging.error(f"Error fetching prompt details: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

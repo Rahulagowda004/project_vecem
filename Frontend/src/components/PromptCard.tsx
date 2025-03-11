@@ -7,6 +7,7 @@ interface PromptCardProps {
     name: string;
     domain: string;
     prompt: string;
+    username: string;
     createdAt?: string;
     updatedAt?: string;
   } | null;
@@ -45,9 +46,11 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
           <div className="flex justify-between items-start mb-4">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold text-white break-words">{prompt.name}</h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Tag className="w-4 h-4 text-cyan-400" />
                 <span className="text-cyan-400 font-medium">{prompt.domain}</span>
+                <span className="text-gray-400">by</span>
+                <span className="text-gray-200">{prompt.username}</span>
               </div>
             </div>
             <button

@@ -232,9 +232,10 @@ const OtherProfile = () => {
       toast.dismiss(loadingToast);
 
       setSelectedPrompt({
-        name: promptData.prompt_name || promptName,
-        domain: promptData.domain || 'General',
-        prompt: promptData.prompt || '',
+        name: promptData.name,
+        domain: promptData.domain,
+        prompt: promptData.prompt,
+        username: promptData.username, // Include username in the prompt data
         createdAt: promptData.createdAt,
         updatedAt: promptData.updatedAt
       });

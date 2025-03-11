@@ -48,11 +48,12 @@ export const getPromptDetails = async (username: string, promptName: string) => 
     }
     
     return {
-      prompt_name: data.prompt_name,
+      name: data.prompt_name,
       domain: data.domain || 'General',
       prompt: data.prompt_content,
-      description: data.prompt_description || '',
-      created_at: data.created_at
+      username: data.username || username, // Use provided username as fallback
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
     };
   } catch (error) {
     console.error('Error fetching prompt details:', error);
