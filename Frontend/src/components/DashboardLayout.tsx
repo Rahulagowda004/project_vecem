@@ -109,7 +109,7 @@ const DashboardLayout = () => {
           throw new Error('Failed to fetch prompts');
         }
         const data = await response.json();
-        setPrompts(data);
+        setPrompts(data.slice(0, 15)); // Just limit to 15 prompts without sorting
       } catch (error) {
         console.error('Error fetching prompts:', error);
         setPrompts([]);
@@ -240,13 +240,13 @@ const DashboardLayout = () => {
 
       const data = await response.json();
       if (data.datasets) {
-        setDatasets(data.datasets.slice(0, 12)); // Limit to 12 datasets
+        setDatasets(data.datasets.slice(0, 12)); // Just limit to 12 datasets without sorting
       } else {
         setDatasets([]);
       }
     } catch (error) {
       console.error("Error fetching datasets:", error);
-      setDatasets([]); // Set empty array on error
+      setDatasets([]);
     }
   };
 
