@@ -632,19 +632,19 @@ const DashboardLayout = () => {
               <>
                 {/* Enhanced User Welcome Section */}
                 {user && (
-                  <div className="w-full mb-6">
-                    <div className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+                  <div className="w-full px-6 pt-6 mb-4">
+                    <div className="relative p-4 rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
                       {/* Decorative Elements */}
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-                      <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-400/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+                      <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                      <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyan-400/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
 
-                      <div className="relative flex items-center space-x-8">
+                      <div className="relative flex items-center space-x-4">
                         {/* Avatar Section */}
                         <div className="relative group flex-shrink-0">
-                          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-cyan-300 to-cyan-500 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-cyan-300 to-cyan-500 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
                           <div className="relative p-0.5 bg-gradient-to-r from-gray-900 to-gray-800 rounded-full">
                             <img
-                              className="h-20 w-20 rounded-full ring-2 ring-cyan-400/30 object-cover transition-transform duration-300 group-hover:scale-105"
+                              className="h-20 w-20 rounded-full ring-2 ring-cyan-400/20 object-cover transition-transform duration-300 group-hover:scale-105"
                               src={userAvatar}
                               alt={user.displayName || "User avatar"}
                             />
@@ -652,21 +652,21 @@ const DashboardLayout = () => {
                         </div>
 
                         {/* Welcome Text Section */}
-                        <div className="space-y-2 flex-1">
-                          <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
+                        <div className="space-y-0.5 flex-1">
+                          <h2 className="text-3xl font-semibold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                             Welcome back, {getUserDisplayName(user)}
                           </h2>
-                          <p className="text-gray-400 text-sm leading-relaxed max-w-2xl tracking-wide">
-                            You're in! Now explore datasets, contribute
-                            insights, and connect with the community.
-                          </p>
+                          <p className="text-gray-400 text-md tracking-wide truncate">
+  You're in! Now explore datasets, contribute insights, and connect with the community.
+</p>
+
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                <div className="w-full">
+                <div className="w-full px-6">
                   {currentView === "prompts" ? (
                     <PromptsGrid prompts={prompts} />
                   ) : (
