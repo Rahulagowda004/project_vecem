@@ -4,12 +4,13 @@ import { Tag, Users, Copy, Check } from 'lucide-react';
 import PromptCard from './PromptCard';
 
 interface Prompt {
-  name: string;
+  _id: string;
+  prompt_name: string;  // Changed from name to prompt_name
   domain: string;
   prompt: string;
   username: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string;   // Changed from created_at
+  updatedAt?: string;   // Changed from updated_at
 }
 
 interface PromptsGridProps {
@@ -31,7 +32,7 @@ const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
         {prompts.map((prompt, index) => (
           <motion.div
-            key={index}
+            key={prompt._id} // Use _id instead of index
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
@@ -41,7 +42,7 @@ const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
             <div className="flex flex-col gap-4 mb-4">
               <div className="flex justify-between items-start">
                 <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                  {prompt.name}
+                  {prompt.prompt_name}  {/* Changed from name to prompt_name */}
                 </h3>
                 <button
                   onClick={(e) => {

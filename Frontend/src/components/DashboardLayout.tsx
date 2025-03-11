@@ -99,29 +99,25 @@ const DashboardLayout = () => {
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [apiKeyError, setApiKeyError] = useState('');
-  const [prompts] = useState<Prompt[]>([
-    {
-      name: "Image Classification",
-      domain: "Computer Vision",
-      prompt: "Analyze this image and classify it into one of the following categories...",
-      username: "AIResearcher",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      name: "Text Summarization",
-      domain: "NLP",
-      prompt: "Generate a concise summary of the following text while maintaining...",
-      username: "NLPExpert",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      name: "Sentiment Analysis",
-      domain: "NLP",
-      prompt: "Analyze the sentiment of this text and classify it as positive...",
-      username: "DataScientist",
-      createdAt: new Date().toISOString(),
-    }
-  ]);
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+
+  useEffect(() => {
+    const fetchPrompts = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/prompts');
+        if (!response.ok) {
+          throw new Error('Failed to fetch prompts');
+        }
+        const data = await response.json();
+        setPrompts(data);
+      } catch (error) {
+        console.error('Error fetching prompts:', error);
+        setPrompts([]);
+      }
+    };
+
+    fetchPrompts();
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -655,6 +655,20 @@ async def get_prompt_details(username: str, prompt_name: str):
         logging.error(f"Error fetching prompt details: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/prompts")
+async def get_prompts():
+    try:
+        # Fetch all prompts from the prompts collection
+        prompts = await prompts_collection.find({}).to_list(None)
+        
+        # Convert ObjectIds to strings for JSON serialization
+        for prompt in prompts:
+            prompt["_id"] = str(prompt["_id"])
+            
+        return prompts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():
