@@ -34,7 +34,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
     // Load all avatars from public/avatars directory
     const importAvatars = async () => {
       const avatarPaths = [];
-      for (let i = 1; i <= 12; i++) {
+      for (let i = 1; i <= 20; i++) {
         avatarPaths.push(`/avatars/avatar${i}.png`);
       }
       setAvatars(avatarPaths);
