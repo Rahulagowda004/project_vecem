@@ -35,6 +35,7 @@ interface Dataset {
   description: string;
   upload_type: string;
   updatedAt: string;
+  size: number;
 }
 
 const Settings = () => {
@@ -78,6 +79,11 @@ const Settings = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const [apiKey, setApiKey] = useState("");
+  const [activeView, setActiveView] = useState<'datasets' | 'prompts'>('datasets');
+  const [prompts, setPrompts] = useState<any[]>([]);
+  const activeViewCount = useMemo(() => {
+    return activeView === 'datasets' ? datasets.length : prompts.length || 0;
+  }, [datasets, prompts, activeView]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -358,6 +364,36 @@ const Settings = () => {
 
     return result;
   }, [datasets, searchQuery, sortOption]);
+
+  const filteredAndSortedPrompts = useMemo(() => {
+    let result = [...prompts];
+
+    // Search filtering
+    if (searchQuery.trim()) {
+      const searchLower = searchQuery.toLowerCase();
+      result = result.filter(
+        (prompt) =>
+          prompt.name?.toLowerCase().includes(searchLower) ||
+          prompt.description?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Sorting
+    switch (sortOption) {
+      case "name":
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "latest":
+      default:
+        result.sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+        break;
+    }
+
+    return result;
+  }, [prompts, searchQuery, sortOption]);
 
   const paginatedSettings = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -648,48 +684,92 @@ const Settings = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <h2 className="text-2xl font-bold text-gray-100">
-                  My Datasets
+                  {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
                 </h2>
-                <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-sm border border-cyan-500/20">
-                  {datasets.length}
-                </span>
-              </div>
-              {/* Remove the Upload Dataset button */}
-            </div>
-            <div className="mt-4 flex items-center space-x-4">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search datasets..."
-                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg pl-10 pr-4 py-2
-                    text-gray-200 placeholder-gray-400 focus:border-cyan-500/50 focus:outline-none"
-                />
-                <svg
-                  className="w-5 h-5 absolute left-3 top-2.5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
+                  <span className="text-cyan-400 font-medium">
+                    {activeViewCount}
+                  </span>
+                </motion.div>
               </div>
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-                className="bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 
-                  text-gray-200 focus:border-cyan-500/50 focus:outline-none"
-              >
-                <option value="latest">Latest Updated</option>
-                <option value="name">Name (A-Z)</option>
-                <option value="size">Size (Largest)</option>
-              </select>
+            </div>
+
+            <div className="p-4 border-b border-gray-700/50">
+              <div className="flex items-center justify-between">
+                {/* View Selector */}
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setActiveView('datasets')}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      activeView === 'datasets'
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        : 'text-gray-400 hover:text-cyan-400'
+                    }`}
+                  >
+                    Datasets
+                  </button>
+                  <button
+                    onClick={() => setActiveView('prompts')}
+                    className={`px-4 py-2 rounded-lg transition-all ${
+                      activeView === 'prompts'
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        : 'text-gray-400 hover:text-cyan-400'
+                    }`}
+                  >
+                    Prompts
+                  </button>
+                </div>
+
+                {/* Center Search Bar */}
+                <div className="flex-1 max-w-md mx-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={`Search ${activeView}...`}
+                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500"
+                    />
+                    <svg
+                      className="w-5 h-5 absolute right-3 top-2.5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Right Side Filters */}
+                <div className="flex items-center space-x-4">
+                  <select
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                    className="bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value="latest">Sort by: Latest</option>
+                    <option value="name">Sort by: Name</option>
+                    <option value="size">Sort by: Size</option>
+                  </select>
+                  {searchQuery && (
+                    <div className="text-gray-400">
+                      Found {activeView === 'datasets' 
+                        ? filteredAndSortedDatasets.length 
+                        : filteredAndSortedPrompts.length} results
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -985,7 +1065,7 @@ const Settings = () => {
                   onClick={confirmDelete}
                   disabled={
                     confirmLoading ||
-                    (!password &&
+                    (!password && 
                       user?.providerData[0]?.providerId !== "google.com")
                   }
                   className="px-4 py-2 rounded-xl bg-red-500/10 text-red-400 
@@ -1017,8 +1097,7 @@ const Settings = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 
-              flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setShowDatasetModal(false)}
           >
             <motion.div
