@@ -4,70 +4,15 @@ import { BookOpen, Database, Upload, UserCircle2, Settings, Menu, ChevronDown } 
 import { Link } from "react-router-dom";
 import NavbarPro from '../components/NavbarPro';
 
-const faqItems = [
-  {
-    question: "What types of datasets can I upload to Vecem?",
-    answer: "You can upload raw datasets, vectorized datasets, or both. Vecem supports various data formats, including images, audio, text, and video."
-  },
-  {
-    question: "What file formats are supported?",
-    answer: (
-      <>
-        <p>Vecem supports the following file types:</p>
-        <ul className="list-disc list-inside mt-2 space-y-1">
-          <li>Images: jpg, jpeg, png, gif, webp, heic</li>
-          <li>Audio: mp3, wav, ogg</li>
-          <li>Text: txt, csv, json, pdf, docx, xlsx</li>
-          <li>Video: mp4, webm, ogg</li>
-        </ul>
-      </>
-    )
-  },
-  {
-    question: "What is the maximum dataset size I can upload?",
-    answer: "Datasets can be up to 5GB in size. If you need to upload larger datasets, please contact our support team for assistance."
-  },
-  {
-    question: "Can I update my dataset after uploading?",
-    answer: "Yes, you can edit dataset details such as name, description, and domain category. Additionally, you can add or update vectorized data for raw datasets."
-  },
-  {
-    question: "How can I download and use datasets from Vecem?",
-    answer: "You can browse the Community Datasets section, search for a dataset, view its details, and download it in your preferred format (raw or vectorized)."
-  },
-  {
-    question: "What are vectorized datasets, and why are they useful?",
-    answer: "Vectorized datasets contain precomputed feature embeddings, making them ready for use in AI and machine learning applications. They speed up tasks like similarity search, clustering, and model training."
-  },
-  {
-    question: "Can I delete a dataset I uploaded?",
-    answer: "Yes, you can delete your dataset from the My Datasets section. However, if your dataset has been widely used or referenced, it's recommended to update it instead of deleting it."
-  },
-  {
-    question: "How can I track the usage of my datasets?",
-    answer: "Vecem provides insights into the number of downloads, views, and user engagement for each dataset. You can check these analytics in the My Datasets section."
-  },
-  {
-    question: "Can I collaborate with others on datasets?",
-    answer: "Currently, Vecem supports dataset sharing, and users can provide feedback on datasets. Future updates may include collaboration features like team access and version control."
-  },
-  {
-    question: "Is there an API available for accessing datasets programmatically?",
-    answer: "Vecem is working on an API that will allow users to access datasets directly from their applications. Stay tuned for updates!"
-  }
-];
-
 const Documentation = () => {
   const [activeSection, setActiveSection] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeFaqQuestion, setActiveFaqQuestion] = useState<number | null>(null);
 
   const sections = [
     { id: "getting-started", title: "Getting Started", icon: BookOpen },
     { id: "uploading-datasets", title: "Uploading Datasets", icon: Upload },
     { id: "managing-datasets", title: "Managing Datasets", icon: Settings },
     { id: "using-datasets", title: "Using Datasets", icon: Database },
-    { id: "faq", title: "FAQ", icon: UserCircle2 },
   ];
 
   const scrollToSection = (sectionId: string) => {
@@ -159,9 +104,8 @@ const Documentation = () => {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-cyan-400">1. Create an Account or Sign In</h3>
               <ul className="list-disc list-inside ml-4 space-y-2">
-                <li>If you're a new user, register by providing your email, username, and password</li>
+                <li>If you're a new user, register by entering your email, username, and password</li>
                 <li>If you already have an account, simply sign in using your existing credentials</li>
-                <li>Optionally, you may enable two-factor authentication (2FA) for added security</li>
               </ul>
             </div>
 
@@ -169,8 +113,7 @@ const Documentation = () => {
               <h3 className="text-xl font-semibold text-cyan-400">2. Set Up Your Profile</h3>
               <ul className="list-disc list-inside ml-4 space-y-2">
                 <li>Choose a unique username to represent you on the platform</li>
-                <li>Add relevant details, such as a short bio, profile picture, and areas of expertise</li>
-                <li>Configure privacy settings to control how your datasets are shared with others</li>
+                <li>Add relevant details, such as a short bio, profile picture, and area of expertise</li>
               </ul>
             </div>
 
@@ -180,17 +123,16 @@ const Documentation = () => {
                 <div>
                   <h4 className="font-medium text-cyan-300 mb-2">Uploading Datasets:</h4>
                   <ul className="list-disc list-inside ml-4 space-y-2">
-                    <li>Navigate to the upload section and select the files you want to share</li>
+                    <li>Navigate to the profile section and click on upload datasets button</li>
                     <li>Provide metadata, including a title, description, tags, and licensing information</li>
-                    <li>Choose whether to make your dataset public or keep it private</li>
                   </ul>
                 </div>
                 <div>
                   <h4 className="font-medium text-cyan-300 mb-2">Browsing Datasets:</h4>
                   <ul className="list-disc list-inside ml-4 space-y-2">
-                    <li>Explore available datasets using search filters like category, file type, or popularity</li>
-                    <li>View dataset details, including the uploader's information and dataset version history</li>
-                    <li>Download or contribute by providing improvements or additional insights</li>
+                    <li>Explore available datasets using search filters, file type.</li>
+                    <li>View dataset details, including the uploader's information.</li>
+                    <li>Download or contribute by uploading ur datsets.</li>
                   </ul>
                 </div>
               </div>
@@ -199,8 +141,7 @@ const Documentation = () => {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-cyan-400">4. Collaborate and Engage</h3>
               <ul className="list-disc list-inside ml-4 space-y-2">
-                <li>Interact with the community by commenting on datasets and providing feedback</li>
-                <li>Follow users whose work interests you and receive updates on their latest contributions</li>
+
                 <li>Participate in discussions, contribute to open-source datasets, and suggest improvements</li>
               </ul>
             </div>
@@ -273,9 +214,7 @@ const Documentation = () => {
                 <li>Review all provided details to ensure accuracy</li>
                 <li>Click "Submit" to complete the upload process</li>
               </ul>
-              <p className="mt-4 text-gray-400">
-                Once uploaded, the dataset will be processed and made available according to the selected visibility settings. You can track its status in the "My Datasets" section.
-              </p>
+          
             </div>
           </div>
         );
@@ -295,8 +234,6 @@ const Documentation = () => {
                     <li>Dataset name</li>
                     <li>Description</li>
                     <li>File type (Image, Audio, Text, Video)</li>
-                    <li>Dataset status (Public, Private, Processing)</li>
-                    <li>Number of downloads and views</li>
                   </ul>
                 </li>
                 <li>Use filters or search functionality to quickly find specific datasets</li>
@@ -318,7 +255,6 @@ const Documentation = () => {
                 </li>
                 <li>Save changes to update the dataset's metadata</li>
               </ul>
-              <p className="mt-2 text-gray-400 italic">Note: Changes to public datasets may require admin approval to maintain dataset integrity.</p>
             </div>
 
             <div className="space-y-4">
@@ -343,24 +279,10 @@ const Documentation = () => {
               <ul className="list-disc list-inside ml-4 space-y-2">
                 <li>Open the dataset from "My Datasets"</li>
                 <li>Click the "Delete" button</li>
-                <li>Confirm deletion (this action is irreversible for public datasets)</li>
               </ul>
-              <p className="mt-2 text-gray-400 italic">Note: If a dataset has been widely used or referenced, consider updating it instead of deleting it.</p>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-cyan-400">5. Tracking Dataset Usage & Downloads</h3>
-              <p className="mb-2">Vecem provides insights into dataset engagement through analytics, including:</p>
-              <ul className="list-disc list-inside ml-4 space-y-2">
-                <li>Number of Downloads – Track how many times your dataset has been accessed</li>
-                <li>Views and Engagement – See how often your dataset has been browsed</li>
-                <li>User Feedback – View comments or ratings from the community</li>
-                <li>Contribution Logs – Track any modifications made by collaborators (for open datasets)</li>
-              </ul>
-              <p className="mt-2 text-gray-400">
-                This data helps you understand the impact of your datasets and optimize them based on user needs.
-              </p>
-            </div>
+            
           </div>
         );
 
@@ -374,17 +296,11 @@ const Documentation = () => {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-cyan-400">1. Browsing and Searching for Datasets</h3>
               <ul className="list-disc list-inside ml-4 space-y-2">
-                <li>Go to the Community Datasets section from the navigation bar</li>
+                <li>Go to the Home Page section from the navigation bar</li>
                 <li>Use the search bar to find datasets based on:
                   <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
-                    <li>Keywords (e.g., "speech recognition," "image classification")</li>
-                    <li>Dataset type (Raw, Vectorized, Both)</li>
-                    <li>File type (Image, Audio, Text, Video)</li>
-                    <li>Domain category (NLP, Computer Vision, Finance, Healthcare, etc.)</li>
-                    <li>Contributor name (if looking for datasets from a specific user)</li>
                   </ul>
                 </li>
-                <li>Apply filters to refine results based on dataset size, date uploaded, or popularity</li>
               </ul>
             </div>
 
@@ -397,10 +313,6 @@ const Documentation = () => {
                   <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
                     <li>Dataset Name & Description – Overview of the dataset and its applications</li>
                     <li>File Type & Size – Information on supported formats and dataset volume</li>
-                    <li>Licensing Information – Terms of use (e.g., Open-source, Attribution required)</li>
-                    <li>Version History – If applicable, previous updates or changes</li>
-                    <li>User Reviews & Ratings – Feedback from the community</li>
-                    <li>Metadata & Tags – Additional information such as the source of the dataset</li>
                   </ul>
                 </li>
                 <li>For vectorized datasets, additional details include:
@@ -435,7 +347,6 @@ const Documentation = () => {
               <ul className="list-disc list-inside ml-4 space-y-2">
                 <li>Each dataset comes with structured metadata, making it easier to incorporate into various projects</li>
                 <li>Users can follow the dataset documentation to understand the format, preprocessing steps, and intended use cases</li>
-                <li>Pre-built integration options may be available, such as API access or downloadable script templates</li>
               </ul>
             </div>
 
@@ -443,50 +354,9 @@ const Documentation = () => {
               <h3 className="text-xl font-semibold text-cyan-400">5. Community Contributions and Feedback</h3>
               <ul className="list-disc list-inside ml-4 space-y-2">
                 <li>If you use a dataset in your project, consider crediting the contributor</li>
-                <li>Share feedback or report any issues in the comments section</li>
-                <li>If you enhance the dataset (e.g., improve vectorization), you can upload an updated version for others to use</li>
+                <li>Share feedback or report any issues in the issue section</li>
               </ul>
             </div>
-          </div>
-        );
-
-      case "faq":
-        return (
-          <div className="space-y-4">
-            {faqItems.map((item, index) => (
-              <motion.div
-                key={index}
-                className="overflow-hidden rounded-lg border border-gray-700 bg-gray-800/50"
-                initial={false}
-              >
-                <motion.button
-                  className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-700/50 transition-colors"
-                  onClick={() => setActiveFaqQuestion(activeFaqQuestion === index ? null : index)}
-                >
-                  <span className="font-medium text-cyan-400">{item.question}</span>
-                  <motion.div
-                    animate={{ rotate: activeFaqQuestion === index ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ChevronDown className="w-5 h-5 text-cyan-400" />
-                  </motion.div>
-                </motion.button>
-                <AnimatePresence initial={false}>
-                  {activeFaqQuestion === index && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="px-4 py-3 text-gray-300 border-t border-gray-700">
-                        {item.answer}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
           </div>
         );
 
