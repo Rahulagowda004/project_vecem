@@ -12,16 +12,16 @@ pip install vecemlib
 
 There are two ways to download datasets:
 
-1. Using the `download_dataset` function:
+1. Using the `load_dataset` function:
 
 ```python
-from vecemlib import download_dataset
+from vecemlib import load_dataset
 
 # Download dataset to current directory
-file_path = download_dataset("username/datasetname/raw")
+file_path = load_dataset("username/datasetname/raw")
 
 # Download to specific directory
-file_path = download_dataset("username/datasetname/raw", "path/to/output")
+file_path = load_dataset("username/datasetname/raw", "path/to/output")
 ```
 
 2. Using the `VecemDataset` class:
@@ -40,8 +40,8 @@ file_path = dataset.download("path/to/output")
 
 ```python
 # Download raw dataset
-download_dataset("NaveenGowdavecemYQsIi9/dfpabsl/raw")
+load_dataset("NaveenGowdavecemYQsIi9/dfpabsl/raw")
 
 # Download vectorized dataset
-download_dataset("NaveenGowdavecemYQsIi9/dfpabsl/vectorized")
+load_dataset("NaveenGowdavecemYQsIi9/dfpabsl/vectorized")
 ```
