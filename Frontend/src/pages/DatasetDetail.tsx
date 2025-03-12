@@ -153,16 +153,40 @@ const DatasetDetail = () => {
     };
   }
 
-  const pythonExamples: PythonExamples = {
-    basic: {
-      label: "Basic Usage",
-      code: `import vecem as vc
+  const getPythonExample = (datasetType: string): PythonExamples => {
+    if (datasetType.toLowerCase() === "both") {
+      return {
+        basic: {
+          label: "Basic Usage",
+          code: `import vecem as vc
+
+# Load raw dataset
+raw_dataset = vc.load_dataset("${username}/${datasetname}/raw")
+raw_files = raw_dataset.get_files()  # For raw files
+
+# Load vectorized dataset
+vectorized_dataset = vc.load_dataset("${username}/${datasetname}/vectorized")
+vectorized_files = vectorized_dataset.get_files()  # For vectorized files`,
+        },
+      } as const;
+    }
+
+    return {
+      basic: {
+        label: "Basic Usage",
+        code: `import vecem as vc
+
 # Load the dataset
 dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")
+
 # Access the data
-data = dataset.get_files()  # For raw files`,
-    },
-  } as const;
+files = dataset.get_files()`,
+      },
+    } as const;
+  };
+
+  // Replace the existing pythonExamples constant with a call to getPythonExample
+  const pythonExamples = getPythonExample(dataset.datasetType);
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
