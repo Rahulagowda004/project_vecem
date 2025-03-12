@@ -157,10 +157,8 @@ const DatasetDetail = () => {
     basic: {
       label: "Basic Usage",
       code: `import vecem as vc
-
 # Load the dataset
-dataset = vc.load_dataset("${username}_${datasetname}")
-
+dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")
 # Access the data
 data = dataset.get_files()  # For raw files`,
     },
@@ -284,10 +282,12 @@ data = dataset.get_files()  # For raw files`,
             {/* Stats Cards - Updated grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {[
-                { 
-                  label: "Dataset Type", 
-                  value: dataset.datasetType.charAt(0).toUpperCase() + dataset.datasetType.slice(1), 
-                  icon: Database 
+                {
+                  label: "Dataset Type",
+                  value:
+                    dataset.datasetType.charAt(0).toUpperCase() +
+                    dataset.datasetType.slice(1),
+                  icon: Database,
                 },
                 { label: "File Type", value: dataset.fileType, icon: FileType },
                 { label: "Domain", value: dataset.domain, icon: Box },
