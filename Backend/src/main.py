@@ -306,6 +306,7 @@ async def log_dataset_edit(data: dict):
         if not uid or not dataset_name:
             raise ValueError("UID or datasetName is missing")
             
+        # Query the dataset and include dataset type information
         dataset = await datasets_collection.find_one({
             "uid": uid,
             "dataset_info.name": dataset_name
@@ -313,12 +314,27 @@ async def log_dataset_edit(data: dict):
         
         if not dataset:
             raise HTTPException(status_code=404, detail="Dataset not found")
-            
+        
         # Convert ObjectId to string for JSON serialization
         dataset["_id"] = str(dataset["_id"])
         
+        # Add dataset type information
+        dataset_type = "Both"
+        if dataset.get("files"):
+            has_raw = bool(dataset["files"].get("raw"))
+            has_vectorized = bool(dataset["files"].get("vectorized"))
+            
+            if has_raw and not has_vectorized:
+                dataset_type = "Raw"
+            elif has_vectorized and not has_raw:
+                dataset_type = "Vectorized"
+            elif has_raw and has_vectorized:
+                dataset_type = "Both"
+        
+        dataset["dataset_type"] = dataset_type
+        
         # Log the edit action
-        logging.info(f"Dataset edit clicked - UID: {uid}, Dataset: {dataset_name}")
+        logging.info(f"Dataset edit clicked - UID: {uid}, Dataset: {dataset_name}, Type: {dataset_type}")
         
         return jsonable_encoder(dataset)
         
@@ -702,7 +718,7 @@ async def create_prompt(prompt: Prompts):
         ist = pytz.timezone('Asia/Kolkata')
         prompt_doc = {
             **prompt.dict(),
-            "createdAt": datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')
+            "createdAt": datetime.now(ist).strftime('%m-%d-%Y')
         }
         result = await prompts_collection.insert_one(prompt_doc)
         return {

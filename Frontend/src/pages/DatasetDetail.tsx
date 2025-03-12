@@ -161,12 +161,10 @@ const DatasetDetail = () => {
           code: `import vecem as vc
 
 # Load raw dataset
-raw_dataset = vc.load_dataset("${username}/${datasetname}/raw")
-raw_files = raw_dataset.get_files()  # For raw files
+raw_dataset = vc.load_dataset("${username}/${datasetname}/raw") #for raw file
 
 # Load vectorized dataset
-vectorized_dataset = vc.load_dataset("${username}/${datasetname}/vectorized")
-vectorized_files = vectorized_dataset.get_files()  # For vectorized files`,
+vectorized_dataset = vc.load_dataset("${username}/${datasetname}/vectorized"), $for vectorized files,`,
         },
       } as const;
     }
@@ -177,10 +175,7 @@ vectorized_files = vectorized_dataset.get_files()  # For vectorized files`,
         code: `import vecem as vc
 
 # Load the dataset
-dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")
-
-# Access the data
-files = dataset.get_files()`,
+dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
       },
     } as const;
   };

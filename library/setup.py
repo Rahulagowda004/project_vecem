@@ -2,7 +2,19 @@ from setuptools import setup, find_packages
 
 setup(
     name="vecem",
-    version="0.1",
+    version="0.1.0",
     packages=find_packages(),
-    install_requires=["azure-storage-blob"],
+    install_requires=[
+        "requests>=2.25.0",
+        "zipfile"
+    ],
+    author="vecem",
+    author_email="vectorembeddings@example.com",
+    description="A library for downloading datasets from Vecem",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.10",
 )

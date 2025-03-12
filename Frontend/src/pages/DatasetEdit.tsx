@@ -153,7 +153,7 @@ const DatasetEdit = () => {
         }
 
         setIsLoading(true);
-        console.log("Fetching dataset:", datasetname); // Debug log
+        console.log("Fetching dataset:", datasetname);
 
         const response = await fetch(
           "http://127.0.0.1:5000/dataset-edit-click",
@@ -189,26 +189,27 @@ const DatasetEdit = () => {
         setDataset(data);
         
         // Update form values with dataset information
-        setName(data.dataset_info.name || datasetname); // Set name from URL if not in response
+        setName(data.dataset_info.name || datasetname);
         setDescription(data.dataset_info.description || "");
-        setDatasetType(data.upload_type || "Raw"); // Make sure we get upload_type
+        setDatasetType(data.dataset_type || "Raw"); // Use the dataset_type from backend
         setDomain(data.dataset_info.domain || "");
         setFileType(data.dataset_info.file_type || "");
+
+        // Update file availability state based on files information
+        const hasRawFiles = data.files?.raw?.length > 0;
+        const hasVectorizedFiles = data.files?.vectorized?.length > 0;
         
-        // Only set vectorized settings if upload_type is 'Raw' or 'Both'
-        if (data.vectorized_settings && (data.upload_type === 'Raw' || data.upload_type === 'Both')) {
+        setFileSize({
+          raw: hasRawFiles ? 1 : 0,
+          vectorized: hasVectorizedFiles ? 1 : 0
+        });
+
+        // Set vectorized settings if available
+        if (data.vectorized_settings) {
           setVectorizedSettings({
             dimensions: data.vectorized_settings.dimensions || 768,
             vectorDatabase: data.vectorized_settings.vectorDatabase || "Pinecone",
             modelName: data.vectorized_settings.modelName || ""
-          });
-        }
-
-        // Update file availability state if it exists in the response
-        if (data.has_raw_file !== undefined && data.has_vectorized_file !== undefined) {
-          setFileSize({
-            raw: data.has_raw_file ? 1 : 0,
-            vectorized: data.has_vectorized_file ? 1 : 0
           });
         }
 
@@ -487,15 +488,15 @@ const DatasetEdit = () => {
 
   const renderRightColumn = () => (
     <motion.div variants={fadeIn} className="space-y-6">
-      {/* Upload Section */}
-      {(datasetType === "Raw" || datasetType === "Vectorized") && (
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      {/* Upload Section - Only show for Raw or Vectorized types */}
+      {datasetType !== "Both" ? (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-white">
-              {datasetType === "Raw" ? "Upload Vectorized File" : "Upload Raw File"}
+              {datasetType === "Raw" ? "Add Vectorized Data" : "Add Raw Data"}
             </h2>
             <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-sm border border-cyan-500/20">
-              {datasetType === "Raw" ? "Add Vectorization" : "Add Raw Data"}
+              {datasetType === "Raw" ? "Vectorization" : "Raw Data"}
             </span>
           </div>
           <p className="text-sm text-gray-400 mb-4">
@@ -519,6 +520,9 @@ const DatasetEdit = () => {
                 multiple
                 directory=""
                 webkitdirectory=""
+                accept={datasetType === "Raw" 
+                  ? undefined // For vectorized uploads, accept all files
+                  : fileTypes[fileType]?.extensions.map(ext => `.${ext}`).join(',')} // For raw uploads, restrict by file type
               />
               <Upload className="absolute right-3 top-2.5 text-cyan-400 w-5 h-5" />
             </div>
@@ -539,20 +543,19 @@ const DatasetEdit = () => {
             )}
           </div>
         </div>
-      )}
-
-      {/* Both type message */}
-      {datasetType === "Both" && (
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center gap-3 text-gray-400">
-            <Database className="w-5 h-5" />
-            <p>This dataset already contains both raw and vectorized files.</p>
+      ) : (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
+          <div className="flex items-center gap-3">
+            <Database className="w-5 h-5 text-cyan-400" />
+            <span className="text-gray-400">
+              This dataset already contains both raw and vectorized files
+            </span>
           </div>
         </div>
       )}
 
-      {/* Dataset Status */}
-      <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700/50">
+      {/* Dataset Status Section */}
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
         <h3 className="text-sm font-medium text-gray-400 mb-3">Dataset Status</h3>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">

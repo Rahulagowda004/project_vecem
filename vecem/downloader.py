@@ -48,7 +48,7 @@ class VecemDataset:
         
         return str(dataset_dir)
 
-def download_dataset(dataset_path: str, output_dir: Optional[Union[str, Path]] = None) -> str:
+def load_dataset(dataset_path: str, output_dir: Optional[Union[str, Path]] = None) -> str:
     """
     Helper function to quickly download a dataset.
     
