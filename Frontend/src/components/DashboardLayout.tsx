@@ -39,7 +39,8 @@ interface Message {
 }
 
 interface Prompt {
-  name: string;
+  _id: string;
+  prompt_name: string;
   domain: string;
   prompt: string;
   username: string;
