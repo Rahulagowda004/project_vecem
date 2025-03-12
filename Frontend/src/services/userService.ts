@@ -270,3 +270,23 @@ export const getUserPrompts = async (uid: string) => {
     throw new Error(error instanceof Error ? error.message : 'Failed to fetch user prompts');
   }
 };
+
+export const deletePrompt = async (promptId: string) => {
+  try {
+    const response = await fetch(`${API_URL}/prompts/${promptId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete prompt');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting prompt:', error);
+    throw error;
+  }
+};

@@ -681,6 +681,26 @@ async def get_prompts():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/prompts/{prompt_id}")
+async def delete_prompt(prompt_id: str):
+    try:
+        # Convert string ID to ObjectId
+        prompt_obj_id = ObjectId(prompt_id)
+        
+        # Find and delete the prompt
+        result = await prompts_collection.delete_one({"_id": prompt_obj_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+            
+        return {"message": "Prompt deleted successfully"}
+        
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid prompt ID format")
+    except Exception as e:
+        logging.error(f"Error deleting prompt: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_db_client():

@@ -103,3 +103,26 @@ export const logPromptClick = async (uid: string, promptName: string) => {
     throw error;
   }
 };
+
+export const deletePrompt = async (promptId: string): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/prompts/${promptId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || `Failed to delete prompt: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error deleting prompt:', error);
+    throw error instanceof Error ? error : new Error('Failed to delete prompt');
+  }
+};

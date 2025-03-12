@@ -20,7 +20,8 @@ import {
   updateUserProfile,
   checkUsernameAvailability,
   deleteAccount,
-  getUserPrompts, // Add this import
+  getUserPrompts,
+  deletePrompt, // Add this import
 } from "../services/userService";
 import {
   deleteUser,
@@ -329,6 +330,29 @@ const Settings = () => {
       console.error("Error logging dataset edit:", error);
       // Still navigate even if logging fails
       navigate(`/${username}/${dataset.name}/edit`);
+    }
+  };
+
+  const handleDeletePrompt = async (promptId: string) => {
+    if (!user?.uid) {
+      toast.error('You must be logged in to delete prompts');
+      return;
+    }
+  
+    const loadingToast = toast.loading('Deleting prompt...');
+  
+    try {
+      await deletePrompt(promptId);
+      
+      // Update the local state only after successful deletion
+      setPrompts(prevPrompts => prevPrompts.filter(p => p.id !== promptId));
+      
+      toast.dismiss(loadingToast);
+      toast.success('Prompt deleted successfully');
+    } catch (error) {
+      console.error('Error deleting prompt:', error);
+      toast.dismiss(loadingToast);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete prompt');
     }
   };
 
@@ -905,34 +929,21 @@ const Settings = () => {
                     </h3>
                     <div className="flex items-center space-x-4 text-sm text-gray-400">
                       <span className="flex items-center">
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                        <MessageSquare className="w-4 h-4 mr-1" />
                         {prompt.domain || "General"}
                       </span>
                       <span className="flex items-center">
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                        <Clock className="w-4 h-4 mr-1" />
                         {formatDate(prompt.updatedAt || prompt.createdAt)}
                       </span>
                     </div>
+                    <button
+                      onClick={() => handleDeletePrompt(prompt.id)}
+                      className="absolute top-4 right-4 p-2 rounded-lg bg-gray-700/50 text-red-400 opacity-0 
+                        group-hover:opacity-100 transition-opacity hover:bg-gray-600/50"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </motion.li>
                 );
               }
