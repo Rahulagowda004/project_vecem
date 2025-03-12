@@ -10,9 +10,11 @@ const Documentation = () => {
 
   const sections = [
     { id: "getting-started", title: "Getting Started", icon: BookOpen },
+    { id: "using-datasets", title: "Using Datasets", icon: Database },
     { id: "uploading-datasets", title: "Uploading Datasets", icon: Upload },
     { id: "managing-datasets", title: "Managing Datasets", icon: Settings },
-    { id: "using-datasets", title: "Using Datasets", icon: Database },
+    { id: "prompts", title: "Prompts", icon: UserCircle2 },
+    { id: "library", title: "Library", icon: BookOpen },
   ];
 
   const scrollToSection = (sectionId: string) => {
@@ -355,6 +357,173 @@ const Documentation = () => {
               <ul className="list-disc list-inside ml-4 space-y-2">
                 <li>If you use a dataset in your project, consider crediting the contributor</li>
                 <li>Share feedback or report any issues in the issue section</li>
+              </ul>
+            </div>
+          </div>
+        );
+
+      case "prompts":
+        return (
+          <div className="space-y-6 text-gray-300">
+            <p className="text-lg">
+              The Prompts section helps you explore and customize system messages for your AI agents, enabling precise control over behavior and responses for different applications.
+            </p>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">1. Understanding System Messages</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Learn how different prompt structures affect AI behavior</li>
+                <li>Explore various prompt patterns and their use cases</li>
+                <li>Understand the impact of context and formatting</li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">2. Prompt Categories</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Task-specific prompts:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Data analysis and processing</li>
+                    <li>Content generation and summarization</li>
+                    <li>Code generation and debugging</li>
+                    <li>Decision-making and problem-solving</li>
+                  </ul>
+                </li>
+                <li>Behavioral prompts:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Personality and tone adjustment</li>
+                    <li>Response format customization</li>
+                    <li>Error handling and safety measures</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">3. Optimizing Prompts</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Best practices for prompt engineering:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Clear and specific instructions</li>
+                    <li>Context optimization</li>
+                    <li>Input/output format specification</li>
+                    <li>Error handling guidelines</li>
+                  </ul>
+                </li>
+                <li>Performance metrics and testing</li>
+                <li>Version control and iteration tracking</li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">4. Advanced Features</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Chain-of-thought prompting</li>
+                <li>Few-shot learning examples</li>
+                <li>Multi-step reasoning frameworks</li>
+                <li>Conditional response patterns</li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">5. Community and Collaboration</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Share and discover successful prompt patterns</li>
+                <li>Collaborate on prompt optimization</li>
+                <li>Access curated prompt libraries</li>
+                <li>Contribute to prompt effectiveness research</li>
+              </ul>
+            </div>
+          </div>
+        );
+
+      case "library":
+        return (
+          <div className="space-y-6 text-gray-300">
+            <p className="text-lg">
+              The Library section serves as your central hub for discovering, accessing, and downloading a diverse collection of datasets. Whether you need vectorized data for AI applications or raw datasets for analysis, our comprehensive library provides the resources to fuel your projects and research.
+            </p>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">1. Dataset Categories</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Browse by domain:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Computer Vision - Image and video datasets</li>
+                    <li>Natural Language Processing - Text and document collections</li>
+                    <li>Audio Processing - Speech and sound datasets</li>
+                    <li>Multi-modal - Combined data types</li>
+                  </ul>
+                </li>
+                <li>Filter by format:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Raw datasets - Original unprocessed data</li>
+                    <li>Vectorized collections - Pre-processed embeddings</li>
+                    <li>Hybrid packages - Combined raw and vectorized data</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">2. Search and Discovery</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Advanced search features:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Keyword-based search</li>
+                    <li>Tag filtering</li>
+                    <li>Size and format specifications</li>
+                    <li>Vector dimensionality filtering</li>
+                  </ul>
+                </li>
+                <li>Sort and organize by:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Popularity and download count</li>
+                    <li>Recently added or updated</li>
+                    <li>Community ratings and reviews</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">3. Dataset Details</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Comprehensive metadata:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Size and format specifications</li>
+                    <li>Vector model information</li>
+                    <li>Usage guidelines and licenses</li>
+                    <li>Version history and updates</li>
+                  </ul>
+                </li>
+                <li>Quality indicators:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Community ratings and reviews</li>
+                    <li>Validation status</li>
+                    <li>Completeness metrics</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">4. Download Options</h3>
+              <ul className="list-disc list-inside ml-4 space-y-2">
+                <li>Flexible download formats:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Direct download for smaller datasets</li>
+                    <li>Chunked downloads for large files</li>
+                    <li>API access for programmatic retrieval</li>
+                  </ul>
+                </li>
+                <li>Download management:
+                  <ul className="list-disc list-inside ml-8 mt-2 space-y-1 text-gray-400">
+                    <li>Progress tracking</li>
+                    <li>Resume capability</li>
+                    <li>Batch download options</li>
+                  </ul>
+                </li>
               </ul>
             </div>
           </div>
