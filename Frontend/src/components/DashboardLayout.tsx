@@ -456,45 +456,29 @@ const DashboardLayout = () => {
                   currentView === "prompts" ? "bg-cyan-500/10" : ""
                 }`}
               >
-                <div className="flex items-center">
-                  <TerminalSquare className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                  <span className="group-hover:text-cyan-400 transition-colors">
-                    Prompts
-                  </span>
-                </div>
+                <TerminalSquare className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <span className="group-hover:text-cyan-400 transition-colors">
+                  Prompts
+                </span>
               </button>
 
               {/* Community Section */}
               <button
                 onClick={() => setCurrentView("community")}
-                className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
+                className={`flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 ${
+                  currentView === "community" ? "bg-cyan-500/10" : ""
+                }`}
               >
-                <div className="flex items-center">
-                  <Users className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                  <span className="group-hover:text-cyan-400 transition-colors">
-                    Community
-                  </span>
-                </div>
+                <Users className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <span className="group-hover:text-cyan-400 transition-colors">
+                  Community
+                </span>
               </button>
 
-              {/* Documentation Section */}
-              <Link
-                to="/documentation"
-                className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
-              >
-                <div className="flex items-center">
-                  <BookOpen className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
-                  <span className="group-hover:text-cyan-400 transition-colors">
-                    Documentation
-                  </span>
-                </div>
-              </Link>
-
-
-               {/* ChatBot Section */}
+              {/* ChatBot Section */}
               <button
                 onClick={handleChatbotClick}
-                className={`flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 rounded-xl ${
+                className={`flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 ${
                   currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
@@ -504,7 +488,16 @@ const DashboardLayout = () => {
                 </span>
               </button>
 
-             
+              {/* Documentation Section */}
+              <Link
+                to="/documentation"
+                className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-300 rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
+              >
+                <BookOpen className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <span className="group-hover:text-cyan-400 transition-colors">
+                  Documentation
+                </span>
+              </Link>
             </nav>
           </div>
         </div>
