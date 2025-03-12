@@ -702,7 +702,7 @@ async def create_prompt(prompt: Prompts):
         ist = pytz.timezone('Asia/Kolkata')
         prompt_doc = {
             **prompt.dict(),
-            "createdAt": datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')
+            "createdAt": datetime.now(ist).strftime('%m-%d-%Y')
         }
         result = await prompts_collection.insert_one(prompt_doc)
         return {
