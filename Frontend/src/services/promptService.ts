@@ -30,6 +30,26 @@ export const saveUserPrompt = async (promptData: PromptData): Promise<any> => {
   }
 };
 
+export const getUserPrompts = async (uid: string): Promise<any[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/user-prompts/${uid}`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error in getUserPrompts:', error);
+    throw error;
+  }
+};
+
 const API_URL = 'http://127.0.0.1:5000';
 
 export const getPromptDetails = async (username: string, promptName: string) => {

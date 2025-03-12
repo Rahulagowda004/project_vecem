@@ -248,3 +248,25 @@ export const deleteAccount = async (uid: string) => {
     throw error;
   }
 };
+
+export const getUserPrompts = async (uid: string) => {
+  try {
+    const response = await fetch(`${API_URL}/user-profile/${uid}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `Failed to fetch prompts: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.prompts || [];
+  } catch (error) {
+    console.error('Error fetching user prompts:', error);
+    throw new Error(error instanceof Error ? error.message : 'Failed to fetch user prompts');
+  }
+};

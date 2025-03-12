@@ -7,6 +7,9 @@ import {
   Camera,
   PenSquare,
   Upload,
+  MessageSquare,
+  Clock,
+  MessageSquarePlus,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import AvatarSelector from "../components/AvatarSelector";
@@ -17,6 +20,7 @@ import {
   updateUserProfile,
   checkUsernameAvailability,
   deleteAccount,
+  getUserPrompts, // Add this import
 } from "../services/userService";
 import {
   deleteUser,
@@ -28,6 +32,7 @@ import {
 import { toast } from "react-hot-toast";
 import NavbarPro from "../components/NavbarPro";
 import { getUserDisplayName } from "../utils/userManagement";
+import { API_BASE_URL } from "../config";
 
 interface Dataset {
   id: string;
@@ -35,7 +40,18 @@ interface Dataset {
   description: string;
   upload_type: string;
   updatedAt: string;
+  createdAt: string;
   size: number;
+}
+
+interface Prompt {
+  id: string;
+  name: string;
+  description: string; 
+  domain: string;
+  prompt: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 const Settings = () => {
@@ -79,12 +95,17 @@ const Settings = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const [apiKey, setApiKey] = useState("");
-  const [activeView, setActiveView] = useState<'datasets' | 'prompts'>('datasets');
-  const [prompts, setPrompts] = useState<any[]>([]);
+  type ViewType = 'datasets' | 'prompts';
+  const [activeView, setActiveView] = useState<ViewType>('datasets');
+  const isDatasetView = (view: ViewType): view is 'datasets' => view === 'datasets';
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
   const activeViewCount = useMemo(() => {
     return activeView === 'datasets' ? datasets.length : prompts.length || 0;
   }, [datasets, prompts, activeView]);
 
+  const [promptsLoading, setPromptsLoading] = useState(false);
+  const [promptsError, setPromptsError] = useState<string | null>(null);
+  
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.uid) return;
@@ -149,6 +170,29 @@ const Settings = () => {
       setAuthMethod("password");
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchPrompts = async () => {
+      if (activeView !== 'prompts' || !user?.uid) return;
+      
+      setPromptsLoading(true);
+      setPromptsError(null);
+      
+      try {
+        const prompts = await getUserPrompts(user.uid);
+        setPrompts(prompts);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to load prompts';
+        console.error('Error fetching prompts:', error);
+        setPromptsError(message);
+        toast.error(message);
+      } finally {
+        setPromptsLoading(false);
+      }
+    };
+
+    fetchPrompts();
+  }, [activeView, user?.uid]);
 
   const checkUsername = async (value: string) => {
     if (!value || value === username || hasChangedUsername) return;
@@ -357,7 +401,8 @@ const Settings = () => {
       default:
         result.sort(
           (a, b) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+            new Date(b.updatedAt || b.createdAt || Date.now()).getTime() -
+            new Date(a.updatedAt || a.createdAt || Date.now()).getTime()
         );
         break;
     }
@@ -395,11 +440,15 @@ const Settings = () => {
     return result;
   }, [prompts, searchQuery, sortOption]);
 
-  const paginatedSettings = useMemo(() => {
+  const paginatedItems = useMemo(() => {
+    if (activeView === 'prompts' && promptsLoading) {
+      return Array(itemsPerPage).fill({ loading: true });
+    }
+    
+    const items = activeView === 'datasets' ? filteredAndSortedDatasets : filteredAndSortedPrompts;
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredAndSortedDatasets.slice(startIndex, endIndex);
-  }, [filteredAndSortedDatasets, currentPage]);
+    return items.slice(startIndex, startIndex + itemsPerPage);
+  }, [activeView, filteredAndSortedDatasets, filteredAndSortedPrompts, currentPage, promptsLoading]);
 
   const totalPages = Math.ceil(filteredAndSortedDatasets.length / itemsPerPage);
 
@@ -417,21 +466,29 @@ const Settings = () => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
-
-  // Update formatDate helper function
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days === 0) return "Today";
-    if (days === 1) return "Yesterday";
-    if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return new Date().toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        });
+      }
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return new Date().toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    }
   };
 
   const container = {
@@ -780,61 +837,106 @@ const Settings = () => {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
           >
-            {paginatedSettings.map((dataset) => (
-              <motion.li
-                key={dataset.id}
-                variants={item}
-                whileHover={{ scale: 1.02 }}
-                className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300"
-              >
-                <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                  {dataset.name}
-                </h3>
-                <p className="text-gray-300 mb-4">{dataset.description}</p>
-                <div className="flex items-center space-x-4 text-sm text-gray-400">
-                  <span className="flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+            {paginatedItems.map((item) => {
+              if (activeView === 'datasets') {
+                const dataset = item as Dataset;
+                return (
+                  <motion.li
+                    key={dataset.id}
+                    variants={item}
+                    whileHover={{ scale: 1.02 }}
+                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300"
+                  >
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      {dataset.name}
+                    </h3>
+                    <p className="text-gray-300 mb-4">{dataset.description}</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                          <path
+                            fillRule="evenodd"
+                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {dataset.upload_type}
+                      </span>
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {formatDate(dataset.updatedAt)}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleEditDataset(dataset)}
+                      className="absolute top-4 right-4 p-2 rounded-lg bg-gray-700/50 text-cyan-400 opacity-0 
+                        group-hover:opacity-100 transition-opacity hover:bg-gray-600/50"
                     >
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {dataset.upload_type}
-                  </span>
-                  <span className="flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M6 2a1 1 00-1 1v1H4a2 2 00-2 2v10a2 2 00-2 2h12a2 2 00-2-2V6a2 2 00-2-2h-1V3a1 1 10-2 0v1H7V3a1 1 00-1-1zm0 5a1 1 000 2h8a1 1 100-2H6z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    {new Date(dataset.updatedAt).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </span>
-                </div>
-                <button
-                  onClick={() => handleEditDataset(dataset)}
-                  className="absolute top-4 right-4 p-2 rounded-lg bg-gray-700/50 text-cyan-400 opacity-0 
-                    group-hover:opacity-100 transition-opacity hover:bg-gray-600/50"
-                >
-                  <PenSquare size={16} />
-                </button>
-              </motion.li>
-            ))}
+                      <PenSquare size={16} />
+                    </button>
+                  </motion.li>
+                );
+              } else {
+                const prompt = item as Prompt;
+                return (
+                  <motion.li
+                    key={prompt.id}
+                    variants={item}
+                    whileHover={{ scale: 1.02 }}
+                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300"
+                  >
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      {prompt.name}
+                    </h3>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {prompt.domain || "General"}
+                      </span>
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {formatDate(prompt.updatedAt || prompt.createdAt)}
+                      </span>
+                    </div>
+                  </motion.li>
+                );
+              }
+            })}
           </motion.ul>
 
           {/* Show pagination only if there are settings */}
@@ -1123,3 +1225,4 @@ const Settings = () => {
 };
 
 export default Settings;
+
