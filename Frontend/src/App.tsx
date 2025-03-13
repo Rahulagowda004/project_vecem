@@ -16,6 +16,7 @@ import OtherProfile from "./pages/OtherProfile";
 import Prompts from "./pages/Prompts";
 import { Toaster } from 'react-hot-toast';
 import ProfileGuard from "./components/ProfileGuard";
+import AuthAction from './pages/AuthAction';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return <div className="min-h-screen bg-gray-900">{children}</div>;
@@ -47,6 +48,7 @@ function App() {
             path="/signup"
             element={user ? <Navigate to="/home" replace /> : <Signup />}
           />
+          <Route path="/auth/action" element={<AuthAction />} />
 
           {/* Protected Routes */}
           <Route
