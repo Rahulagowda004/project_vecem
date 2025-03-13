@@ -48,7 +48,7 @@ interface Dataset {
 interface Prompt {
   id: string;
   name: string;
-  description: string; 
+  description: string;
   domain: string;
   prompt: string;
   createdAt: string;
@@ -96,17 +96,19 @@ const Settings = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const [apiKey, setApiKey] = useState("");
-  type ViewType = 'datasets' | 'prompts';
-  const [activeView, setActiveView] = useState<ViewType>('datasets');
-  const isDatasetView = (view: ViewType): view is 'datasets' => view === 'datasets';
+  type ViewType = "datasets" | "prompts";
+  const [activeView, setActiveView] = useState<ViewType>("datasets");
+  const isDatasetView = (view: ViewType): view is "datasets" =>
+    view === "datasets";
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const activeViewCount = useMemo(() => {
-    return activeView === 'datasets' ? datasets.length : prompts.length || 0;
+    return activeView === "datasets" ? datasets.length : prompts.length || 0;
   }, [datasets, prompts, activeView]);
 
   const [promptsLoading, setPromptsLoading] = useState(false);
   const [promptsError, setPromptsError] = useState<string | null>(null);
-  
+  const [promptToDelete, setPromptToDelete] = useState<Prompt | null>(null);
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.uid) return;
@@ -174,17 +176,18 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchPrompts = async () => {
-      if (activeView !== 'prompts' || !user?.uid) return;
-      
+      if (activeView !== "prompts" || !user?.uid) return;
+
       setPromptsLoading(true);
       setPromptsError(null);
-      
+
       try {
         const prompts = await getUserPrompts(user.uid);
         setPrompts(prompts);
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to load prompts';
-        console.error('Error fetching prompts:', error);
+        const message =
+          error instanceof Error ? error.message : "Failed to load prompts";
+        console.error("Error fetching prompts:", error);
         setPromptsError(message);
         toast.error(message);
       } finally {
@@ -335,24 +338,25 @@ const Settings = () => {
 
   const handleDeletePrompt = async (promptId: string) => {
     if (!user?.uid) {
-      toast.error('You must be logged in to delete prompts');
+      toast.error("You must be logged in to delete prompts");
       return;
     }
-  
-    const loadingToast = toast.loading('Deleting prompt...');
-  
+
+    const loadingToast = toast.loading("Deleting prompt...");
+
     try {
       await deletePrompt(promptId);
-      
-      // Update the local state only after successful deletion
-      setPrompts(prevPrompts => prevPrompts.filter(p => p.id !== promptId));
-      
+      setPromptToDelete(null);
+      setPrompts((prevPrompts) => prevPrompts.filter((p) => p.id !== promptId));
+
       toast.dismiss(loadingToast);
-      toast.success('Prompt deleted successfully');
+      toast.success("Prompt deleted successfully");
     } catch (error) {
-      console.error('Error deleting prompt:', error);
+      console.error("Error deleting prompt:", error);
       toast.dismiss(loadingToast);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete prompt');
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete prompt"
+      );
     }
   };
 
@@ -465,14 +469,23 @@ const Settings = () => {
   }, [prompts, searchQuery, sortOption]);
 
   const paginatedItems = useMemo(() => {
-    if (activeView === 'prompts' && promptsLoading) {
+    if (activeView === "prompts" && promptsLoading) {
       return Array(itemsPerPage).fill({ loading: true });
     }
-    
-    const items = activeView === 'datasets' ? filteredAndSortedDatasets : filteredAndSortedPrompts;
+
+    const items =
+      activeView === "datasets"
+        ? filteredAndSortedDatasets
+        : filteredAndSortedPrompts;
     const startIndex = (currentPage - 1) * itemsPerPage;
     return items.slice(startIndex, startIndex + itemsPerPage);
-  }, [activeView, filteredAndSortedDatasets, filteredAndSortedPrompts, currentPage, promptsLoading]);
+  }, [
+    activeView,
+    filteredAndSortedDatasets,
+    filteredAndSortedPrompts,
+    currentPage,
+    promptsLoading,
+  ]);
 
   const totalPages = Math.ceil(filteredAndSortedDatasets.length / itemsPerPage);
 
@@ -494,23 +507,23 @@ const Settings = () => {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
-        return new Date().toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
+        return new Date().toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
         });
       }
-      return date.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       });
     } catch (error) {
       console.error("Error formatting date:", error);
-      return new Date().toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
+      return new Date().toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       });
     }
   };
@@ -784,21 +797,21 @@ const Settings = () => {
                 {/* View Selector */}
                 <div className="flex space-x-4">
                   <button
-                    onClick={() => setActiveView('datasets')}
+                    onClick={() => setActiveView("datasets")}
                     className={`px-4 py-2 rounded-lg transition-all ${
-                      activeView === 'datasets'
-                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                        : 'text-gray-400 hover:text-cyan-400'
+                      activeView === "datasets"
+                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                        : "text-gray-400 hover:text-cyan-400"
                     }`}
                   >
                     Datasets
                   </button>
                   <button
-                    onClick={() => setActiveView('prompts')}
+                    onClick={() => setActiveView("prompts")}
                     className={`px-4 py-2 rounded-lg transition-all ${
-                      activeView === 'prompts'
-                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                        : 'text-gray-400 hover:text-cyan-400'
+                      activeView === "prompts"
+                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                        : "text-gray-400 hover:text-cyan-400"
                     }`}
                   >
                     Prompts
@@ -844,9 +857,11 @@ const Settings = () => {
                   </select>
                   {searchQuery && (
                     <div className="text-gray-400">
-                      Found {activeView === 'datasets' 
-                        ? filteredAndSortedDatasets.length 
-                        : filteredAndSortedPrompts.length} results
+                      Found{" "}
+                      {activeView === "datasets"
+                        ? filteredAndSortedDatasets.length
+                        : filteredAndSortedPrompts.length}{" "}
+                      results
                     </div>
                   )}
                 </div>
@@ -862,7 +877,7 @@ const Settings = () => {
             className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
           >
             {paginatedItems.map((item) => {
-              if (activeView === 'datasets') {
+              if (activeView === "datasets") {
                 const dataset = item as Dataset;
                 return (
                   <motion.li
@@ -938,7 +953,7 @@ const Settings = () => {
                       </span>
                     </div>
                     <button
-                      onClick={() => handleDeletePrompt(prompt.id)}
+                      onClick={() => setPromptToDelete(prompt)}
                       className="absolute top-4 right-4 p-2 rounded-lg bg-gray-700/50 text-red-400 opacity-0 
                         group-hover:opacity-100 transition-opacity hover:bg-gray-600/50"
                     >
@@ -1178,7 +1193,7 @@ const Settings = () => {
                   onClick={confirmDelete}
                   disabled={
                     confirmLoading ||
-                    (!password && 
+                    (!password &&
                       user?.providerData[0]?.providerId !== "google.com")
                   }
                   className="px-4 py-2 rounded-xl bg-red-500/10 text-red-400 
@@ -1231,9 +1246,54 @@ const Settings = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Prompt Delete Confirmation Modal */}
+      <AnimatePresence>
+        {promptToDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setPromptToDelete(null)}
+          >
+            <motion.div
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gray-800/90 backdrop-blur-sm p-6 rounded-2xl border border-red-500/20 shadow-xl max-w-md w-full"
+            >
+              <h3 className="text-xl font-semibold text-red-400 mb-4">
+                Delete Prompt
+              </h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete the prompt "
+                {promptToDelete.name}"? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setPromptToDelete(null)}
+                  className="px-4 py-2 rounded-xl bg-gray-700/50 text-gray-300 hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeletePrompt(promptToDelete.id)}
+                  className="px-4 py-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 
+                    transition-colors flex items-center gap-2"
+                >
+                  <Trash2 size={18} />
+                  Delete Prompt
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
 export default Settings;
-
