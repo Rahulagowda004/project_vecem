@@ -83,10 +83,15 @@ const OtherProfile = () => {
         // Get profile data directly
         const profileData = await getUserProfileByUsername(username);
         
-        // Check if it's the current user trying to view their own profile
+        // SECURITY CHECK: If no profile data, show error
+        if (!profileData) {
+          throw new Error("Profile not found");
+        }
+
+        // SECURITY CHECK: Don't allow users to view their own profile through OtherProfile
         if (profileData.uid === user.uid) {
-          navigate(`/${username}`, { replace: true });
-          return;
+          // Instead of redirecting, show an error message
+          throw new Error("Please use your profile page to view your own profile");
         }
 
         setUserData(profileData);
@@ -99,7 +104,7 @@ const OtherProfile = () => {
     };
 
     fetchUserData();
-  }, [username, user, navigate]);
+  }, [username, user]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -258,8 +263,19 @@ const OtherProfile = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-red-400">Error: {error}</div>
+      <div className="min-h-screen bg-gray-900">
+        <NavbarPro />
+        <div className="flex items-center justify-center h-screen">
+          <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-xl border border-red-500/20">
+            <p className="text-red-400 text-lg">{error}</p>
+            <button
+              onClick={() => navigate("/home")}
+              className="mt-4 px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Return Home
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
