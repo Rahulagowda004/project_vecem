@@ -6,7 +6,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         "requests>=2.25.0",
-        "zipfile"
+        "azure-storage-blob>=12.0.0",
+        "azure-core>=1.26.0"
     ],
     author="vecem",
     author_email="vectorembeddings@example.com",
