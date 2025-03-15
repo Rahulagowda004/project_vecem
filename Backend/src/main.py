@@ -18,6 +18,7 @@ from src.bot import FRIDAY
 from typing import Optional 
 from src.models.chat_models import General, Issue, IssueReply
 from src.database import mongodb
+from src.routes import admin
 
 app = FastAPI()
 
@@ -40,6 +41,7 @@ app.add_middleware(
 # Include routers
 app.include_router(upload_router)
 app.include_router(users.router)
+app.include_router(admin.router)
 
 @app.get("/")
 async def root():
