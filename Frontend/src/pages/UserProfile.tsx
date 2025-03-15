@@ -57,6 +57,7 @@ const UserProfile = () => {
   const [activeView, setActiveView] = useState<'datasets' | 'prompts'>('datasets');
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [isPromptCardOpen, setIsPromptCardOpen] = useState(false);
+  const [promptsLoading, setPromptsLoading] = useState(false);
 
   const formatDate = (dateString: string) => {
     try {
@@ -165,7 +166,7 @@ const UserProfile = () => {
 
   // Add this after the filteredAndSortedDatasets useMemo
   const filteredAndSortedPrompts = useMemo(() => {
-    if (!userData?.prompts) return [];
+    if (!userData?.prompts || promptsLoading) return [];
 
     let result = [...userData.prompts];
 
@@ -192,7 +193,7 @@ const UserProfile = () => {
     }
 
     return result;
-  }, [userData?.prompts, searchQuery, sortOption]);
+  }, [userData?.prompts, searchQuery, sortOption, promptsLoading]);
 
   const paginatedItems = useMemo(() => {
     const items = activeView === 'datasets' ? filteredAndSortedDatasets : filteredAndSortedPrompts;
@@ -589,65 +590,78 @@ const UserProfile = () => {
                     </motion.button>
                   </motion.div>
                 )
-              ) : (
-                paginatedItems.length > 0 ? (
-                  paginatedItems.map((prompt) => (
-                    <motion.li
-                      key={prompt.id}
-                      variants={item}
-                      whileHover={{ scale: 1.02 }}
-                      onClick={() => handlePromptClick(prompt.id, prompt.name)}
-                      className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
-                    >
-                      <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                        {prompt.name}
-                      </h3>
-                      <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <span className="flex items-center">
-                          <MessageSquarePlus className="w-4 h-4 mr-1" />
-                          {prompt.domain || "General"}
-                        </span>
-                        <span className="flex items-center">
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          {formatDate(prompt.updatedAt || prompt.createdAt)}
-                        </span>
-                      </div>
-                    </motion.li>
-                  ))
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+              ) : promptsLoading ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div className="w-24 h-24 mb-6 text-cyan-400">
+                    {/* Loading spinner */}
+                    <svg className="animate-spin" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-400">Loading prompts...</p>
+                </motion.div>
+              ) : !userData?.prompts?.length ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div className="w-24 h-24 mb-6 text-gray-600">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-400 mb-2">Share Your Knowledge</h3>
+                  <p className="text-gray-500 mb-6">Create your first prompt to help others</p>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate("/prompts")}
+                    className="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20 flex items-center gap-2"
                   >
-                    <div className="w-24 h-24 mb-6 text-gray-600">
-                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                      </svg>
+                    <MessageSquarePlus size={18} />
+                    Create Your First Prompt
+                  </motion.button>
+                </motion.div>
+              ) : (
+                paginatedItems.map((prompt) => (
+                  <motion.li
+                    key={prompt.id}
+                    variants={item}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => handlePromptClick(prompt.id, prompt.name)}
+                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                  >
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      {prompt.name}
+                    </h3>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center">
+                        <MessageSquarePlus className="w-4 h-4 mr-1" />
+                        {prompt.domain || "General"}
+                      </span>
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {formatDate(prompt.updatedAt || prompt.createdAt)}
+                      </span>
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-400 mb-2">Share Your Knowledge</h3>
-                    <p className="text-gray-500 mb-6">Create your first prompt to help others</p>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => navigate("/prompts")}
-                      className="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20 flex items-center gap-2"
-                    >
-                      <MessageSquarePlus size={18} />
-                      Create Your First Prompt
-                    </motion.button>
-                  </motion.div>
-                )
+                  </motion.li>
+                ))
               )}
             </motion.ul>
 

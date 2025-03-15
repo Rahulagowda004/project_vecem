@@ -50,6 +50,7 @@ const OtherProfile = () => {
   const [activeView, setActiveView] = useState<'datasets' | 'prompts'>('datasets');
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [isPromptCardOpen, setIsPromptCardOpen] = useState(false);
+  const [promptsLoading, setPromptsLoading] = useState(false);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Date not available';
@@ -175,7 +176,7 @@ const OtherProfile = () => {
   }, [userData?.datasets, searchQuery, sortOption]);
 
   const filteredAndSortedPrompts = useMemo(() => {
-    if (!userData?.prompts) return [];
+    if (!userData?.prompts || promptsLoading) return [];
 
     let result = [...userData.prompts];
 
@@ -202,7 +203,7 @@ const OtherProfile = () => {
     }
 
     return result;
-  }, [userData?.prompts, searchQuery, sortOption]);
+  }, [userData?.prompts, searchQuery, sortOption, promptsLoading]);
 
   const paginatedItems = useMemo(() => {
     const items = activeView === 'datasets' ? filteredAndSortedDatasets : filteredAndSortedPrompts;
@@ -522,6 +523,34 @@ const OtherProfile = () => {
                     <p className="text-gray-500">This user hasn't uploaded any datasets</p>
                   </motion.div>
                 )
+              ) : promptsLoading ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div className="w-24 h-24 mb-6 text-cyan-400">
+                    <svg className="animate-spin" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-400">Loading prompts...</p>
+                </motion.div>
+              ) : !userData?.prompts?.length ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div className="w-24 h-24 mb-6 text-gray-600">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-400 mb-2">No prompts yet</h3>
+                  <p className="text-gray-500">This user hasn't shared any prompts</p>
+                </motion.div>
               ) : (
                 paginatedItems.length > 0 ? (
                   paginatedItems.map((prompt) => (
