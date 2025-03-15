@@ -17,6 +17,7 @@ import Prompts from "./pages/Prompts";
 import { Toaster } from 'react-hot-toast';
 import ProfileGuard from "./components/ProfileGuard";
 import AuthAction from './pages/AuthAction';
+import Admin from './pages/Admin';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return <div className="min-h-screen bg-gray-900">{children}</div>;
@@ -134,7 +135,11 @@ function App() {
             }
           />
 
-        
+          {/* Admin Route */}
+          <Route
+            path="/admin"
+            element={<Admin />}
+          />
 
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />

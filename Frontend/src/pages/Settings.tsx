@@ -105,7 +105,7 @@ const Settings = () => {
     return activeView === "datasets" ? datasets.length : prompts.length || 0;
   }, [datasets, prompts, activeView]);
 
-  const [promptsLoading, setPromptsLoading] = useState(false);
+  const [promptsLoading, setPromptsLoading] = useState(true); // Changed initial state to true
   const [promptsError, setPromptsError] = useState<string | null>(null);
   const [promptToDelete, setPromptToDelete] = useState<Prompt | null>(null);
 
@@ -471,7 +471,7 @@ const Settings = () => {
 
   const paginatedItems = useMemo(() => {
     if (activeView === "prompts" && promptsLoading) {
-      return Array(itemsPerPage).fill({ loading: true });
+      return [];  // Return empty array while loading instead of dummy items
     }
 
     const items =
@@ -954,6 +954,14 @@ const Settings = () => {
                   </p>
                 </motion.div>
               )
+            ) : promptsLoading ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="col-span-2 flex items-center justify-center p-12"
+              >
+                <div className="text-gray-400">Loading prompts...</div>
+              </motion.div>
             ) : paginatedItems.length > 0 ? (
               paginatedItems.map((prompt) => (
                 <motion.li
