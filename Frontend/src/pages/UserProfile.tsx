@@ -515,89 +515,139 @@ const UserProfile = () => {
               className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
             >
               {activeView === 'datasets' ? (
-                paginatedItems.map((dataset) => (
-                  <motion.li
-                    key={dataset.id}
-                    variants={item}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => handleDatasetClick(dataset.id, dataset.name)}
-                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                paginatedItems.length > 0 ? (
+                  paginatedItems.map((dataset) => (
+                    <motion.li
+                      key={dataset.id}
+                      variants={item}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => handleDatasetClick(dataset.id, dataset.name)}
+                      className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                    >
+                      <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                        {dataset.name}
+                      </h3>
+                      <p className="text-gray-300 mb-4">{dataset.description}</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-400">
+                        <span className="flex items-center">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path
+                              fillRule="evenodd"
+                              d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          {dataset.upload_type || "Unknown Type"}
+                        </span>
+                        <span className="flex items-center">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          {new Date(dataset.updatedAt).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
+                    </motion.li>
+                  ))
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
                   >
-                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                      {dataset.name}
-                    </h3>
-                    <p className="text-gray-300 mb-4">{dataset.description}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-400">
-                      <span className="flex items-center">
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                          <path
-                            fillRule="evenodd"
-                            d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        {dataset.upload_type || "Unknown Type"}
-                      </span>
-                      <span className="flex items-center">
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        {new Date(dataset.updatedAt).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                      </span>
+                    <div className="w-24 h-24 mb-6 text-gray-600">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
                     </div>
-                  </motion.li>
-                ))
+                    <h3 className="text-xl font-semibold text-gray-400 mb-2">Start Your Data Journey</h3>
+                    <p className="text-gray-500 mb-6">Share your first dataset with the community</p>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate("/upload")}
+                      className="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20 flex items-center gap-2"
+                    >
+                      <Upload size={18} />
+                      Upload Your First Dataset
+                    </motion.button>
+                  </motion.div>
+                )
               ) : (
-                paginatedItems.map((prompt) => (
-                  <motion.li
-                    key={prompt.id}
-                    variants={item}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => handlePromptClick(prompt.id, prompt.name)}
-                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                paginatedItems.length > 0 ? (
+                  paginatedItems.map((prompt) => (
+                    <motion.li
+                      key={prompt.id}
+                      variants={item}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => handlePromptClick(prompt.id, prompt.name)}
+                      className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                    >
+                      <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                        {prompt.name}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-400">
+                        <span className="flex items-center">
+                          <MessageSquarePlus className="w-4 h-4 mr-1" />
+                          {prompt.domain || "General"}
+                        </span>
+                        <span className="flex items-center">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          {formatDate(prompt.updatedAt || prompt.createdAt)}
+                        </span>
+                      </div>
+                    </motion.li>
+                  ))
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
                   >
-                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                      {prompt.name}
-                    </h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-400">
-                      <span className="flex items-center">
-                        <MessageSquarePlus className="w-4 h-4 mr-1" />
-                        {prompt.domain || "General"}
-                      </span>
-                      <span className="flex items-center">
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        {formatDate(prompt.updatedAt || prompt.createdAt)}
-                      </span>
+                    <div className="w-24 h-24 mb-6 text-gray-600">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                      </svg>
                     </div>
-                  </motion.li>
-                ))
+                    <h3 className="text-xl font-semibold text-gray-400 mb-2">Share Your Knowledge</h3>
+                    <p className="text-gray-500 mb-6">Create your first prompt to help others</p>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => navigate("/prompts")}
+                      className="px-6 py-3 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20 flex items-center gap-2"
+                    >
+                      <MessageSquarePlus size={18} />
+                      Create Your First Prompt
+                    </motion.button>
+                  </motion.div>
+                )
               )}
             </motion.ul>
 
