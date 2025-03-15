@@ -15,14 +15,13 @@ interface Dataset {
   name: string;
   description: string;
   upload_type: string;
-  owner: string;
+  owner: string;  // This will now contain the user's full name
   createdAt: string;
 }
 
 interface Prompt {
   id: string;
   name: string;
-  description: string;
   domain: string;
   username: string;
   createdAt: string;
@@ -122,6 +121,58 @@ const Admin = () => {
     fetchData();
   }, [isAuthenticated]);
 
+  const handleDeleteDataset = async (datasetId: string) => {
+    if (!window.confirm('Are you sure you want to delete this dataset?')) return;
+    
+    const credentials = sessionStorage.getItem('adminCredentials');
+    if (!credentials) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/admin/datasets/${datasetId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Basic ${credentials}`
+        }
+      });
+
+      if (response.ok) {
+        setDatasets(prevDatasets => prevDatasets.filter(dataset => dataset.id !== datasetId));
+        toast.success('Dataset deleted successfully');
+      } else {
+        throw new Error('Failed to delete dataset');
+      }
+    } catch (error) {
+      console.error('Error deleting dataset:', error);
+      toast.error('Failed to delete dataset');
+    }
+  };
+
+  const handleDeletePrompt = async (promptId: string) => {
+    if (!window.confirm('Are you sure you want to delete this prompt?')) return;
+    
+    const credentials = sessionStorage.getItem('adminCredentials');
+    if (!credentials) return;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/admin/prompts/${promptId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Basic ${credentials}`
+        }
+      });
+
+      if (response.ok) {
+        setPrompts(prevPrompts => prevPrompts.filter(prompt => prompt.id !== promptId));
+        toast.success('Prompt deleted successfully');
+      } else {
+        throw new Error('Failed to delete prompt');
+      }
+    } catch (error) {
+      console.error('Error deleting prompt:', error);
+      toast.error('Failed to delete prompt');
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -145,9 +196,9 @@ const Admin = () => {
 
       case 'datasets':
         return (
-          <div className="bg-gray-800 rounded-xl p-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Description</th>
@@ -159,7 +210,7 @@ const Admin = () => {
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {datasets.map((dataset) => (
-                  <tr key={dataset.id}>
+                  <tr key={dataset.id} className="hover:bg-gray-750">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{dataset.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-300">{dataset.description}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{dataset.upload_type}</td>
@@ -168,11 +219,11 @@ const Admin = () => {
                       {new Date(dataset.createdAt).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      <button className="text-red-400 hover:text-red-300 mr-3">
+                      <button
+                        onClick={() => handleDeleteDataset(dataset.id)}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
                         <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button className="text-cyan-400 hover:text-cyan-300">
-                        <ExternalLink className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -184,34 +235,32 @@ const Admin = () => {
 
       case 'prompts':
         return (
-          <div className="bg-gray-800 rounded-xl p-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Description</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Domain</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Creator</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Owner</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Created At</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {prompts.map((prompt) => (
-                  <tr key={prompt.id}>
+                  <tr key={prompt.id} className="hover:bg-gray-750">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{prompt.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-300">{prompt.description}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{prompt.domain}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{prompt.username}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {new Date(prompt.createdAt).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      <button className="text-red-400 hover:text-red-300 mr-3">
+                      <button
+                        onClick={() => handleDeletePrompt(prompt.id)}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
                         <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button className="text-cyan-400 hover:text-cyan-300">
-                        <ExternalLink className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
