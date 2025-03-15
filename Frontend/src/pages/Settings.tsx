@@ -349,18 +349,12 @@ const Settings = () => {
       return;
     }
 
-    const loadingToast = toast.loading("Deleting prompt...");
-
     try {
       await deletePrompt(promptId);
       setPromptToDelete(null);
       setPrompts((prevPrompts) => prevPrompts.filter((p) => p.id !== promptId));
-
-      toast.dismiss(loadingToast);
-      toast.success("Prompt deleted successfully");
     } catch (error) {
       console.error("Error deleting prompt:", error);
-      toast.dismiss(loadingToast);
       toast.error(
         error instanceof Error ? error.message : "Failed to delete prompt"
       );
@@ -883,7 +877,7 @@ const Settings = () => {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
           >
-            {activeView === 'datasets' ? (
+            {activeView === "datasets" ? (
               paginatedItems.length > 0 ? (
                 paginatedItems.map((dataset: Dataset) => (
                   <motion.li
@@ -944,69 +938,75 @@ const Settings = () => {
                 >
                   <div className="w-24 h-24 mb-6 text-gray-600">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={1.5} 
-                        d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-400 mb-2">No Datasets to Manage</h3>
-                  <p className="text-gray-500">You haven't uploaded any datasets yet.</p>
+                  <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                    No Datasets to Manage
+                  </h3>
+                  <p className="text-gray-500">
+                    You haven't uploaded any datasets yet.
+                  </p>
                 </motion.div>
               )
-            ) : (
-              paginatedItems.length > 0 ? (
-                paginatedItems.map((prompt) => (
-                  <motion.li
-                    key={prompt.id}
-                    variants={item}
-                    whileHover={{ scale: 1.02 }}
-                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300"
-                  >
-                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                      {prompt.name}
-                    </h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-400">
-                      <span className="flex items-center">
-                        <MessageSquare className="w-4 h-4 mr-1" />
-                        {prompt.domain || "General"}
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {formatDate(prompt.updatedAt || prompt.createdAt)}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setPromptToDelete(prompt)}
-                      className="absolute top-4 right-4 p-2 rounded-lg bg-gray-700/50 text-red-400 opacity-0 
-                        group-hover:opacity-100 transition-opacity hover:bg-gray-600/50"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </motion.li>
-                ))
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+            ) : paginatedItems.length > 0 ? (
+              paginatedItems.map((prompt) => (
+                <motion.li
+                  key={prompt.id}
+                  variants={item}
+                  whileHover={{ scale: 1.02 }}
+                  className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300"
                 >
-                  <div className="w-24 h-24 mb-6 text-gray-600">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={1.5} 
-                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" 
-                      />
-                    </svg>
+                  <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                    {prompt.name}
+                  </h3>
+                  <div className="flex items-center space-x-4 text-sm text-gray-400">
+                    <span className="flex items-center">
+                      <MessageSquare className="w-4 h-4 mr-1" />
+                      {prompt.domain || "General"}
+                    </span>
+                    <span className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      {formatDate(prompt.updatedAt || prompt.createdAt)}
+                    </span>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-400 mb-2">Your Prompt Library is Empty</h3>
-                  <p className="text-gray-500">Create and manage your AI prompts to streamline your workflow.</p>
-                </motion.div>
-              )
+                  <button
+                    onClick={() => setPromptToDelete(prompt)}
+                    className="absolute top-4 right-4 p-2 rounded-lg bg-gray-700/50 text-red-400 opacity-0 
+                        group-hover:opacity-100 transition-opacity hover:bg-gray-600/50"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </motion.li>
+              ))
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+              >
+                <div className="w-24 h-24 mb-6 text-gray-600">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                  Your Prompt Library is Empty
+                </h3>
+                <p className="text-gray-500">
+                  Create and manage your AI prompts to streamline your workflow.
+                </p>
+              </motion.div>
             )}
           </motion.ul>
 
