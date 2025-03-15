@@ -247,7 +247,8 @@ const Settings = () => {
     if (!user) return;
     setShowDeleteModal(true);
     setDeleteError("");
-    setIsReauthenticating(true);
+    setIsReauthenticating(true); // Always start with reauthentication
+    setReAuthPassword(""); // Reset password field
   };
 
   const handleReauthenticate = async (method: "password" | "google") => {
@@ -281,6 +282,12 @@ const Settings = () => {
 
   const confirmDelete = async () => {
     if (!user) return;
+
+    // Check if user has reauthenticated
+    if (isReauthenticating) {
+      setDeleteError("Please reauthenticate before deleting your account");
+      return;
+    }
 
     try {
       setConfirmLoading(true);
