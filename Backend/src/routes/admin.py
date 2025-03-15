@@ -46,7 +46,15 @@ async def get_dashboard_stats():
 @router.get("/users", dependencies=[Depends(verify_admin)])
 async def get_users():
     users = await user_profile_collection.find().to_list(length=None)
-    return [{"id": str(user["_id"]), **{k: v for k, v in user.items() if k != "_id"}} for user in users]
+    return [{
+        "id": str(user["_id"]),
+        "name": user.get("name", "Unknown"),
+        "username": user.get("username", ""),
+        "email": user.get("email", ""),
+        "profilePicture": user.get("profilePicture", ""),
+        "createdAt": user.get("createdAt", datetime.now().isoformat()),
+        "lastLogin": user.get("lastLogin", user.get("createdAt", datetime.now().isoformat()))
+    } for user in users]
 
 @router.get("/datasets", dependencies=[Depends(verify_admin)])
 async def get_datasets():

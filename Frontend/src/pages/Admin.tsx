@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Users, Database, BookOpen, BarChart2, Trash2, ExternalLink } from 'lucide-react';
+import { Users, Database, BookOpen, BarChart2, Trash2, ExternalLink, Globe, Mail, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
@@ -27,6 +27,16 @@ interface Prompt {
   createdAt: string;
 }
 
+interface User {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  createdAt: string;
+  lastLogin: string; // Changed from optional to required
+  profilePicture?: string;
+}
+
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
@@ -36,6 +46,7 @@ const Admin = () => {
   const [error, setError] = useState('');
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -107,11 +118,20 @@ const Admin = () => {
           }
         });
 
-        if (datasetsResponse.ok && promptsResponse.ok) {
+        // Fetch users
+        const usersResponse = await fetch('http://127.0.0.1:5000/admin/users', {
+          headers: {
+            'Authorization': `Basic ${credentials}`
+          }
+        });
+
+        if (datasetsResponse.ok && promptsResponse.ok && usersResponse.ok) {
           const datasetsData = await datasetsResponse.json();
           const promptsData = await promptsResponse.json();
+          const usersData = await usersResponse.json();
           setDatasets(datasetsData);
           setPrompts(promptsData);
+          setUsers(usersData);
         }
       } catch (err) {
         console.error('Failed to fetch data:', err);
@@ -170,6 +190,41 @@ const Admin = () => {
     } catch (error) {
       console.error('Error deleting prompt:', error);
       toast.error('Failed to delete prompt');
+    }
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Not Available';
+    
+    try {
+      // Try parsing as ISO string first
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      // If ISO parsing fails, try alternative format
+      const timestamp = Date.parse(dateString);
+      if (!isNaN(timestamp)) {
+        return new Date(timestamp).toLocaleString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      return 'Invalid Date';
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return 'Invalid Date';
     }
   };
 
@@ -269,6 +324,67 @@ const Admin = () => {
             </table>
           </div>
         );
+
+      case 'users':
+        return (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-800">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">User</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Username</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Created At</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Last Login</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-gray-750">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <img
+                            className="h-10 w-10 rounded-full object-cover"
+                            src={user.profilePicture || "/default-avatar.png"}
+                            alt={user.name}
+                          />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-300">{user.name}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <div className="flex items-center">
+                        <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                        {user.email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <div className="flex items-center">
+                        <Globe className="w-4 h-4 mr-2 text-gray-400" />
+                        @{user.username}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                        {formatDate(user.createdAt)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                        {formatDate(user.lastLogin)}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
     }
   };
 
@@ -348,6 +464,15 @@ const Admin = () => {
             >
               <BookOpen className="w-5 h-5 mr-3" />
               Prompts
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`w-full flex items-center px-4 py-2 rounded-lg ${
+                activeTab === 'users' ? 'bg-cyan-500/10 text-cyan-400' : 'text-gray-300 hover:bg-gray-700'
+              }`}
+            >
+              <Users className="w-5 h-5 mr-3" />
+              Users
             </button>
           </nav>
         </div>

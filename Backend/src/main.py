@@ -74,7 +74,9 @@ async def register_uid(uid_request: UidRequest):
                 name=name,
                 username=username,
                 hasChangedUsername=False,
-                profilePicture="/avatars/default.png"  # Add default avatar path
+                profilePicture="/avatars/default.png",  # Add default avatar path
+                createdAt=datetime.now(pytz.UTC).isoformat(),
+                lastLogin=datetime.now(pytz.UTC).isoformat()
             )
             await user_profile_collection.insert_one(new_user_profile.dict())
             logging.info(f"New user profile created for UID: {uid,email,name} with username: {username}")
