@@ -883,10 +883,9 @@ const Settings = () => {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
           >
-            {paginatedItems.map((item) => {
-              if (activeView === "datasets") {
-                const dataset = item as Dataset;
-                return (
+            {activeView === 'datasets' ? (
+              paginatedItems.length > 0 ? (
+                paginatedItems.map((dataset: Dataset) => (
                   <motion.li
                     key={dataset.id}
                     variants={item}
@@ -936,10 +935,30 @@ const Settings = () => {
                       <PenSquare size={16} />
                     </button>
                   </motion.li>
-                );
-              } else {
-                const prompt = item as Prompt;
-                return (
+                ))
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div className="w-24 h-24 mb-6 text-gray-600">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={1.5} 
+                        d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-400 mb-2">No Datasets to Manage</h3>
+                  <p className="text-gray-500">You haven't uploaded any datasets yet.</p>
+                </motion.div>
+              )
+            ) : (
+              paginatedItems.length > 0 ? (
+                paginatedItems.map((prompt) => (
                   <motion.li
                     key={prompt.id}
                     variants={item}
@@ -967,9 +986,28 @@ const Settings = () => {
                       <Trash2 size={16} />
                     </button>
                   </motion.li>
-                );
-              }
-            })}
+                ))
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div className="w-24 h-24 mb-6 text-gray-600">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={1.5} 
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" 
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-400 mb-2">Your Prompt Library is Empty</h3>
+                  <p className="text-gray-500">Create and manage your AI prompts to streamline your workflow.</p>
+                </motion.div>
+              )
+            )}
           </motion.ul>
 
           {/* Show pagination only if there are settings */}
