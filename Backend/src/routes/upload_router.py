@@ -39,6 +39,11 @@ async def upload_files(
         # Parse dataset info
         dataset_info = DatasetInfo.parse_raw(datasetInfo)
         dataset_info_dict = dataset_info.dict()
+        
+        # Ensure license is included in dataset info
+        if "license" not in dataset_info_dict:
+            raise HTTPException(status_code=400, detail="License is required")
+            
         dataset_info_dict["username"] = username  # Add username to dataset_info
         dataset_info_dict.pop('uid', None)  # Remove uid from dataset_info
         

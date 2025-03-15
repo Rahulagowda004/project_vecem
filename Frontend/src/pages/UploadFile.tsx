@@ -25,9 +25,10 @@ interface DatasetForm {
   name: string;
   description: string;
   domain: string;
+  license: string; // Changed from License to license
   dimensions?: number;
   vectorDatabase?: string;
-  modelName?: string; // Add this line
+  modelName?: string;
 }
 
 const UploadFile = () => {
@@ -51,6 +52,7 @@ const UploadFile = () => {
     name: "",
     description: "",
     domain: "",
+    license: "", // Changed from License to license
   });
   const [totalSize, setTotalSize] = useState<{
     raw: number;
@@ -76,6 +78,15 @@ const UploadFile = () => {
     null
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
+
+  const licenses = [
+    "MIT License",
+    "Apache License 2.0",
+    "GNU General Public License v3.0",
+    "BSD 3-Clause License",
+    "Creative Commons Attribution 4.0",
+    "Mozilla Public License 2.0",
+  ];
 
   const domains = [
     "Health",
@@ -631,6 +642,28 @@ const UploadFile = () => {
                 {domains.map((domain) => (
                   <option key={domain} value={domain}>
                     {domain}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-white">
+                License
+              </label>
+              <select
+                name="license"
+                value={formData.license}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                  text-white placeholder-gray-400
+                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+              >
+                <option value="">Select a License </option>
+                {licenses.map((license) => (
+                  <option key={license} value={license}>
+                    {license}
                   </option>
                 ))}
               </select>
