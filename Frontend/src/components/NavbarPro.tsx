@@ -38,7 +38,7 @@ const NavbarPro = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [userAvatar, setUserAvatar] = useState(user?.photoURL || "/avatars/avatar1.png");
+  const [userAvatar, setUserAvatar] = useState(user?.photoURL || "/avatars/default.png");
   const [username, setUsername] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
 

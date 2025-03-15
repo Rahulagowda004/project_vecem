@@ -71,7 +71,8 @@ async def register_uid(uid_request: UidRequest):
                 email=email,
                 name=name,
                 username=username,
-                hasChangedUsername=False
+                hasChangedUsername=False,
+                profilePicture="/avatars/default.png"  # Add default avatar path
             )
             await user_profile_collection.insert_one(new_user_profile.dict())
             logging.info(f"New user profile created for UID: {uid,email,name} with username: {username}")

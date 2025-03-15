@@ -50,7 +50,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
         onClick={handleAvatarClick}
       >
         <img
-          src={selectedAvatar}
+          src={selectedAvatar || "/avatars/default.png"}
           alt={user?.displayName || "Profile"}
           className="w-32 h-32 rounded-full object-cover border-2 border-gray-700/50 shadow-xl"
         />
