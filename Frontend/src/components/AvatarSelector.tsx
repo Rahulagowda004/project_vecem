@@ -34,7 +34,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
     // Load all avatars from public/avatars directory
     const importAvatars = async () => {
       const avatarPaths = [];
-      for (let i = 1; i <= 20; i++) {
+      for (let i = 1; i <= 24; i++) {
         avatarPaths.push(`/avatars/avatar${i}.png`);
       }
       setAvatars(avatarPaths);
@@ -74,7 +74,7 @@ const AvatarSelector: React.FC<AvatarSelectorProps> = ({
             <h3 className="text-xl font-bold text-white mb-6">
               Choose Your Avatar
             </h3>
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-4 gap-4 mb-6 max-h-[60vh] overflow-y-auto pr-2">
               {avatars.map((avatar) => (
                 <button
                   key={avatar}
