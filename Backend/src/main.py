@@ -551,7 +551,14 @@ async def get_messages(tag: str):
         ist = pytz.timezone('Asia/Kolkata')
         processed_messages = []
         for msg in messages:
-            user = await user_profile_collection.find_one({"uid": msg["uid"]})
+            # Handle cases where user might not exist
+            user = await user_profile_collection.find_one({"uid": msg.get("uid")})
+            user_name = "Anonymous"
+            user_avatar = ""
+            
+            if user:
+                user_name = user.get("name", "Anonymous")
+                user_avatar = user.get("profilePicture", "")
             
             # Get replies for issues
             replies = []
@@ -561,24 +568,31 @@ async def get_messages(tag: str):
                 ).sort("created_at", 1).to_list(None)
                 
                 for reply in replies_cursor:
-                    reply_user = await user_profile_collection.find_one({"uid": reply["uid"]})
+                    reply_user = await user_profile_collection.find_one({"uid": reply.get("uid")})
+                    reply_name = "Anonymous"
+                    reply_avatar = ""
+                    
+                    if reply_user:
+                        reply_name = reply_user.get("name", "Anonymous")
+                        reply_avatar = reply_user.get("profilePicture", "")
+                        
                     replies.append({
                         "id": str(reply["_id"]),
-                        "content": reply["description"],
-                        "userId": reply["uid"],
-                        "userName": reply_user.get("name", "Anonymous") if reply_user else "Anonymous",
-                        "userAvatar": reply_user.get("profilePicture", ""),
-                        "timestamp": reply["created_at"],
+                        "content": reply.get("description", ""),
+                        "userId": reply.get("uid", ""),
+                        "userName": reply_name,
+                        "userAvatar": reply_avatar,
+                        "timestamp": reply.get("created_at", datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')),
                         "tag": tag
                     })
 
             processed_msg = {
                 "id": str(msg["_id"]),
-                "content": msg["description"],
-                "userId": msg["uid"],
-                "userName": user.get("name", "Anonymous") if user else "Anonymous",
-                "userAvatar": user.get("profilePicture", ""),
-                "timestamp": msg["created_at"],  # Already in IST format
+                "content": msg.get("description", ""),
+                "userId": msg.get("uid", ""),
+                "userName": user_name,
+                "userAvatar": user_avatar,
+                "timestamp": msg.get("created_at", datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')),
                 "tag": tag,
                 "replies": replies
             }
@@ -587,7 +601,7 @@ async def get_messages(tag: str):
         return jsonable_encoder(processed_messages)
     except Exception as e:
         logging.error(f"Error fetching {tag} messages: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return []  # Return empty list instead of raising error
 
 # Initialize the chatbot
 bot = FRIDAY()

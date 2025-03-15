@@ -83,6 +83,9 @@ const Community = () => {
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [currentTag, setCurrentTag] = useState<"general" | "issue">("general");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false); // Add this state
 
   // Update the formatWhatsAppTimestamp function
 const formatWhatsAppTimestamp = (dateString: string | Date) => {
@@ -113,7 +116,7 @@ const formatWhatsAppTimestamp = (dateString: string | Date) => {
       messageDate = dateString;
     } else {
       console.error('Unsupported date format:', dateString);
-      return dateString.toString();
+      return String(dateString);
     }
 
     // Validate the parsed date
@@ -238,35 +241,44 @@ const formatWhatsAppTimestamp = (dateString: string | Date) => {
   // Update the fetchMessages function to properly format timestamps
 const fetchMessages = async (tag: "general" | "issue") => {
   try {
+    // Only set loading if there are no existing messages
+    if (messages.length === 0) {
+      setIsLoading(true);
+    }
+    setFetchError(null);
     const response = await fetch(
       `http://127.0.0.1:5000/community/messages/${tag}`
     );
     if (!response.ok) {
-      throw new Error("Failed to fetch messages");
+      throw new Error(`Failed to fetch messages: ${response.statusText}`);
     }
     const data = await response.json();
-    console.log('Raw message data:', data); // Debug log
-
-    return data.map((message: any) => {
-      // Log each message's timestamp for debugging
-      console.log('Message timestamp:', message.created_at || message.timestamp);
-      
-      return {
-        ...message,
-        // Ensure we have a valid timestamp
-        timestamp: message.created_at || message.timestamp || new Date().toISOString()
-      };
-    });
+    // Handle empty or invalid data
+    if (!Array.isArray(data)) {
+      setMessages([]);
+      return;
+    }
+    
+    setMessages(data.map((message: any) => ({
+      ...message,
+      timestamp: message.created_at || message.timestamp || new Date().toISOString(),
+      userName: message.userName || "Anonymous",
+      userAvatar: message.userAvatar || "",
+      content: message.content || "",
+      replies: Array.isArray(message.replies) ? message.replies : []
+    })));
   } catch (error) {
     console.error("Error fetching messages:", error);
-    return [];
+    setFetchError("Failed to load messages. Please try again later.");
+    setMessages([]);
+  } finally {
+    setIsLoading(false);
   }
 };
 
   useEffect(() => {
     const loadMessages = async () => {
-      const messages = await fetchMessages(selectedFilter);
-      setMessages(messages);
+      await fetchMessages(selectedFilter);
     };
     loadMessages();
   }, [selectedFilter]); // Reload when filter changes
@@ -274,8 +286,7 @@ const fetchMessages = async (tag: "general" | "issue") => {
   // Add these two useEffect hooks for auto-refresh and scrolling
   useEffect(() => {
     const interval = setInterval(async () => {
-      const messages = await fetchMessages(selectedFilter);
-      setMessages(messages);
+      await fetchMessages(selectedFilter);
     }, 5000); // Refresh every 5 seconds
 
     return () => clearInterval(interval);
@@ -293,9 +304,10 @@ const fetchMessages = async (tag: "general" | "issue") => {
 
   // Update handleSendMessage function
 const handleSendMessage = async () => {
-  if (!newMessage.trim() || !user) return;
+  if (!newMessage.trim() || !user || isSending) return;
 
   try {
+    setIsSending(true); // Set sending state to true
     const timestamp = new Date().toISOString();
     const result = await postMessage(newMessage, currentTag);
     console.log('Message post response:', result);
@@ -317,15 +329,18 @@ const handleSendMessage = async () => {
     setNewMessage("");
   } catch (error) {
     console.error("Error sending message:", error);
+  } finally {
+    setIsSending(false); // Reset sending state
   }
 };
 
   // Add function to handle replies
   // Update handleReply function
 const handleReply = async (parentMessage: Message) => {
-  if (!newMessage.trim() || !user) return;
+  if (!newMessage.trim() || !user || isSending) return;
 
   try {
+    setIsSending(true); // Set sending state to true
     const result = await postReply(parentMessage.id.toString(), newMessage);
     console.log('Reply response:', result); // Debug log
 
@@ -351,14 +366,15 @@ const handleReply = async (parentMessage: Message) => {
     setReplyingTo(null);
   } catch (error) {
     console.error("Error sending reply:", error);
+  } finally {
+    setIsSending(false); // Reset sending state
   }
 };
 
   const handleFilterChange = async (newFilter: "general" | "issue") => {
     setSelectedFilter(newFilter);
     setCurrentTag(newFilter);
-    const messages = await fetchMessages(newFilter);
-    setMessages(messages);
+    await fetchMessages(newFilter);
   };
 
   const filteredMessages = messages.filter(
@@ -799,20 +815,30 @@ const handleReply = async (parentMessage: Message) => {
           animate="visible"
           className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-800/50 messages-container"
         >
-          {(selectedFilter === "issue" && searchQuery
-            ? filteredIssueMessages
-            : filteredMessages
-          ).map((message) => (
-            <motion.div
-              key={message.id}
-              variants={messageVariants}
-              layout
-              className="mb-6"
-            >
-              {renderMessage(message)}
-              {message.tag === "issue" && renderReplies(message.replies || [])}
-            </motion.div>
-          ))}
+          {isLoading && messages.length === 0 ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="text-cyan-400">Loading messages...</div>
+            </div>
+          ) : fetchError ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="text-red-400">{fetchError}</div>
+            </div>
+          ) : (
+            (selectedFilter === "issue" && searchQuery
+              ? filteredIssueMessages
+              : filteredMessages
+            ).map((message) => (
+              <motion.div
+                key={message.id}
+                variants={messageVariants}
+                layout
+                className="mb-6"
+              >
+                {renderMessage(message)}
+                {message.tag === "issue" && renderReplies(message.replies || [])}
+              </motion.div>
+            ))
+          )}
         </motion.div>
 
         {/* Input Area - Fixed */}
@@ -846,9 +872,21 @@ const handleReply = async (parentMessage: Message) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={replyingTo ? () => handleReply(replyingTo) : handleSendMessage}
-                className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
+                disabled={isSending}
+                className={`px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group ${
+                  isSending 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : 'hover:from-cyan-600 hover:to-blue-600'
+                }`}
               >
-                <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                {isSending ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Sending...</span>
+                  </div>
+                ) : (
+                  <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                )}
               </motion.button>
             </div>
           </div>
