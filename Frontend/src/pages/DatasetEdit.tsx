@@ -270,8 +270,30 @@ const DatasetEdit = () => {
       
       if (result.success) {
         toast.success("Dataset updated successfully");
+        
+        // Fetch updated dataset data
+        const updatedResponse = await fetch(
+          "http://127.0.0.1:5000/dataset-edit-click",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({
+              uid: user?.uid,
+              datasetName: name,
+            }),
+          }
+        );
+
+        if (updatedResponse.ok) {
+          const updatedData = await updatedResponse.json();
+          setDataset(updatedData);
+        }
+
         setTimeout(() => {
-          navigate(`/${username}/${datasetname}`);
+          navigate(`/${username}/${name}`);
         }, 1500);
       } else {
         throw new Error(result.message || "Failed to update dataset");
@@ -440,12 +462,7 @@ const DatasetEdit = () => {
         label: "File Type",
         value: fileType,
         icon: FileType,
-        isSelect: true,
-        options: Object.entries(fileTypes).map(([type, data]) => ({
-          value: type,
-          label: data.label,
-        })),
-        setter: setFileType,
+        isReadOnly: true, // Changed from isSelect to isReadOnly
       },
       {
         label: "Domain",
@@ -461,7 +478,7 @@ const DatasetEdit = () => {
     const vectorizedStats = datasetType !== "Vectorized" ? [
       {
         label: "Model Name",
-        value: vectorizedSettings.modelName || "Not specified",
+        value: vectorizedSettings.modelName,
         icon: Code,
         isInput: true,
         setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, modelName: value }))
@@ -692,7 +709,9 @@ const DatasetEdit = () => {
                     <select
                       value={stat.value}
                       onChange={(e) => stat.setter(e.target.value)}
-                      className="w-full bg-gray-900/50 text-white rounded-lg px-4 py-2 border border-gray-700 focus:border-cyan-500 outline-none"
+                      disabled={stat.isDisabled}
+                      className={`w-full bg-gray-900/50 text-white rounded-lg px-4 py-2 border border-gray-700 
+                        ${stat.isDisabled ? 'opacity-50 cursor-not-allowed' : 'focus:border-cyan-500'} outline-none`}
                     >
                       <option value="">Select {stat.label}</option>
                       {Array.isArray(stat.options)
