@@ -89,10 +89,10 @@ const OtherProfile = () => {
           throw new Error("Profile not found");
         }
 
-        // SECURITY CHECK: Don't allow users to view their own profile through OtherProfile
+        // SECURITY CHECK: Redirect to UserProfile if viewing own profile
         if (profileData.uid === user.uid) {
-          // Instead of redirecting, show an error message
-          throw new Error("Please use your profile page to view your own profile");
+          navigate(`/${username}`);
+          return;
         }
 
         setUserData(profileData);
