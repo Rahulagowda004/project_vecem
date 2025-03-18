@@ -23,9 +23,17 @@ import {
   Home,
   UserCircle2, // Add this import
   Settings, // Add this import
+  LucideIcon, // Add LucideIcon type
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext"; // Add this import at the top
 import { toast } from "react-hot-toast";
+
+// Add DirectoryInputElement interface
+interface DirectoryInputElement extends HTMLInputElement {
+  webkitdirectory: boolean;
+  directory?: string;
+  mozdirectory?: string;
+}
 
 // Animation variants
 const fadeIn = {
@@ -35,20 +43,53 @@ const fadeIn = {
 };
 
 const DatasetEdit = () => {
-  const { user } = useAuth(); // Add this near the top of the component
+  const { user } = useAuth();
   const { username, datasetname } = useParams();
   const navigate = useNavigate();
+  
+  // File input refs
+  const rawInputRef = useRef<DirectoryInputElement>(null);
+  const vectorizedInputRef = useRef<DirectoryInputElement>(null);
+
+  // All state declarations consolidated at the top
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Add new state for status message
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<{
+    files: FileList | null;
+    type: "raw" | "vectorized";
+  } | null>(null);
+  
   const [uploadStatus, setUploadStatus] = useState<{
     show: boolean;
     success: boolean;
     message: string;
   }>({ show: false, success: false, message: "" });
+
+  // Form states
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [datasetType, setDatasetType] = useState("Both");
+  const [vectorizedSettings, setVectorizedSettings] = useState({
+    dimensions: 768,
+    vectorDatabase: "Pinecone",
+    modelName: "",
+  });
+  const [domain, setDomain] = useState("");
+  const [fileType, setFileType] = useState("");
+  const [size, setSize] = useState({ raw: "", vectorized: "" });
+  const [overview, setOverview] = useState("");
+  const [dataStructure, setDataStructure] = useState("");
+  const [contents, setContents] = useState<string[]>([]);
+  const [useCases, setUseCases] = useState<string[]>([]);
+  const [fileSize, setFileSize] = useState<{ raw: number; vectorized: number }>({
+    raw: 0,
+    vectorized: 0,
+  });
+  const [dataset, setDataset] = useState<Dataset | null>(null);
 
   // Add domains array at the top of the component
   const domains = [
@@ -92,31 +133,6 @@ const DatasetEdit = () => {
     },
   };
 
-  // Form states
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [datasetType, setDatasetType] = useState("Both");
-  const [vectorizedSettings, setVectorizedSettings] = useState({
-    dimensions: 768,
-    vectorDatabase: "Pinecone",
-  });
-  const [domain, setDomain] = useState("");
-  const [fileType, setFileType] = useState("");
-  const [size, setSize] = useState({
-    raw: "",
-    vectorized: "",
-  });
-  const [overview, setOverview] = useState("");
-  const [dataStructure, setDataStructure] = useState("");
-  const [contents, setContents] = useState<string[]>([]);
-  const [useCases, setUseCases] = useState<string[]>([]);
-  const [fileSize, setFileSize] = useState<{ raw: number; vectorized: number }>(
-    {
-      raw: 0,
-      vectorized: 0,
-    }
-  );
-
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -125,7 +141,25 @@ const DatasetEdit = () => {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
 
-  const [dataset, setDataset] = useState(null);
+  interface Dataset {
+    _id: string;
+    dataset_info: {
+      name: string;
+      description: string;
+      domain: string;
+      file_type: string;
+    };
+    dataset_type: string;
+    files?: {
+      raw: string[];
+      vectorized: string[];
+    };
+    vectorized_settings?: {
+      dimensions: number;
+      vectorDatabase: string;
+      modelName: string;
+    };
+  }
 
   useEffect(() => {
     const fetchDataset = async () => {
@@ -478,8 +512,21 @@ const DatasetEdit = () => {
     </motion.div>
   );
 
+  // Define the interface for stats card items
+  interface StatCard {
+    label: string;
+    value: string | number;
+    icon: LucideIcon;
+    isReadOnly?: boolean;
+    isSelect?: boolean;
+    isInput?: boolean;
+    options?: string[];
+    setter?: (value: string) => void;
+    type?: string;
+  }
+
   const getStatsCards = () => {
-    const baseStats = [
+    const baseStats: StatCard[] = [
       {
         label: "Dataset Type",
         value: datasetType,
@@ -490,7 +537,7 @@ const DatasetEdit = () => {
         label: "File Type",
         value: fileType,
         icon: FileType,
-        isReadOnly: true, // Changed from isSelect to isReadOnly
+        isReadOnly: true,
       },
       {
         label: "Domain",
@@ -531,6 +578,147 @@ const DatasetEdit = () => {
     return [...baseStats, ...vectorizedStats];
   };
 
+  // The refs are already declared at the top of the component
+
+  // Note: selectedFiles and showConfirmation states are already declared at the top
+
+  // Add file type validation
+  const fileTypeMap = {
+    Image: {
+      mimeTypes: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
+      extensions: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic"],
+    },
+    Audio: {
+      mimeTypes: ["audio/mpeg", "audio/wav", "audio/ogg"],
+      extensions: [".mp3", ".wav", ".ogg"],
+    },
+    Video: {
+      mimeTypes: ["video/mp4", "video/webm", "video/ogg"],
+      extensions: [".mp4", ".webm", ".ogg"],
+    },
+    Text: {
+      mimeTypes: ["text/plain", "text/csv", "application/json", "application/pdf"],
+      extensions: [".txt", ".csv", ".json", ".pdf", ".docx", ".xlsx", ".doc"],
+    },
+  };
+
+  // Add file change handler
+  const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: "raw" | "vectorized"
+  ) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      toast.error("Please select files to upload");
+      return;
+    }
+
+    const filesArray = Array.from(files);
+
+    if (type === "raw") {
+      const allowedExtensions = fileTypeMap[fileType as keyof typeof fileTypeMap]?.extensions;
+      if (!allowedExtensions) {
+        toast.error("Invalid file type selected");
+        return;
+      }
+
+      const invalidFiles = filesArray.filter((file) => {
+        const extension = "." + file.name.split(".").pop()?.toLowerCase();
+        return !allowedExtensions.includes(extension);
+      });
+
+      if (invalidFiles.length > 0) {
+        toast.error(`Invalid file types detected. Allowed extensions: ${allowedExtensions.join(", ")}`);
+        if (event.target) event.target.value = "";
+        return;
+      }
+    }
+
+    // Create a new FileList-like object with the filtered files
+    const filteredFiles = new DataTransfer();
+    filesArray.forEach((file) => filteredFiles.items.add(file));
+
+    setSelectedFiles({
+      files: filteredFiles.files,
+      type,
+    });
+    setShowConfirmation(true);
+  };
+
+  // Add file upload handler
+  const handleUpload = async (files: FileList, type: "raw" | "vectorized") => {
+    if (!dataset?._id || !user?.uid) {
+      toast.error("Missing required information");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const result = await uploadDataset(
+        type === "raw" ? files : null,
+        type === "vectorized" ? files : null,
+        type,
+        {
+          datasetId: dataset._id,
+          name,
+          description,
+          domain,
+          file_type: fileType.toLowerCase(),
+          model_name: vectorizedSettings.modelName,
+          dimensions: vectorizedSettings.dimensions,
+          vector_database: vectorizedSettings.vectorDatabase,
+        }
+      );
+
+      if (result?.success) {
+        toast.success(`${type === "raw" ? "Raw" : "Vectorized"} files uploaded successfully`);
+        // Update file size state
+        setFileSize(prev => ({
+          ...prev,
+          [type]: files.length
+        }));
+      } else {
+        throw new Error(result?.message || "Upload failed");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to upload files");
+    } finally {
+      setIsUploading(false);
+      setShowConfirmation(false);
+    }
+  };
+
+  // Add ConfirmationDialog component
+  const ConfirmationDialog = () => (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-md w-full mx-4">
+        <h3 className="text-xl font-semibold mb-4 text-white">Confirm File Upload</h3>
+        <p className="text-gray-300 mb-4">
+          {selectedFiles?.files?.length} files selected. Are you sure you want to proceed?
+        </p>
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={() => setShowConfirmation(false)}
+            className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-white"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              if (selectedFiles?.files) {
+                handleUpload(selectedFiles.files, selectedFiles.type);
+              }
+            }}
+            className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors text-white"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderRightColumn = () => (
     <motion.div variants={fadeIn} className="space-y-6">
       {/* Dataset Status Section */}
@@ -551,6 +739,31 @@ const DatasetEdit = () => {
           </div>
         </div>
       </div>
+
+      {/* File Upload Section */}
+      {(datasetType === "Raw" || datasetType === "Vectorized") && (
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
+          <h3 className="text-lg font-medium text-white mb-4">
+            Add {datasetType === "Raw" ? "Vectorized" : "Raw"} Data
+          </h3>
+          <input
+            type="file"
+            ref={datasetType === "Raw" ? vectorizedInputRef : rawInputRef}
+            onChange={(e) => handleFileInputChange(e, datasetType === "Raw" ? "vectorized" : "raw")}
+            multiple
+            className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+              text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
+              file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
+              hover:file:bg-cyan-700 file:transition-colors"
+            accept={datasetType === "Raw" ? undefined : fileTypeMap[fileType as keyof typeof fileTypeMap]?.extensions.join(",")}
+          />
+          <p className="mt-2 text-sm text-gray-400">
+            {datasetType === "Raw" 
+              ? "Add vectorized data to enable AI-powered search capabilities" 
+              : `Add raw ${fileType.toLowerCase()} files to store the original data`}
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 
@@ -727,8 +940,73 @@ const DatasetEdit = () => {
         </div>
       </motion.div>
       <AnimatePresence>{showDeleteModal && <DeleteModal />}</AnimatePresence>
+      {showConfirmation && <ConfirmationDialog />}
     </div>
   );
 };
 
 export default DatasetEdit;
+async function uploadDataset(
+  rawFiles: FileList | null,
+  vectorizedFiles: FileList | null,
+  type: "raw" | "vectorized",
+  metadata: {
+    datasetId: string;
+    name: string;
+    description: string;
+    domain: string;
+    file_type: string;
+    model_name: string;
+    dimensions: number;
+    vector_database: string;
+  }
+) {
+  try {
+    const formData = new FormData();
+    
+    // Add files to form data
+    if (rawFiles) {
+      Array.from(rawFiles).forEach((file) => {
+        formData.append("raw_files", file);
+      });
+    }
+    if (vectorizedFiles) {
+      Array.from(vectorizedFiles).forEach((file) => {
+        formData.append("vectorized_files", file);
+      });
+    }
+
+    // Add metadata
+    Object.entries(metadata).forEach(([key, value]) => {
+      formData.append(key, String(value));
+    });
+
+    // Add upload type
+    formData.append("upload_type", type);
+
+    const response = await fetch("http://127.0.0.1:5000/upload-dataset-files", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || "Failed to upload files");
+    }
+
+    const result = await response.json();
+    return {
+      success: true,
+      message: `Successfully uploaded ${type} files`,
+      data: result
+    };
+
+  } catch (error) {
+    console.error("Upload error:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to upload files"
+    };
+  }
+}
+
