@@ -43,6 +43,13 @@ const DatasetEdit = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Add new state for status message
+  const [uploadStatus, setUploadStatus] = useState<{
+    show: boolean;
+    success: boolean;
+    message: string;
+  }>({ show: false, success: false, message: "" });
+
   // Add domains array at the top of the component
   const domains = [
     "Health",
@@ -116,31 +123,6 @@ const DatasetEdit = () => {
     const sizes = ["B", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
-  };
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files?.length) return;
-
-    const totalSize = Array.from(files).reduce(
-      (acc, file) => acc + file.size,
-      0
-    );
-    setFileSize((prev) => ({
-      ...prev,
-      raw: totalSize,
-    }));
-
-    // Simulate upload progress
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
-      if (progress >= 100) clearInterval(interval);
-    }, 500);
   };
 
   const [dataset, setDataset] = useState(null);
@@ -225,13 +207,52 @@ const DatasetEdit = () => {
     fetchDataset();
   }, [datasetname, user, navigate]);
 
+  // Add StatusMessage component
+  const StatusMessage = () => {
+    if (!uploadStatus.show) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div
+          className={`p-8 rounded-xl ${
+            uploadStatus.success ? "bg-green-800/90" : "bg-red-800/90"
+          } shadow-lg max-w-md mx-4 text-center transform transition-all duration-300 scale-100`}
+        >
+          <div
+            className={`text-6xl mb-4 ${
+              uploadStatus.success ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {uploadStatus.success ? "✓" : "✕"}
+          </div>
+          <h3 className="text-2xl font-semibold mb-2 text-white">
+            {uploadStatus.success ? "Success!" : "Save Failed"}
+          </h3>
+          <p className="text-lg text-gray-200">{uploadStatus.message}</p>
+          {uploadStatus.success && (
+            <p className="text-sm text-gray-300 mt-4">
+              Redirecting to dataset page...
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Update handleSave function
   const handleSave = async () => {
     if (!dataset?._id) {
-      toast.error("Dataset ID is missing");
+      setUploadStatus({
+        show: true,
+        success: false,
+        message: "Dataset ID is missing"
+      });
       return;
     }
 
     setIsSaving(true);
+    setUploadStatus({ show: false, success: false, message: "" });
+
     try {
       const requestData = {
         name,
@@ -239,8 +260,12 @@ const DatasetEdit = () => {
         domain,
         fileType,
         datasetType,
-        vectorizedSettings,
-        userId: user?.uid // Add user ID to request
+        vectorizedSettings: {
+          dimensions: vectorizedSettings.dimensions,
+          vectorDatabase: vectorizedSettings.vectorDatabase,
+          modelName: vectorizedSettings.modelName
+        },
+        userId: user?.uid
       };
 
       const response = await fetch(
@@ -255,52 +280,55 @@ const DatasetEdit = () => {
         }
       );
 
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned non-JSON response");
-      }
+      const result = await response.json();
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Server Error:", errorData);
-        throw new Error(errorData.detail || "Failed to update dataset");
+        throw new Error(result.detail || "Failed to update dataset");
       }
 
-      const result = await response.json();
-      
-      if (result.success) {
-        toast.success("Dataset updated successfully");
-        
-        // Fetch updated dataset data
-        const updatedResponse = await fetch(
-          "http://127.0.0.1:5000/dataset-edit-click",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json"
-            },
-            body: JSON.stringify({
-              uid: user?.uid,
-              datasetName: name,
-            }),
-          }
-        );
+      setUploadStatus({
+        show: true,
+        success: true,
+        message: "Dataset updated successfully!"
+      });
 
-        if (updatedResponse.ok) {
-          const updatedData = await updatedResponse.json();
-          setDataset(updatedData);
+      // Fetch latest data before redirecting
+      const updatedResponse = await fetch(
+        "http://127.0.0.1:5000/dataset-edit-click",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uid: user?.uid,
+            datasetName: name,
+          }),
         }
+      );
 
-        setTimeout(() => {
-          navigate(`/${username}/${name}`);
-        }, 1500);
-      } else {
-        throw new Error(result.message || "Failed to update dataset");
+      if (updatedResponse.ok) {
+        const updatedData = await updatedResponse.json();
+        setDataset(updatedData);
       }
+
+      // Delay redirect to show success message
+      setTimeout(() => {
+        navigate(`/${username}/${name}`);
+      }, 2000);
+
     } catch (error) {
       console.error("Error updating dataset:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to update dataset");
+      setUploadStatus({
+        show: true,
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to update dataset"
+      });
+      
+      // Clear error message after delay
+      setTimeout(() => {
+        setUploadStatus({ show: false, success: false, message: "" });
+      }, 4000);
     } finally {
       setIsSaving(false);
     }
@@ -505,72 +533,6 @@ const DatasetEdit = () => {
 
   const renderRightColumn = () => (
     <motion.div variants={fadeIn} className="space-y-6">
-      {/* Upload Section - Only show for Raw or Vectorized types */}
-      {datasetType !== "Both" ? (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">
-              {datasetType === "Raw" ? "Add Vectorized Data" : "Add Raw Data"}
-            </h2>
-            <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-sm border border-cyan-500/20">
-              {datasetType === "Raw" ? "Vectorization" : "Raw Data"}
-            </span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">
-            {datasetType === "Raw" 
-              ? "Convert your raw data into vector embeddings for advanced search capabilities."
-              : "Add the original raw data to complement your vectorized dataset."
-            }
-          </p>
-
-          <div className="space-y-4">
-            <div className="relative">
-              <input
-                ref={fileInputRef}
-                type="file"
-                onChange={handleFileChange}
-                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition
-                  text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
-                  file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
-                  hover:file:bg-cyan-700 file:transition-colors"
-                multiple
-                directory=""
-                webkitdirectory=""
-                accept={datasetType === "Raw" 
-                  ? undefined // For vectorized uploads, accept all files
-                  : fileTypes[fileType]?.extensions.map(ext => `.${ext}`).join(',')} // For raw uploads, restrict by file type
-              />
-              <Upload className="absolute right-3 top-2.5 text-cyan-400 w-5 h-5" />
-            </div>
-
-            {uploadProgress > 0 && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm text-gray-400">
-                  <span>Upload Progress</span>
-                  <span>{uploadProgress}%</span>
-                </div>
-                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-cyan-500 transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
-          <div className="flex items-center gap-3">
-            <Database className="w-5 h-5 text-cyan-400" />
-            <span className="text-gray-400">
-              This dataset already contains both raw and vectorized files
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* Dataset Status Section */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
         <h3 className="text-sm font-medium text-gray-400 mb-3">Dataset Status</h3>
@@ -594,6 +556,7 @@ const DatasetEdit = () => {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
+      {uploadStatus.show && <StatusMessage />}
       {/* Breadcrumb Navigation */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
