@@ -125,9 +125,7 @@ export const uploadDatasetFiles = async (
   metadata: DatasetMetadata & { userId: string }
 ) => {
   try {
-    // Add validation at the start
     if (!metadata.userId) {
-      console.error("Missing userId in metadata:", metadata);
       throw new Error("User ID is required");
     }
 
@@ -144,7 +142,7 @@ export const uploadDatasetFiles = async (
       });
     }
 
-    // Make sure to add uid first
+    // Add dataset info
     formData.append("uid", metadata.userId);
     formData.append("type", type);
     formData.append(
@@ -155,20 +153,11 @@ export const uploadDatasetFiles = async (
         description: metadata.description,
         domain: metadata.domain,
         file_type: metadata.file_type,
-        model_name: metadata.model_name,
-        dimensions: metadata.dimensions,
-        vector_database: metadata.vector_database,
         isEdit: true,
       })
     );
 
-    console.log("Upload request metadata:", {
-      userId: metadata.userId,
-      type,
-      files: type === "raw" ? rawFiles?.length : vectorizedFiles?.length,
-    });
-
-    const response = await fetch(`${API_URL}/upload`, {
+    const response = await fetch(`${API_URL}/upload/edit`, {
       method: "POST",
       body: formData,
     });

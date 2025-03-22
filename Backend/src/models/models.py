@@ -21,16 +21,21 @@ class VectorizedSettings(BaseModel):
 
 class DatasetInfo(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str
+    domain: str
+    file_type: str
     datasetId: Optional[str] = None
-    uid: str = Field(..., description="User ID is required")
-    domain: Optional[str] = None
-    license: str
-    file_type: Optional[str] = None
-    dimensions: Optional[int] = None
-    vector_database: Optional[str] = None
-    model_name: Optional[str] = None
-    vectorized_settings: Optional[VectorizedSettings] = None
+    uid: Optional[str] = None
+    license: Optional[str] = None
+    isEdit: Optional[bool] = False
+
+class DatasetEditInfo(BaseModel):
+    name: str
+    description: str
+    domain: str
+    file_type: str
+    datasetId: str
+    isEdit: bool = True
 
 class UploadResponse(BaseModel):
     success: bool
