@@ -42,6 +42,9 @@ async def upload_files(
         dataset_info_dict["username"] = username  # Add username to dataset_info
         dataset_info_dict.pop('uid', None)  # Remove uid from dataset_info
         
+        if "license" not in dataset_info_dict:
+            raise HTTPException(status_code=400, detail="License is required")
+        
         dataset_id = dataset_info.datasetId or str(uuid.uuid4())
         dataset_name = dataset_info.name.replace(" ", "_").lower()
 

@@ -25,6 +25,7 @@ class DatasetInfo(BaseModel):
     datasetId: Optional[str] = None
     uid: str = Field(..., description="User ID is required")
     domain: Optional[str] = None
+    license: str
     file_type: Optional[str] = None
     dimensions: Optional[int] = None
     vector_database: Optional[str] = None
