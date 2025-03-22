@@ -29,6 +29,12 @@ interface DatasetMetadata {
   vector_database: string;
 }
 
+interface UploadResponse {
+  success: boolean;
+  message: string;
+  files: string[];
+}
+
 const API_URL = "http://127.0.0.1:5000";
 
 export const fetchDatasetForEdit = async (
@@ -116,41 +122,65 @@ export const uploadDatasetFiles = async (
   rawFiles: FileList | null,
   vectorizedFiles: FileList | null,
   type: "raw" | "vectorized",
-  metadata: DatasetMetadata
+  metadata: DatasetMetadata & { userId: string }
 ) => {
-  const formData = new FormData();
+  try {
+    // Add validation at the start
+    if (!metadata.userId) {
+      console.error("Missing userId in metadata:", metadata);
+      throw new Error("User ID is required");
+    }
 
-  if (rawFiles) {
-    Array.from(rawFiles).forEach((file) => {
-      formData.append("raw_files", file);
+    const formData = new FormData();
+
+    // Add files based on type
+    if (type === "raw" && rawFiles) {
+      Array.from(rawFiles).forEach((file) => {
+        formData.append("raw_files", file);
+      });
+    } else if (type === "vectorized" && vectorizedFiles) {
+      Array.from(vectorizedFiles).forEach((file) => {
+        formData.append("vectorized_files", file);
+      });
+    }
+
+    // Make sure to add uid first
+    formData.append("uid", metadata.userId);
+    formData.append("type", type);
+    formData.append(
+      "datasetInfo",
+      JSON.stringify({
+        datasetId: metadata.datasetId,
+        name: metadata.name,
+        description: metadata.description,
+        domain: metadata.domain,
+        file_type: metadata.file_type,
+        model_name: metadata.model_name,
+        dimensions: metadata.dimensions,
+        vector_database: metadata.vector_database,
+        isEdit: true,
+      })
+    );
+
+    console.log("Upload request metadata:", {
+      userId: metadata.userId,
+      type,
+      files: type === "raw" ? rawFiles?.length : vectorizedFiles?.length,
     });
-  }
-  if (vectorizedFiles) {
-    Array.from(vectorizedFiles).forEach((file) => {
-      formData.append("vectorized_files", file);
+
+    const response = await fetch(`${API_URL}/upload`, {
+      method: "POST",
+      body: formData,
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to upload files");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Upload Error:", error);
+    throw error;
   }
-
-  Object.entries(metadata).forEach(([key, value]) => {
-    formData.append(key, String(value));
-  });
-
-  formData.append("upload_type", type);
-
-  const response = await fetch(`${API_URL}/upload-dataset-files`, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || "Failed to upload files");
-  }
-
-  const result = await response.json();
-  return {
-    success: true,
-    message: `Successfully uploaded ${type} files`,
-    data: result,
-  };
 };

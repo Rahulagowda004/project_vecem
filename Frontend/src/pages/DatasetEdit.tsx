@@ -27,7 +27,13 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext"; // Add this import at the top
 import { toast } from "react-hot-toast";
-import { fetchDatasetForEdit, updateDataset, deleteDataset, uploadDatasetFiles, Dataset } from "../services/datasetEditService";
+import {
+  fetchDatasetForEdit,
+  updateDataset,
+  deleteDataset,
+  uploadDatasetFiles,
+  Dataset,
+} from "../services/datasetEditService";
 
 // Add DirectoryInputElement interface
 interface DirectoryInputElement extends HTMLInputElement {
@@ -47,7 +53,7 @@ const DatasetEdit = () => {
   const { user } = useAuth();
   const { username, datasetname } = useParams();
   const navigate = useNavigate();
-  
+
   // File input refs
   const rawInputRef = useRef<DirectoryInputElement>(null);
   const vectorizedInputRef = useRef<DirectoryInputElement>(null);
@@ -63,7 +69,7 @@ const DatasetEdit = () => {
     files: FileList | null;
     type: "raw" | "vectorized";
   } | null>(null);
-  
+
   const [uploadStatus, setUploadStatus] = useState<{
     show: boolean;
     success: boolean;
@@ -86,10 +92,12 @@ const DatasetEdit = () => {
   const [dataStructure, setDataStructure] = useState("");
   const [contents, setContents] = useState<string[]>([]);
   const [useCases, setUseCases] = useState<string[]>([]);
-  const [fileSize, setFileSize] = useState<{ raw: number; vectorized: number }>({
-    raw: 0,
-    vectorized: 0,
-  });
+  const [fileSize, setFileSize] = useState<{ raw: number; vectorized: number }>(
+    {
+      raw: 0,
+      vectorized: 0,
+    }
+  );
   const [dataset, setDataset] = useState<Dataset | null>(null);
 
   // Add domains array at the top of the component
@@ -151,7 +159,7 @@ const DatasetEdit = () => {
 
         setIsLoading(true);
         const data = await fetchDatasetForEdit(user.uid, datasetname);
-        
+
         setDataset(data);
         setName(data.dataset_info.name || datasetname);
         setDescription(data.dataset_info.description || "");
@@ -161,23 +169,25 @@ const DatasetEdit = () => {
 
         const hasRawFiles = data.files?.raw?.length > 0;
         const hasVectorizedFiles = data.files?.vectorized?.length > 0;
-        
+
         setFileSize({
           raw: hasRawFiles ? 1 : 0,
-          vectorized: hasVectorizedFiles ? 1 : 0
+          vectorized: hasVectorizedFiles ? 1 : 0,
         });
 
         if (data.vectorized_settings) {
           setVectorizedSettings({
             dimensions: data.vectorized_settings.dimensions || 768,
-            vectorDatabase: data.vectorized_settings.vectorDatabase || "Pinecone",
-            modelName: data.vectorized_settings.modelName || ""
+            vectorDatabase:
+              data.vectorized_settings.vectorDatabase || "Pinecone",
+            modelName: data.vectorized_settings.modelName || "",
           });
         }
-
       } catch (error) {
         console.error("Error fetching dataset:", error);
-        toast.error(error instanceof Error ? error.message : "Failed to load dataset");
+        toast.error(
+          error instanceof Error ? error.message : "Failed to load dataset"
+        );
         navigate("/settings");
       } finally {
         setIsLoading(false);
@@ -225,7 +235,7 @@ const DatasetEdit = () => {
       setUploadStatus({
         show: true,
         success: false,
-        message: "Dataset ID is missing"
+        message: "Dataset ID is missing",
       });
       return;
     }
@@ -243,8 +253,8 @@ const DatasetEdit = () => {
         vectorizedSettings: {
           dimensions: vectorizedSettings.dimensions,
           vectorDatabase: vectorizedSettings.vectorDatabase,
-          modelName: vectorizedSettings.modelName
-        }
+          modelName: vectorizedSettings.modelName,
+        },
       };
 
       await updateDataset(dataset._id, user?.uid!, requestData);
@@ -252,21 +262,21 @@ const DatasetEdit = () => {
       setUploadStatus({
         show: true,
         success: true,
-        message: "Dataset updated successfully!"
+        message: "Dataset updated successfully!",
       });
 
       setTimeout(() => {
         navigate(`/${username}/${name}`);
       }, 2000);
-
     } catch (error) {
       console.error("Error updating dataset:", error);
       setUploadStatus({
         show: true,
         success: false,
-        message: error instanceof Error ? error.message : "Failed to update dataset"
+        message:
+          error instanceof Error ? error.message : "Failed to update dataset",
       });
-      
+
       setTimeout(() => {
         setUploadStatus({ show: false, success: false, message: "" });
       }, 4000);
@@ -437,30 +447,45 @@ const DatasetEdit = () => {
     ];
 
     // Only add vectorized settings for Raw or Both types
-    const vectorizedStats = datasetType !== "Vectorized" ? [
-      {
-        label: "Model Name",
-        value: vectorizedSettings.modelName,
-        icon: Code,
-        isInput: true,
-        setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, modelName: value }))
-      },
-      {
-        label: "Dimensions",
-        value: vectorizedSettings.dimensions,
-        icon: Box,
-        isInput: true,
-        type: "number",
-        setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, dimensions: parseInt(value) }))
-      },
-      {
-        label: "Vector DB",
-        value: vectorizedSettings.vectorDatabase,
-        icon: Database,
-        isInput: true,
-        setter: (value: string) => setVectorizedSettings(prev => ({ ...prev, vectorDatabase: value }))
-      }
-    ] : [];
+    const vectorizedStats =
+      datasetType !== "Vectorized"
+        ? [
+            {
+              label: "Model Name",
+              value: vectorizedSettings.modelName,
+              icon: Code,
+              isInput: true,
+              setter: (value: string) =>
+                setVectorizedSettings((prev) => ({
+                  ...prev,
+                  modelName: value,
+                })),
+            },
+            {
+              label: "Dimensions",
+              value: vectorizedSettings.dimensions,
+              icon: Box,
+              isInput: true,
+              type: "number",
+              setter: (value: string) =>
+                setVectorizedSettings((prev) => ({
+                  ...prev,
+                  dimensions: parseInt(value),
+                })),
+            },
+            {
+              label: "Vector DB",
+              value: vectorizedSettings.vectorDatabase,
+              icon: Database,
+              isInput: true,
+              setter: (value: string) =>
+                setVectorizedSettings((prev) => ({
+                  ...prev,
+                  vectorDatabase: value,
+                })),
+            },
+          ]
+        : [];
 
     return [...baseStats, ...vectorizedStats];
   };
@@ -472,7 +497,13 @@ const DatasetEdit = () => {
   // Add file type validation
   const fileTypeMap = {
     Image: {
-      mimeTypes: ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"],
+      mimeTypes: [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/heic",
+      ],
       extensions: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".heic"],
     },
     Audio: {
@@ -484,7 +515,12 @@ const DatasetEdit = () => {
       extensions: [".mp4", ".webm", ".ogg"],
     },
     Text: {
-      mimeTypes: ["text/plain", "text/csv", "application/json", "application/pdf"],
+      mimeTypes: [
+        "text/plain",
+        "text/csv",
+        "application/json",
+        "application/pdf",
+      ],
       extensions: [".txt", ".csv", ".json", ".pdf", ".docx", ".xlsx", ".doc"],
     },
   };
@@ -503,7 +539,8 @@ const DatasetEdit = () => {
     const filesArray = Array.from(files);
 
     if (type === "raw") {
-      const allowedExtensions = fileTypeMap[fileType as keyof typeof fileTypeMap]?.extensions;
+      const allowedExtensions =
+        fileTypeMap[fileType as keyof typeof fileTypeMap]?.extensions;
       if (!allowedExtensions) {
         toast.error("Invalid file type selected");
         return;
@@ -515,7 +552,11 @@ const DatasetEdit = () => {
       });
 
       if (invalidFiles.length > 0) {
-        toast.error(`Invalid file types detected. Allowed extensions: ${allowedExtensions.join(", ")}`);
+        toast.error(
+          `Invalid file types detected. Allowed extensions: ${allowedExtensions.join(
+            ", "
+          )}`
+        );
         if (event.target) event.target.value = "";
         return;
       }
@@ -546,10 +587,11 @@ const DatasetEdit = () => {
         type === "vectorized" ? files : null,
         type,
         {
+          userId: user.uid, // Add this explicitly
           datasetId: dataset._id,
-          name,
-          description,
-          domain,
+          name: name,
+          description: description,
+          domain: domain,
           file_type: fileType.toLowerCase(),
           model_name: vectorizedSettings.modelName,
           dimensions: vectorizedSettings.dimensions,
@@ -558,18 +600,21 @@ const DatasetEdit = () => {
       );
 
       if (result?.success) {
-        toast.success(`${type === "raw" ? "Raw" : "Vectorized"} files uploaded successfully`);
-        // Update file size state
-        setFileSize(prev => ({
+        toast.success(
+          `${type === "raw" ? "Raw" : "Vectorized"} files uploaded successfully`
+        );
+        setFileSize((prev) => ({
           ...prev,
-          [type]: files.length
+          [type]: files.length,
         }));
       } else {
         throw new Error(result?.message || "Upload failed");
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to upload files");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload files"
+      );
     } finally {
       setIsUploading(false);
       setShowConfirmation(false);
@@ -580,9 +625,12 @@ const DatasetEdit = () => {
   const ConfirmationDialog = () => (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-md w-full mx-4">
-        <h3 className="text-xl font-semibold mb-4 text-white">Confirm File Upload</h3>
+        <h3 className="text-xl font-semibold mb-4 text-white">
+          Confirm File Upload
+        </h3>
         <p className="text-gray-300 mb-4">
-          {selectedFiles?.files?.length} files selected. Are you sure you want to proceed?
+          {selectedFiles?.files?.length} files selected. Are you sure you want
+          to proceed?
         </p>
         <div className="flex justify-end gap-4">
           <button
@@ -610,23 +658,31 @@ const DatasetEdit = () => {
     <motion.div variants={fadeIn} className="space-y-6">
       {/* Dataset Status Section */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
-        <h3 className="text-sm font-medium text-gray-400 mb-3">Dataset Status</h3>
+        <h3 className="text-sm font-medium text-gray-400 mb-3">
+          Dataset Status
+        </h3>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-400">Raw Data</span>
-            <span className={fileSize.raw > 0 ? "text-green-400" : "text-gray-500"}>
+            <span
+              className={fileSize.raw > 0 ? "text-green-400" : "text-gray-500"}
+            >
               {fileSize.raw > 0 ? "Available" : "Not Available"}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-400">Vectorized Data</span>
-            <span className={fileSize.vectorized > 0 ? "text-green-400" : "text-gray-500"}>
+            <span
+              className={
+                fileSize.vectorized > 0 ? "text-green-400" : "text-gray-500"
+              }
+            >
               {fileSize.vectorized > 0 ? "Available" : "Not Available"}
             </span>
           </div>
         </div>
       </div>
-      
+
       {/* File Upload Section */}
       {(datasetType === "Raw" || datasetType === "Vectorized") && (
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
@@ -636,17 +692,28 @@ const DatasetEdit = () => {
           <input
             type="file"
             ref={datasetType === "Raw" ? vectorizedInputRef : rawInputRef}
-            onChange={(e) => handleFileInputChange(e, datasetType === "Raw" ? "vectorized" : "raw")}
+            onChange={(e) =>
+              handleFileInputChange(
+                e,
+                datasetType === "Raw" ? "vectorized" : "raw"
+              )
+            }
             multiple
             className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
               text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
               file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
               hover:file:bg-cyan-700 file:transition-colors"
-            accept={datasetType === "Raw" ? undefined : fileTypeMap[fileType as keyof typeof fileTypeMap]?.extensions.join(",")}
+            accept={
+              datasetType === "Raw"
+                ? undefined
+                : fileTypeMap[
+                    fileType as keyof typeof fileTypeMap
+                  ]?.extensions.join(",")
+            }
           />
           <p className="mt-2 text-sm text-gray-400">
-            {datasetType === "Raw" 
-              ? "Add vectorized data to enable AI-powered search capabilities" 
+            {datasetType === "Raw"
+              ? "Add vectorized data to enable AI-powered search capabilities"
               : `Add raw ${fileType.toLowerCase()} files to store the original data`}
           </p>
         </div>
@@ -762,7 +829,9 @@ const DatasetEdit = () => {
                 >
                   <div className="flex items-center gap-2 mb-3">
                     <stat.icon className="w-5 h-5 text-cyan-400" />
-                    <div className="text-sm font-medium text-cyan-200">{stat.label}</div>
+                    <div className="text-sm font-medium text-cyan-200">
+                      {stat.label}
+                    </div>
                   </div>
                   {stat.isReadOnly ? (
                     <div className="text-lg font-semibold text-white">
@@ -774,16 +843,30 @@ const DatasetEdit = () => {
                       onChange={(e) => stat.setter(e.target.value)}
                       disabled={stat.isDisabled}
                       className={`w-full bg-gray-900/50 text-white rounded-lg px-4 py-2 border border-gray-700 
-                        ${stat.isDisabled ? 'opacity-50 cursor-not-allowed' : 'focus:border-cyan-500'} outline-none`}
+                        ${
+                          stat.isDisabled
+                            ? "opacity-50 cursor-not-allowed"
+                            : "focus:border-cyan-500"
+                        } outline-none`}
                     >
                       <option value="">Select {stat.label}</option>
                       {Array.isArray(stat.options)
                         ? stat.options.map((option) => (
                             <option
-                              key={typeof option === "string" ? option : option.value}
-                              value={typeof option === "string" ? option : option.value}
+                              key={
+                                typeof option === "string"
+                                  ? option
+                                  : option.value
+                              }
+                              value={
+                                typeof option === "string"
+                                  ? option
+                                  : option.value
+                              }
                             >
-                              {typeof option === "string" ? option : option.label}
+                              {typeof option === "string"
+                                ? option
+                                : option.label}
                             </option>
                           ))
                         : null}
@@ -815,7 +898,9 @@ const DatasetEdit = () => {
                 className={`w-full bg-gray-900/50 text-white rounded-lg p-4 border border-gray-700 
                   focus:border-cyan-500 outline-none text-lg leading-relaxed
                   font-medium resize-none ${
-                    datasetType.toLowerCase() === "raw" ? "min-h-[230px]" : "min-h-[100px]"
+                    datasetType.toLowerCase() === "raw"
+                      ? "min-h-[230px]"
+                      : "min-h-[100px]"
                   }`}
                 placeholder="Enter detailed dataset description"
               />
@@ -833,4 +918,3 @@ const DatasetEdit = () => {
 };
 
 export default DatasetEdit;
-

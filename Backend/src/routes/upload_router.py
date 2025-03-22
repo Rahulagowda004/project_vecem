@@ -6,8 +6,13 @@ from datetime import datetime
 from src.utils.logger import logging
 from src.models.models import DatasetInfo, UploadResponse
 from src.utils.file_handlers import ensure_directories, save_uploaded_file
-from src.database.mongodb import save_metadata_and_update_user, user_profile_collection  # Add this import
+from src.database.mongodb import (
+    save_metadata_and_update_user, 
+    user_profile_collection,
+    datasets_collection # Add this import
+)
 from src.utils.azure_storage import upload_to_blob, delete_dataset_blobs, create_and_upload_zip
+from bson import ObjectId
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
@@ -24,74 +29,74 @@ async def upload_files(
     uid: str = Form(...)
 ):
     try:
+        logging.info(f"Upload request received - UID: {uid}, Type: {type}")
+        
         if not uid:
             raise HTTPException(status_code=400, detail="User ID is required")
 
-        # Get user profile to fetch username
+        # Get user profile and validate
         user_profile = await user_profile_collection.find_one({"uid": uid})
         if not user_profile:
-            raise HTTPException(status_code=404, detail="User not found")
+            raise HTTPException(status_code=404, detail=f"User not found for ID: {uid}")
         
         username = user_profile.get("username")
         if not username:
             raise HTTPException(status_code=400, detail="Username not found")
 
-        # Parse dataset info
-        dataset_info = DatasetInfo.parse_raw(datasetInfo)
-        dataset_info_dict = dataset_info.dict()
-        dataset_info_dict["username"] = username  # Add username to dataset_info
-        dataset_info_dict.pop('uid', None)  # Remove uid from dataset_info
-        
-        if "license" not in dataset_info_dict:
-            raise HTTPException(status_code=400, detail="License is required")
-        
-        dataset_id = dataset_info.datasetId or str(uuid.uuid4())
-        dataset_name = dataset_info.name.replace(" ", "_").lower()
+        dataset_info = json.loads(datasetInfo)
+        is_edit = dataset_info.pop('isEdit', False)
+        dataset_id = dataset_info.get('datasetId')
+        dataset_name = dataset_info['name'].replace(" ", "_").lower()
 
+        # Initialize files dictionary preserving existing files
         uploaded_files = {"raw": [], "vectorized": []}
 
-        # Handle file uploads based on type
-        if type.lower() == "both":
-            if raw_files:
-                # Create and upload zip for raw files
+        if is_edit and dataset_id:
+            # Get existing dataset
+            existing_dataset = await datasets_collection.find_one({"_id": ObjectId(dataset_id)})
+            if existing_dataset and "files" in existing_dataset:
+                uploaded_files = existing_dataset["files"]
+
+        try:
+            # Handle file uploads
+            if type == "raw" and raw_files:
                 raw_url = await create_and_upload_zip(raw_files, username, dataset_name, "raw")
-                uploaded_files["raw"].append(raw_url)
-
-            if vectorized_files:
-                # Create and upload zip for vectorized files
+                uploaded_files["raw"] = [raw_url]
+            elif type == "vectorized" and vectorized_files:
                 vec_url = await create_and_upload_zip(vectorized_files, username, dataset_name, "vectorized")
-                uploaded_files["vectorized"].append(vec_url)
-        else:
-            if files:
-                # Create and upload zip for single type
-                url = await create_and_upload_zip(files, username, dataset_name, type.lower())
-                uploaded_files[type.lower()].append(url)
+                uploaded_files["vectorized"] = [vec_url]
 
-        # Prepare and save metadata
-        metadata = {
-            "dataset_id": dataset_id,
-            "dataset_info": dataset_info_dict,  # dataset_info without uid
-            "upload_type": type.lower(),
-            "timestamp": datetime.now().isoformat(),
-            "files": uploaded_files,
-            "uid": uid  # uid only stored at root level
-        }
+            # Update database
+            if is_edit and dataset_id:
+                result = await datasets_collection.update_one(
+                    {"_id": ObjectId(dataset_id)},
+                    {"$set": {
+                        "files": uploaded_files,
+                        "timestamp": datetime.now().isoformat()
+                    }}
+                )
+                if result.modified_count == 0:
+                    raise HTTPException(status_code=404, detail="Dataset not found")
 
-        # Save metadata and update user profile
-        await save_metadata_and_update_user(metadata)
+            logging.info(f"Files uploaded successfully - Type: {type}, Files: {uploaded_files}")
 
-        all_files = uploaded_files.get("raw", []) + uploaded_files.get("vectorized", [])
-        return UploadResponse(
-            success=True,
-            message=f"Successfully uploaded dataset {dataset_id}",
-            files=all_files
-        )
+            return UploadResponse(
+                success=True,
+                message=f"Successfully uploaded {type} files",
+                files=uploaded_files.get(type, [])
+            )
+
+        except Exception as upload_error:
+            logging.error(f"Upload error: {str(upload_error)}")
+            await delete_dataset_blobs(dataset_name, username)
+            raise upload_error
 
     except Exception as e:
         logging.error(f"Upload error: {str(e)}")
-        if 'dataset_name' in locals() and 'username' in locals():
-            await delete_dataset_blobs(dataset_name, username)
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error during upload: {str(e)}"
+        )
 
 @router.delete("/datasets/{dataset_id}")
 async def delete_dataset(dataset_id: str):
