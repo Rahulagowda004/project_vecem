@@ -76,6 +76,7 @@ const DatasetDetail = () => {
         setDataset({
           name: data.dataset_info.name,
           description: data.dataset_info.description,
+          license: data.dataset_info.license, // Add this line
           datasetType: data.upload_type,
           domain: data.dataset_info.domain,
           fileType: data.dataset_info.file_type,
@@ -232,7 +233,7 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
                   whileHover={{ scale: 1.05 }}
                   className="px-4 py-1.5 bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 rounded-full text-sm"
                 >
-                  {dataset.domain}
+                  {dataset.license || "No License"}
                 </motion.span>
                 <motion.span
                   whileHover={{ scale: 1.05 }}
@@ -435,6 +436,12 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
                       month: "long",
                       year: "numeric",
                     })}
+                  </span>
+                </p>
+                <p className="text-cyan-100">
+                  License:{" "}
+                  <span className="text-white">
+                    {dataset.license || "No License"}
                   </span>
                 </p>
               </div>
