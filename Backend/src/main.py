@@ -344,30 +344,55 @@ async def log_dataset_edit(data: dict):
 
 @app.put("/update-dataset/{dataset_id}")
 async def update_dataset(dataset_id: str, updated_data: dict):
-    logging.info(f"Endpoint called: update_dataset() for dataset_id: {dataset_id}")
+    logging.info(f"Endpoint called: update_dataset() for dataset_id: {dataset_id} with data: {updated_data}")
     try:
         # Convert string ID back to ObjectId
         object_id = ObjectId(dataset_id)
         
-        # Update the dataset
+        # Check if user has permission to update this dataset
+        if not updated_data.get("userId"):
+            raise HTTPException(status_code=400, detail="User ID is required")
+            
+        # Verify dataset ownership
+        dataset = await datasets_collection.find_one({
+            "_id": object_id,
+            "uid": updated_data["userId"]
+        })
+        
+        if not dataset:
+            raise HTTPException(status_code=404, detail="Dataset not found or you don't have permission to update it")
+        
+        # Prepare update data with timestamp
+        update_dict = {
+            "dataset_info": {
+                "name": updated_data.get("name"),
+                "description": updated_data.get("description"),
+                "domain": updated_data.get("domain"),
+                "file_type": updated_data.get("fileType")
+            },
+            "dataset_type": updated_data.get("datasetType"),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        # Only include vectorized_settings if provided
+        if updated_data.get("vectorizedSettings"):
+            update_dict["vectorized_settings"] = updated_data["vectorizedSettings"]
+        
+        # Update the dataset with the complete document update
         result = await datasets_collection.update_one(
             {"_id": object_id},
-            {"$set": {
-                "dataset_info.name": updated_data.get("name"),
-                "dataset_info.description": updated_data.get("description"),
-                "dataset_info.domain": updated_data.get("domain"),
-                "dataset_info.file_type": updated_data.get("fileType"),
-                "upload_type": updated_data.get("datasetType"),
-                "vectorized_settings": updated_data.get("vectorizedSettings"),
-            }}
+            {"$set": update_dict}
         )
-        logging.info(f"Dataset updated: {result} in update_dataset()")
+        
+        logging.info(f"Dataset updated: {result.modified_count} document(s) modified")
+        
         if result.modified_count == 0:
-            raise HTTPException(status_code=404, detail="Dataset not found")
+            raise HTTPException(status_code=404, detail="Failed to update dataset")
             
-        return {"message": "Dataset updated successfully"}
+        return {"message": "Dataset updated successfully", "status": "success"}
         
     except Exception as e:
+        logging.error(f"Error updating dataset: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 class DatasetDeleteRequest(BaseModel):

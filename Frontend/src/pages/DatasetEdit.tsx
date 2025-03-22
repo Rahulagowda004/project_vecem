@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext"; // Add this import at the top
 import { toast } from "react-hot-toast";
+import { fetchDatasetForEdit, updateDataset, deleteDataset, uploadDatasetFiles, Dataset } from "../services/datasetEditService";
 
 // Add DirectoryInputElement interface
 interface DirectoryInputElement extends HTMLInputElement {
@@ -141,26 +142,6 @@ const DatasetEdit = () => {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
 
-  interface Dataset {
-    _id: string;
-    dataset_info: {
-      name: string;
-      description: string;
-      domain: string;
-      file_type: string;
-    };
-    dataset_type: string;
-    files?: {
-      raw: string[];
-      vectorized: string[];
-    };
-    vectorized_settings?: {
-      dimensions: number;
-      vectorDatabase: string;
-      modelName: string;
-    };
-  }
-
   useEffect(() => {
     const fetchDataset = async () => {
       try {
@@ -169,49 +150,15 @@ const DatasetEdit = () => {
         }
 
         setIsLoading(true);
-        console.log("Fetching dataset:", datasetname);
-
-        const response = await fetch(
-          "http://127.0.0.1:5000/dataset-edit-click",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json"
-            },
-            body: JSON.stringify({
-              uid: user.uid,
-              datasetName: datasetname,
-            }),
-          }
-        );
-
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new Error("Server returned non-JSON response");
-        }
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Server Error:", errorData);
-          throw new Error(errorData.detail || "Failed to fetch dataset");
-        }
-
-        const data = await response.json();
-        if (!data || !data.dataset_info) {
-          throw new Error("Invalid dataset response format");
-        }
-
-        setDataset(data);
+        const data = await fetchDatasetForEdit(user.uid, datasetname);
         
-        // Update form values with dataset information
+        setDataset(data);
         setName(data.dataset_info.name || datasetname);
         setDescription(data.dataset_info.description || "");
-        setDatasetType(data.dataset_type || "Raw"); // Use the dataset_type from backend
+        setDatasetType(data.dataset_type || "Raw");
         setDomain(data.dataset_info.domain || "");
         setFileType(data.dataset_info.file_type || "");
 
-        // Update file availability state based on files information
         const hasRawFiles = data.files?.raw?.length > 0;
         const hasVectorizedFiles = data.files?.vectorized?.length > 0;
         
@@ -220,7 +167,6 @@ const DatasetEdit = () => {
           vectorized: hasVectorizedFiles ? 1 : 0
         });
 
-        // Set vectorized settings if available
         if (data.vectorized_settings) {
           setVectorizedSettings({
             dimensions: data.vectorized_settings.dimensions || 768,
@@ -298,27 +244,10 @@ const DatasetEdit = () => {
           dimensions: vectorizedSettings.dimensions,
           vectorDatabase: vectorizedSettings.vectorDatabase,
           modelName: vectorizedSettings.modelName
-        },
-        userId: user?.uid
+        }
       };
 
-      const response = await fetch(
-        `http://127.0.0.1:5000/update-dataset/${dataset._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify(requestData),
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.detail || "Failed to update dataset");
-      }
+      await updateDataset(dataset._id, user?.uid!, requestData);
 
       setUploadStatus({
         show: true,
@@ -326,27 +255,6 @@ const DatasetEdit = () => {
         message: "Dataset updated successfully!"
       });
 
-      // Fetch latest data before redirecting
-      const updatedResponse = await fetch(
-        "http://127.0.0.1:5000/dataset-edit-click",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            uid: user?.uid,
-            datasetName: name,
-          }),
-        }
-      );
-
-      if (updatedResponse.ok) {
-        const updatedData = await updatedResponse.json();
-        setDataset(updatedData);
-      }
-
-      // Delay redirect to show success message
       setTimeout(() => {
         navigate(`/${username}/${name}`);
       }, 2000);
@@ -359,7 +267,6 @@ const DatasetEdit = () => {
         message: error instanceof Error ? error.message : "Failed to update dataset"
       });
       
-      // Clear error message after delay
       setTimeout(() => {
         setUploadStatus({ show: false, success: false, message: "" });
       }, 4000);
@@ -373,30 +280,9 @@ const DatasetEdit = () => {
 
     setIsDeleting(true);
     try {
-      // Mark the dataset as deleted in the database
-      const deleteResponse = await fetch(
-        `http://127.0.0.1:5000/api/datasets/${dataset._id}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: user?.uid,
-            datasetName: name,
-          }),
-        }
-      );
-
-      if (!deleteResponse.ok) {
-        const error = await deleteResponse.json();
-        throw new Error(error.detail || "Failed to delete dataset");
-      }
-
-      // If marking as deleted was successful
+      await deleteDataset(dataset._id, user?.uid!, name);
       toast.success("Dataset deleted successfully");
 
-      // Redirect to user profile after successful deletion
       setTimeout(() => {
         navigate(`/${username}`);
       }, 1500);
@@ -520,6 +406,7 @@ const DatasetEdit = () => {
     isReadOnly?: boolean;
     isSelect?: boolean;
     isInput?: boolean;
+    isDisabled?: boolean;
     options?: string[];
     setter?: (value: string) => void;
     type?: string;
@@ -654,7 +541,7 @@ const DatasetEdit = () => {
 
     setIsUploading(true);
     try {
-      const result = await uploadDataset(
+      const result = await uploadDatasetFiles(
         type === "raw" ? files : null,
         type === "vectorized" ? files : null,
         type,
@@ -739,7 +626,7 @@ const DatasetEdit = () => {
           </div>
         </div>
       </div>
-
+      
       {/* File Upload Section */}
       {(datasetType === "Raw" || datasetType === "Vectorized") && (
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
@@ -946,67 +833,4 @@ const DatasetEdit = () => {
 };
 
 export default DatasetEdit;
-async function uploadDataset(
-  rawFiles: FileList | null,
-  vectorizedFiles: FileList | null,
-  type: "raw" | "vectorized",
-  metadata: {
-    datasetId: string;
-    name: string;
-    description: string;
-    domain: string;
-    file_type: string;
-    model_name: string;
-    dimensions: number;
-    vector_database: string;
-  }
-) {
-  try {
-    const formData = new FormData();
-    
-    // Add files to form data
-    if (rawFiles) {
-      Array.from(rawFiles).forEach((file) => {
-        formData.append("raw_files", file);
-      });
-    }
-    if (vectorizedFiles) {
-      Array.from(vectorizedFiles).forEach((file) => {
-        formData.append("vectorized_files", file);
-      });
-    }
-
-    // Add metadata
-    Object.entries(metadata).forEach(([key, value]) => {
-      formData.append(key, String(value));
-    });
-
-    // Add upload type
-    formData.append("upload_type", type);
-
-    const response = await fetch("http://127.0.0.1:5000/upload-dataset-files", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Failed to upload files");
-    }
-
-    const result = await response.json();
-    return {
-      success: true,
-      message: `Successfully uploaded ${type} files`,
-      data: result
-    };
-
-  } catch (error) {
-    console.error("Upload error:", error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : "Failed to upload files"
-    };
-  }
-}
 
