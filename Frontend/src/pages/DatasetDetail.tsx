@@ -388,8 +388,8 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
                 </div>
               </div>
               <div className="border-t border-gray-700 p-4">
-                <div className="mb-4 relative">
-                  <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto scrollbar-thumb-white scrollbar-track-gray-800">
+                <div className="relative">
+                  <pre className="bg-gray-900 p-4 rounded-lg whitespace-pre-wrap break-words">
                     <button
                       onClick={() => handleCopy(pythonExamples.basic.code)}
                       className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
