@@ -88,94 +88,103 @@ const Community = () => {
   const [isSending, setIsSending] = useState(false); // Add this state
 
   // Update the formatWhatsAppTimestamp function
-const formatWhatsAppTimestamp = (dateString: string | Date) => {
-  try {
-    // Debug log to see what we're receiving
-    console.log('Raw timestamp:', dateString);
+  const formatWhatsAppTimestamp = (dateString: string | Date) => {
+    try {
+      // Debug log to see what we're receiving
+      console.log("Raw timestamp:", dateString);
 
-    // Handle different date formats
-    let messageDate: Date;
+      // Handle different date formats
+      let messageDate: Date;
 
-    if (typeof dateString === 'string') {
-      // Try parsing the string directly first
-      messageDate = new Date(dateString);
-      
-      if (isNaN(messageDate.getTime())) {
-        // If parsing failed, try different formats
-        if (dateString.includes(' ')) {
-          // Handle MySQL format: "YYYY-MM-DD HH:mm:ss"
-          const [date, time] = dateString.split(' ');
-          messageDate = new Date(`${date}T${time}`);
-        } else if (dateString.includes('/')) {
-          // Handle date format with slashes
-          const [month, day, year] = dateString.split('/');
-          messageDate = new Date(Number(year), Number(month) - 1, Number(day));
+      if (typeof dateString === "string") {
+        // Try parsing the string directly first
+        messageDate = new Date(dateString);
+
+        if (isNaN(messageDate.getTime())) {
+          // If parsing failed, try different formats
+          if (dateString.includes(" ")) {
+            // Handle MySQL format: "YYYY-MM-DD HH:mm:ss"
+            const [date, time] = dateString.split(" ");
+            messageDate = new Date(`${date}T${time}`);
+          } else if (dateString.includes("/")) {
+            // Handle date format with slashes
+            const [month, day, year] = dateString.split("/");
+            messageDate = new Date(
+              Number(year),
+              Number(month) - 1,
+              Number(day)
+            );
+          }
         }
+      } else if (dateString instanceof Date) {
+        messageDate = dateString;
+      } else {
+        console.error("Unsupported date format:", dateString);
+        return String(dateString);
       }
-    } else if (dateString instanceof Date) {
-      messageDate = dateString;
-    } else {
-      console.error('Unsupported date format:', dateString);
+
+      // Validate the parsed date
+      if (!messageDate || isNaN(messageDate.getTime())) {
+        console.error("Invalid date:", dateString);
+        return dateString.toString();
+      }
+
+      // Format the date
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (messageDate.toDateString() === now.toDateString()) {
+        const formattedTime = messageDate.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+        console.log("Today's formatted time:", formattedTime);
+        return formattedTime.toLowerCase();
+      }
+
+      // Rest of the formatting logic remains the same
+      if (messageDate.toDateString() === yesterday.toDateString()) {
+        return `Yesterday ${messageDate
+          .toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          .toLowerCase()}`;
+      }
+
+      if (messageDate.getFullYear() === now.getFullYear()) {
+        return `${messageDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })} ${messageDate
+          .toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          .toLowerCase()}`;
+      }
+
+      return `${messageDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })} ${messageDate
+        .toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+        .toLowerCase()}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      // Return the original string if we can't parse it
       return String(dateString);
     }
-
-    // Validate the parsed date
-    if (!messageDate || isNaN(messageDate.getTime())) {
-      console.error('Invalid date:', dateString);
-      return dateString.toString();
-    }
-
-    // Format the date
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (messageDate.toDateString() === now.toDateString()) {
-      const formattedTime = messageDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-      console.log('Today\'s formatted time:', formattedTime);
-      return formattedTime.toLowerCase();
-    }
-
-    // Rest of the formatting logic remains the same
-    if (messageDate.toDateString() === yesterday.toDateString()) {
-      return `Yesterday ${messageDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }).toLowerCase()}`;
-    }
-
-    if (messageDate.getFullYear() === now.getFullYear()) {
-      return `${messageDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-      })} ${messageDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }).toLowerCase()}`;
-    }
-
-    return `${messageDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })} ${messageDate.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }).toLowerCase()}`;
-
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    // Return the original string if we can't parse it
-    return String(dateString);
-  }
-};
+  };
 
   const postMessage = async (content: string, tag: "general" | "issue") => {
     try {
@@ -239,42 +248,63 @@ const formatWhatsAppTimestamp = (dateString: string | Date) => {
   };
 
   // Update the fetchMessages function to properly format timestamps
-const fetchMessages = async (tag: "general" | "issue") => {
-  try {
-    // Only set loading if there are no existing messages
-    if (messages.length === 0) {
-      setIsLoading(true);
+  const fetchMessages = async (tag: "general" | "issue") => {
+    try {
+      if (messages.length === 0) {
+        setIsLoading(true);
+      }
+      setFetchError(null);
+      const response = await fetch(
+        `http://127.0.0.1:5000/community/messages/${tag}`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch messages: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      if (!Array.isArray(data)) {
+        setMessages([]);
+        return;
+      }
+
+      // Keep track of existing messages to prevent duplicates
+      setMessages((prevMessages) => {
+        const newMessages = data.map((message: any) => ({
+          ...message,
+          timestamp:
+            message.created_at || message.timestamp || new Date().toISOString(),
+          userName: message.userName || "Anonymous",
+          userAvatar: message.userAvatar || "",
+          content: message.content || "",
+          replies: Array.isArray(message.replies) ? message.replies : [],
+        }));
+
+        // Merge existing and new messages, removing duplicates
+        const mergedMessages = [...prevMessages];
+        newMessages.forEach((newMsg) => {
+          const existingIndex = mergedMessages.findIndex(
+            (msg) => msg.id === newMsg.id
+          );
+          if (existingIndex === -1) {
+            mergedMessages.push(newMsg);
+          } else {
+            mergedMessages[existingIndex] = newMsg;
+          }
+        });
+
+        // Sort messages by timestamp
+        return mergedMessages.sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+      });
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      setFetchError("Failed to load messages. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
-    setFetchError(null);
-    const response = await fetch(
-      `http://127.0.0.1:5000/community/messages/${tag}`
-    );
-    if (!response.ok) {
-      throw new Error(`Failed to fetch messages: ${response.statusText}`);
-    }
-    const data = await response.json();
-    // Handle empty or invalid data
-    if (!Array.isArray(data)) {
-      setMessages([]);
-      return;
-    }
-    
-    setMessages(data.map((message: any) => ({
-      ...message,
-      timestamp: message.created_at || message.timestamp || new Date().toISOString(),
-      userName: message.userName || "Anonymous",
-      userAvatar: message.userAvatar || "",
-      content: message.content || "",
-      replies: Array.isArray(message.replies) ? message.replies : []
-    })));
-  } catch (error) {
-    console.error("Error fetching messages:", error);
-    setFetchError("Failed to load messages. Please try again later.");
-    setMessages([]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -287,12 +317,13 @@ const fetchMessages = async (tag: "general" | "issue") => {
   useEffect(() => {
     const interval = setInterval(async () => {
       await fetchMessages(selectedFilter);
-    }, 5000); // Refresh every 5 seconds
+    }, 10000); // Increased to 10 seconds to reduce unnecessary refreshes
 
     return () => clearInterval(interval);
   }, [selectedFilter]);
 
-  useEffect(() => { // This is correct
+  useEffect(() => {
+    // This is correct
     const scrollToBottom = () => {
       const messagesDiv = document.querySelector(".messages-container");
       if (messagesDiv) {
@@ -303,73 +334,86 @@ const fetchMessages = async (tag: "general" | "issue") => {
   }, [messages]);
 
   // Update handleSendMessage function
-const handleSendMessage = async () => {
-  if (!newMessage.trim() || !user || isSending) return;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !user || isSending) return;
 
-  try {
-    setIsSending(true); // Set sending state to true
-    const timestamp = new Date().toISOString();
-    const result = await postMessage(newMessage, currentTag);
-    console.log('Message post response:', result);
+    try {
+      setIsSending(true); // Set sending state to true
+      const timestamp = new Date().toISOString();
+      const result = await postMessage(newMessage, currentTag);
+      console.log("Message post response:", result);
 
-    const newMsg: Message = {
-      id: result.id,
-      userId: user.uid,
-      userName: user.displayName || "Anonymous",
-      userAvatar: user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
-      content: result.payload.description,
-      // Use the most reliable timestamp source
-      timestamp: result.created_at || result.timestamp || timestamp,
-      tag: currentTag,
-      replies: [],
-    };
+      const newMsg: Message = {
+        id: result.id,
+        userId: user.uid,
+        userName: user.displayName || "Anonymous",
+        userAvatar:
+          user.photoURL ||
+          `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
+        content: result.payload.description,
+        // Use the most reliable timestamp source
+        timestamp: result.created_at || result.timestamp || timestamp,
+        tag: currentTag,
+        replies: [],
+      };
 
-    console.log('New message timestamp:', newMsg.timestamp);
-    setMessages((prev) => [...prev, newMsg]);
-    setNewMessage("");
-  } catch (error) {
-    console.error("Error sending message:", error);
-  } finally {
-    setIsSending(false); // Reset sending state
-  }
-};
+      console.log("New message timestamp:", newMsg.timestamp);
+      setMessages((prev) => [...prev, newMsg]);
+      setNewMessage("");
+
+      // Fetch messages after sending to ensure consistency
+      await fetchMessages(currentTag);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      // Ensure isSending is reset to false after a small delay
+      setTimeout(() => {
+        setIsSending(false);
+      }, 100);
+    }
+  };
 
   // Add function to handle replies
   // Update handleReply function
-const handleReply = async (parentMessage: Message) => {
-  if (!newMessage.trim() || !user || isSending) return;
+  const handleReply = async (parentMessage: Message) => {
+    if (!newMessage.trim() || !user || isSending) return;
 
-  try {
-    setIsSending(true); // Set sending state to true
-    const result = await postReply(parentMessage.id.toString(), newMessage);
-    console.log('Reply response:', result); // Debug log
+    try {
+      setIsSending(true); // Set sending state to true
+      const result = await postReply(parentMessage.id.toString(), newMessage);
+      console.log("Reply response:", result); // Debug log
 
-    const newReply: Message = {
-      id: result.id,
-      userId: user.uid,
-      userName: user.displayName || "Anonymous",
-      userAvatar: user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
-      content: newMessage,
-      timestamp: result.timestamp || result.created_at,
-      tag: selectedTag,
-    };
+      const newReply: Message = {
+        id: result.id,
+        userId: user.uid,
+        userName: user.displayName || "Anonymous",
+        userAvatar:
+          user.photoURL ||
+          `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
+        content: newMessage,
+        timestamp: result.timestamp || result.created_at,
+        tag: selectedTag,
+      };
 
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === parentMessage.id
-          ? { ...msg, replies: [...(msg.replies || []), newReply] }
-          : msg
-      )
-    );
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === parentMessage.id
+            ? { ...msg, replies: [...(msg.replies || []), newReply] }
+            : msg
+        )
+      );
 
-    setNewMessage("");
-    setReplyingTo(null);
-  } catch (error) {
-    console.error("Error sending reply:", error);
-  } finally {
-    setIsSending(false); // Reset sending state
-  }
-};
+      setNewMessage("");
+      setReplyingTo(null);
+    } catch (error) {
+      console.error("Error sending reply:", error);
+    } finally {
+      // Ensure isSending is reset to false after a small delay
+      setTimeout(() => {
+        setIsSending(false);
+      }, 100);
+    }
+  };
 
   const handleFilterChange = async (newFilter: "general" | "issue") => {
     setSelectedFilter(newFilter);
@@ -461,7 +505,6 @@ const handleReply = async (parentMessage: Message) => {
             animate={{ opacity: 1 }}
             className="pl-4 flex items-start space-x-4"
           >
-
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="relative flex-shrink-0"
@@ -482,7 +525,9 @@ const handleReply = async (parentMessage: Message) => {
                 }`}
               >
                 <div className="mb-1">
-                  <span className="text-cyan-400 text-sm">{reply.userName}</span>
+                  <span className="text-cyan-400 text-sm">
+                    {reply.userName}
+                  </span>
                   {reply.userId === user?.uid && (
                     <span className="text-xs text-cyan-400/50 ml-2">(You)</span>
                   )}
@@ -561,7 +606,11 @@ const handleReply = async (parentMessage: Message) => {
 
     // New rendering for general messages
     return (
-      <div className={`flex items-start space-x-4 ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+      <div
+        className={`flex items-start space-x-4 ${
+          isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
+        }`}
+      >
         <motion.div
           whileHover={{ scale: 1.05 }}
           className="relative flex-shrink-0"
@@ -574,7 +623,11 @@ const handleReply = async (parentMessage: Message) => {
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black" />
         </motion.div>
 
-        <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+        <div
+          className={`flex flex-col ${
+            isOwnMessage ? "items-end" : "items-start"
+          }`}
+        >
           <motion.div
             whileHover={{ scale: 1.01 }}
             className={`max-w-md rounded-2xl p-4 ${
@@ -594,11 +647,17 @@ const handleReply = async (parentMessage: Message) => {
             <p className="text-white text-sm">{message.content}</p>
           </motion.div>
 
-          <div className={`flex items-center mt-1 space-x-2 text-xs ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+          <div
+            className={`flex items-center mt-1 space-x-2 text-xs ${
+              isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
+            }`}
+          >
             {isOwnMessage && (
               <span className="text-xs text-cyan-400/50">(You)</span>
             )}
-            <span className="text-gray-500">{formatWhatsAppTimestamp(message.timestamp)}</span>
+            <span className="text-gray-500">
+              {formatWhatsAppTimestamp(message.timestamp)}
+            </span>
           </div>
         </div>
       </div>
@@ -835,7 +894,8 @@ const handleReply = async (parentMessage: Message) => {
                 className="mb-6"
               >
                 {renderMessage(message)}
-                {message.tag === "issue" && renderReplies(message.replies || [])}
+                {message.tag === "issue" &&
+                  renderReplies(message.replies || [])}
               </motion.div>
             ))
           )}
@@ -871,12 +931,14 @@ const handleReply = async (parentMessage: Message) => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={replyingTo ? () => handleReply(replyingTo) : handleSendMessage}
+                onClick={
+                  replyingTo ? () => handleReply(replyingTo) : handleSendMessage
+                }
                 disabled={isSending}
                 className={`px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group ${
-                  isSending 
-                    ? 'opacity-50 cursor-not-allowed' 
-                    : 'hover:from-cyan-600 hover:to-blue-600'
+                  isSending
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:from-cyan-600 hover:to-blue-600"
                 }`}
               >
                 {isSending ? (
