@@ -335,13 +335,13 @@ const Community = () => {
 
   // Update handleSendMessage function
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !user || isSending) return;
+    if (!newMessage.trim() || !user) return;
 
     try {
-      setIsSending(true); // Set sending state to true
       const timestamp = new Date().toISOString();
-      const result = await postMessage(newMessage, currentTag);
-      console.log("Message post response:", result);
+      setNewMessage(""); // Clear message immediately
+
+      const result = await postMessage(newMessage.trim(), currentTag);
 
       const newMsg: Message = {
         id: result.id,
@@ -351,37 +351,31 @@ const Community = () => {
           user.photoURL ||
           `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
         content: result.payload.description,
-        // Use the most reliable timestamp source
         timestamp: result.created_at || result.timestamp || timestamp,
         tag: currentTag,
         replies: [],
       };
 
-      console.log("New message timestamp:", newMsg.timestamp);
       setMessages((prev) => [...prev, newMsg]);
-      setNewMessage("");
-
-      // Fetch messages after sending to ensure consistency
       await fetchMessages(currentTag);
     } catch (error) {
       console.error("Error sending message:", error);
-    } finally {
-      // Ensure isSending is reset to false after a small delay
-      setTimeout(() => {
-        setIsSending(false);
-      }, 100);
     }
   };
 
   // Add function to handle replies
   // Update handleReply function
   const handleReply = async (parentMessage: Message) => {
-    if (!newMessage.trim() || !user || isSending) return;
+    if (!newMessage.trim() || !user) return;
 
     try {
-      setIsSending(true); // Set sending state to true
-      const result = await postReply(parentMessage.id.toString(), newMessage);
-      console.log("Reply response:", result); // Debug log
+      setNewMessage(""); // Clear message immediately
+      setReplyingTo(null); // Clear reply state immediately
+
+      const result = await postReply(
+        parentMessage.id.toString(),
+        newMessage.trim()
+      );
 
       const newReply: Message = {
         id: result.id,
@@ -402,16 +396,8 @@ const Community = () => {
             : msg
         )
       );
-
-      setNewMessage("");
-      setReplyingTo(null);
     } catch (error) {
       console.error("Error sending reply:", error);
-    } finally {
-      // Ensure isSending is reset to false after a small delay
-      setTimeout(() => {
-        setIsSending(false);
-      }, 100);
     }
   };
 
@@ -934,21 +920,9 @@ const Community = () => {
                 onClick={
                   replyingTo ? () => handleReply(replyingTo) : handleSendMessage
                 }
-                disabled={isSending}
-                className={`px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group ${
-                  isSending
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:from-cyan-600 hover:to-blue-600"
-                }`}
+                className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center group hover:from-cyan-600 hover:to-blue-600"
               >
-                {isSending ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Sending...</span>
-                  </div>
-                ) : (
-                  <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                )}
+                <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </div>
           </div>
