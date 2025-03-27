@@ -11,23 +11,37 @@ from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
+from src.database.mongodb import user_profile_collection
 
 # Load environment variables
 load_dotenv()
 
 class FRIDAY:
-    def __init__(self):
-        self.api_key = "AIzaSyCHHf95-Yx6F525N5p44Lz2uOuV0C6LXcQ"
-        if not self.api_key:
-            raise ValueError("API key not found in environment variables")
+    def __init__(self, uid: str = None):
+        if not uid:
+            raise ValueError("User ID is required")
         
+        # Get the API key from user profile
+        self.api_key = None
+        self.uid = uid
+        
+        # Initialize in async context
+        self.model = None
+        self.chat_history = ChatMessageHistory()
+        self.output_parser = StrOutputParser()
+    
+    async def initialize(self):
+        # Fetch API key from user profile
+        user = await user_profile_collection.find_one({"uid": self.uid})
+        if not user or not user.get("api_key"):
+            raise ValueError("API key not found for user")
+        
+        self.api_key = user["api_key"]
         self.model = ChatGoogleGenerativeAI(
             model="gemini-1.5-pro",
             api_key=self.api_key,
             temperature=0.7
         )
-        self.chat_history = ChatMessageHistory()
-        self.output_parser = StrOutputParser()
 
     def setup_chain(self) -> RunnableWithMessageHistory:
         """Set up the prompt and chain with the model."""
@@ -49,6 +63,9 @@ class FRIDAY:
     async def get_response(self, message: str) -> str:
         """Handle a single message and return the response."""
         try:
+            if not self.api_key:
+                raise ValueError("API key not initialized. Please ensure you have set up your API key.")
+
             chain = self.setup_chain()
             with_message_history = RunnableWithMessageHistory(
                 chain,
@@ -68,6 +85,9 @@ class FRIDAY:
 
             return response_text.strip()
 
+        except ValueError as ve:
+            logging.error(f"API key error: {str(ve)}")
+            return "I apologize, but there seems to be an issue with your API key. Please check your API key settings."
         except Exception as e:
             logging.error(f"Error processing message: {str(e)}")
             return "I apologize, but I encountered an error. Please try again."
