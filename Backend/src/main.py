@@ -638,12 +638,10 @@ class ChatMessage(BaseModel):
 
 @app.post("/chat")
 async def chat_endpoint(chat_message: ChatMessage):
-    global bot
     try:
-        if not bot or bot.uid != chat_message.uid:
-            bot = FRIDAY(chat_message.uid)
-            await bot.initialize()
-            
+        # Create new bot instance for each message to ensure fresh API key
+        bot = FRIDAY(chat_message.uid)
+        await bot.initialize()  # This will fetch the latest API key
         response = await bot.get_response(chat_message.message)
         return {"response": response}
     except ValueError as e:

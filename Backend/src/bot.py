@@ -21,17 +21,14 @@ class FRIDAY:
         if not uid:
             raise ValueError("User ID is required")
         
-        # Get the API key from user profile
-        self.api_key = None
         self.uid = uid
-        
-        # Initialize in async context
+        self.api_key = None
         self.model = None
         self.chat_history = ChatMessageHistory()
         self.output_parser = StrOutputParser()
     
     async def initialize(self):
-        # Fetch API key from user profile
+        # Fetch API key from user profile every time
         user = await user_profile_collection.find_one({"uid": self.uid})
         if not user or not user.get("api_key"):
             raise ValueError("API key not found for user")
@@ -63,6 +60,9 @@ class FRIDAY:
     async def get_response(self, message: str) -> str:
         """Handle a single message and return the response."""
         try:
+            # Re-initialize to get fresh API key for each request
+            await self.initialize()
+
             if not self.api_key:
                 raise ValueError("API key not initialized. Please ensure you have set up your API key.")
 
