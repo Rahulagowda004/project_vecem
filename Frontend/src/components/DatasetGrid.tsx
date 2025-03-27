@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Image, Music, Video, ChevronDown } from "lucide-react";
+import { FileText, Image, Music, Video, ChevronDown, Database } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getUserProfileByUid } from "../services/userService";
 
@@ -110,9 +110,17 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
     <div className="container mx-auto px-4 py-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredDatasets.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <div className="text-gray-400 text-lg">
-              No datasets found matching 
+          <div className="col-span-full">
+            <div className="flex flex-col items-center justify-center p-8 bg-gray-800/50 rounded-xl border border-gray-700/50">
+              <Database className="w-12 h-12 text-gray-500 mb-4" />
+              <h3 className="text-lg font-medium text-gray-300 mb-2">No Datasets Found</h3>
+              <p className="text-gray-500 text-center">
+                {searchQuery
+                  ? `No datasets found matching "${searchQuery}"`
+                  : category !== "all"
+                  ? `No ${category} datasets available`
+                  : "There are no datasets available at the moment"}
+              </p>
             </div>
           </div>
         ) : (
@@ -153,12 +161,11 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                     {dataset.description}
                   </p>
 
-                  <div className="mt-auto text-sm text-gray-400 flex items-center justify-between">
+                  <div className="mt-auto text-sm text-gray-400 flex items-center">
                     <span className="flex items-center gap-1">
                       <div className="w-2 h-2 rounded-full bg-cyan-400" />
                       {dataset.type}
                     </span>
-                    <span className="text-gray-500">{dataset.size}</span>
                   </div>
                 </div>
               </div>
