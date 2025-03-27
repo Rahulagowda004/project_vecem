@@ -479,35 +479,13 @@ const DashboardLayout = () => {
                   currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
-                <motion.img 
+                <img 
                   src="/robot.png" 
                   alt="Bot" 
-                  className="w-8 h-8 mr-3"
-                  whileHover={{ 
-                    scale: 1.15,
-                    transition: { duration: 0.2 }
-                  }}
-                  animate={{ 
-                    y: [0, -4, 0],
-                    rotate: [0, 5, 0, -5, 0],
-                    filter: currentView === "chatbot" ? ["brightness(1)", "brightness(1.3)", "brightness(1)"] : "none"
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  drag
-                  dragConstraints={{
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0
-                  }}
-                  dragElastic={0.3}
+                  className="w-8 h-8 mr-3" 
                 />
                 <span className="group-hover:text-cyan-400 transition-colors">
-                  ChatBot
+                  Vecora
                 </span>
               </button>
 
@@ -735,6 +713,38 @@ const DashboardLayout = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
           >
+           <motion.img 
+             src="/robot.png" 
+             alt="Bot" 
+             className="w-12 h-12 mx-auto mb-4"
+             animate={{ 
+               scale: [1, 1.15, 1],
+               rotate: [0, -15, 15, -5, 0],
+               y: [0, -6, 0],
+             }}
+             transition={{
+               duration: 3,
+               repeat: Infinity,
+               ease: "easeInOut",
+               times: [0, 0.2, 0.5, 0.8, 1],
+             }}
+             whileHover={{
+               scale: 1.2,
+               rotate: [0, -10, 10, -10, 0],
+               transition: {
+                 duration: 0.3,
+                 ease: "easeOut",
+               }
+             }}
+             drag
+             dragConstraints={{
+               top: -10,
+               left: -10,
+               right: 10,
+               bottom: 10,
+             }}
+             whileDrag={{ scale: 1.1 }}
+           />
             <h2 className="text-xl font-bold text-white mb-4">Google AI Studio API Key Required</h2>
             <div className="text-gray-300 text-sm mb-6 space-y-3">
               <p>To obtain your Google AI Studio API key:</p>
