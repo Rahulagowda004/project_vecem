@@ -89,7 +89,7 @@ const DashboardLayout = () => {
     {
       id: "welcome",
       content:
-        "Hi! I'm VecemBot, your AI assistant for discovering and understanding vectorized datasets. How can I help you today?",
+      "Welcome to Vecora! I help you optimize system messages, refine prompts, create new ones, and improve AI interactions. Ask me anything about prompt engineering!",
       sender: "bot",
       timestamp: new Date().toISOString(),
     },
@@ -607,7 +607,7 @@ const DashboardLayout = () => {
                         type="text"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="Ask me anything about Vecem..."
+                        placeholder="Let's craft the perfect prompt together. What’s your idea?"
                         className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
                       />
                       <motion.button
