@@ -14,7 +14,6 @@ import {
   FileVideo,
   FileText,
   BookOpen,
-  Bot,
   Send,
   TerminalSquare,
 } from "lucide-react";
@@ -480,7 +479,33 @@ const DashboardLayout = () => {
                   currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
-                <Bot className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <motion.img 
+                  src="/robot.png" 
+                  alt="Bot" 
+                  className="w-8 h-8 mr-3"
+                  whileHover={{ 
+                    scale: 1.15,
+                    transition: { duration: 0.2 }
+                  }}
+                  animate={{ 
+                    y: [0, -4, 0],
+                    rotate: [0, 5, 0, -5, 0],
+                    filter: currentView === "chatbot" ? ["brightness(1)", "brightness(1.3)", "brightness(1)"] : "none"
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  drag
+                  dragConstraints={{
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0
+                  }}
+                  dragElastic={0.3}
+                />
                 <span className="group-hover:text-cyan-400 transition-colors">
                   ChatBot
                 </span>
@@ -532,8 +557,27 @@ const DashboardLayout = () => {
                           }`}
                         >
                           {message.sender === "bot" && (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center flex-shrink-0">
-                              <Bot className="w-4 h-4 text-gray-900" />
+                            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+                              <motion.img 
+                                src="/robot.png" 
+                                alt="Bot" 
+                                className="w-8 h-8"
+                                whileHover={{ 
+                                  scale: 1.2,
+                                  rotate: [0, -10, 10, -10, 0],
+                                  transition: { duration: 0.5 }
+                                }}
+                                animate={{ 
+                                  scale: [1, 1.1, 1],
+                                  rotate: [0, 5, 0, -5, 0],
+                                  y: [0, -3, 0]
+                                }}
+                                transition={{
+                                  duration: 3,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                              />
                             </div>
                           )}
                           <div
