@@ -17,9 +17,6 @@ import {
   Bot,
   Send,
   TerminalSquare,
-  ComputerIcon,
-  Laptop,
-  Laptop2Icon,
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
 import { getUserProfileByUid } from "../services/userService";
@@ -663,7 +660,15 @@ const DashboardLayout = () => {
 
                 <div className="w-full px-6">
                   {currentView === "prompts" ? (
-                    <PromptsGrid prompts={prompts} />
+                    prompts.length > 0 ? (
+                      <PromptsGrid prompts={prompts} />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-8 bg-gray-800/50 rounded-xl border border-gray-700/50">
+                        <TerminalSquare className="w-12 h-12 text-gray-500 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-300 mb-2">No Prompts Found</h3>
+                        <p className="text-gray-500 text-center">There are no prompts available at the moment.</p>
+                      </div>
+                    )
                   ) : (
                     <DatasetGrid
                       searchQuery={searchQuery}
