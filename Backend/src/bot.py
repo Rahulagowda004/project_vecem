@@ -70,7 +70,7 @@ class FRIDAY:
 
         except Exception as e:
             logging.error(f"Error processing message: {str(e)}")
-            return "I apologize, but I encountered an error. Please try again."
+            return "Enter a valid API key to continue."
 
     async def chat(self) -> None:
         """Main chat loop with error handling."""
