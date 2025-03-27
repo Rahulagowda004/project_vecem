@@ -114,21 +114,30 @@ const DatasetDetail = () => {
     fetchDataset();
   }, [username, datasetname, navigate]);
 
-  const handleDownload = async (fileType: string) => {
-    if (!dataset?.name || !dataset?.owner) {
-      console.error("Dataset name or owner not available");
+  const handleDownload = async (fileType: "raw" | "vectorized") => {
+    if (!dataset?.files?.[fileType]?.[0]) {
+      toast.error(`No ${fileType} files available`);
       return;
     }
 
-    const downloadUrl = `https://vecem.blob.core.windows.net/datasets/${dataset.owner}/${dataset.name}/${fileType}.zip`;
+    try {
+      // Get the first URL from the specified file type array
+      const downloadUrl = dataset.files[fileType][0];
 
-    // Create an anchor element and trigger download
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = `${dataset.name}_${fileType}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // Create an anchor element and trigger download
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.target = "_blank"; // Open in new tab
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success(`Downloading ${fileType} dataset...`);
+    } catch (error) {
+      console.error(`Error downloading ${fileType} dataset:`, error);
+      toast.error(`Failed to download ${fileType} dataset`);
+    }
   };
 
   if (loading) {
@@ -257,7 +266,7 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => handleDownload("raw")}
+                    onClick={() => handleDownload("raw" as "raw")}
                     className="flex-1 md:flex-none px-6 py-2.5 bg-cyan-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
                   >
                     <Download className="w-4 h-4" />
@@ -266,7 +275,7 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => handleDownload("vectorized")}
+                    onClick={() => handleDownload("vectorized" as "vectorized")}
                     className="flex-1 md:flex-none px-6 py-2.5 bg-cyan-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
                   >
                     <Download className="w-4 h-4" />
@@ -277,7 +286,11 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => handleDownload(dataset.datasetType)}
+                  onClick={() =>
+                    handleDownload(
+                      dataset.datasetType.toLowerCase() as "raw" | "vectorized"
+                    )
+                  }
                   className="flex-1 md:flex-none px-6 py-2.5 bg-cyan-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
                 >
                   <Download className="w-4 h-4" />
