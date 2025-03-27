@@ -348,6 +348,22 @@ const UploadFile = () => {
       }
     }
 
+    // Check if dataset name already exists
+    try {
+      const nameCheckResult = await checkDatasetNameAvailability(formData.name);
+      if (!nameCheckResult.available) {
+        setError("Dataset name already exists. Please use a different name.");
+        setIsUploading(false);
+        return;
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Error checking dataset name"
+      );
+      setIsUploading(false);
+      return;
+    }
+
     // Continue with existing upload logic
     try {
       let result;

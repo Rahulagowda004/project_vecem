@@ -4,6 +4,7 @@ import base64
 from datetime import datetime, timedelta
 import pytz
 from bson import ObjectId
+from bson.errors import InvalidId
 from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -629,41 +630,27 @@ async def get_messages(tag: str):
         return []  # Return empty list instead of raising error
 
 # Initialize the chatbot
-bot = FRIDAY()
+bot = None
 
 class ChatMessage(BaseModel):
     message: str
-    uid: str  # Add uid to request
-    session_id: Optional[str] = None
+    uid: str
 
 @app.post("/chat")
 async def chat_endpoint(chat_message: ChatMessage):
+    global bot
     try:
-        # Get user's API key from MongoDB
-        user = await user_profile_collection.find_one(
-            {"uid": chat_message.uid},
-            {"api_key": 1}
-        )
-        
-        if not user or not user.get("api_key"):
-            raise HTTPException(
-                status_code=401,
-                detail="API key not found. Please configure your API key."
-            )
-
-        # Get response using only the message parameter
-        response = await bot.get_response(message=chat_message.message)
-        
-        return {
-            "response": response,
-            "session_id": None
-        }
-
-    except HTTPException as he:
-        raise he
+        if not bot or bot.uid != chat_message.uid:
+            bot = FRIDAY(chat_message.uid)
+            await bot.initialize()
+            
+        response = await bot.get_response(chat_message.message)
+        return {"response": response}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logging.error(f"Chat endpoint error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error processing chat message")
+        logging.error(f"Error in chat endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # Add these new endpoints before the shutdown event
 @app.post("/prompt-click")
