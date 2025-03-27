@@ -149,12 +149,19 @@ async def edit_dataset_files(
                 vec_url = await create_and_upload_zip(vectorized_files, username, dataset_name, "vectorized")
                 uploaded_files["vectorized"] = [vec_url]
 
+            # Determine upload_type based on available files
+            has_raw = bool(uploaded_files.get("raw"))
+            has_vectorized = bool(uploaded_files.get("vectorized"))
+            upload_type = "both" if has_raw and has_vectorized else (
+                "raw" if has_raw else "vectorized" if has_vectorized else type
+            )
+
             # Update dataset
             result = await datasets_collection.update_one(
                 {"_id": ObjectId(dataset_info.datasetId)},
                 {"$set": {
                     "files": uploaded_files,
-                    "dataset_type": "both" if all(uploaded_files.values()) else type,
+                    "upload_type": upload_type,
                     "timestamp": datetime.now().isoformat()
                 }}
             )

@@ -363,6 +363,14 @@ async def update_dataset(dataset_id: str, updated_data: dict):
         if not dataset:
             raise HTTPException(status_code=404, detail="Dataset not found")
         
+        # Determine upload_type based on available files
+        files = dataset.get("files", {})
+        has_raw = bool(files.get("raw"))
+        has_vectorized = bool(files.get("vectorized"))
+        upload_type = "both" if has_raw and has_vectorized else (
+            "raw" if has_raw else "vectorized" if has_vectorized else dataset.get("upload_type", "raw")
+        )
+        
         # Update using new schema format
         update_dict = {
             "dataset_info": {
@@ -377,7 +385,7 @@ async def update_dataset(dataset_id: str, updated_data: dict):
                 "username": dataset["dataset_info"].get("username", ""), # Preserve username
                 "datasetId": dataset["dataset_id"]  # Preserve dataset_id
             },
-            "upload_type": updated_data.get("datasetType"),
+            "upload_type": upload_type,
             "timestamp": datetime.now()
         }
         
