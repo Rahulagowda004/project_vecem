@@ -43,16 +43,21 @@ async def upload_files(
             raise HTTPException(status_code=400, detail="Username not found")
 
         # Parse dataset info
-        dataset_info = DatasetInfo.parse_raw(datasetInfo)
-        dataset_info_dict = dataset_info.dict()
+        dataset_info = json.loads(datasetInfo)
+        dataset_info_dict = dataset_info.get("dataset_info", {})
         dataset_info_dict["username"] = username
-        dataset_info_dict.pop('uid', None)
+        
+        # Extract vectorization settings from the correct location
+        if type.lower() in ["vectorized", "both"]:
+            dataset_info_dict["dimensions"] = dataset_info.get("dimensions")
+            dataset_info_dict["vector_database"] = dataset_info.get("vector_database")
+            dataset_info_dict["model_name"] = dataset_info.get("model_name")
         
         if "license" not in dataset_info_dict:
             raise HTTPException(status_code=400, detail="License is required")
         
-        dataset_id = dataset_info.datasetId or str(uuid.uuid4())
-        dataset_name = dataset_info.name.replace(" ", "_").lower()
+        dataset_id = dataset_info_dict.get("datasetId") or str(uuid.uuid4())
+        dataset_name = dataset_info_dict["name"].replace(" ", "_").lower()
 
         uploaded_files = {"raw": [], "vectorized": []}
 

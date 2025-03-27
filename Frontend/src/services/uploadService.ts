@@ -1,17 +1,11 @@
 import axios from "axios";
 import { getAuth } from "firebase/auth";
+import { DatasetInfo, Files } from "../types/dataset";
 
 const API_URL = "http://127.0.0.1:5000";
 
-export interface DatasetForm {
-  name: string;
-  description: string;
-  domain: string;
-  dimensions?: number;
-  vectorDatabase?: string;
-  file_type?: string;
-  datasetId?: string;
-  license: string; // Add license field
+export interface DatasetForm extends Omit<DatasetInfo, "username"> {
+  uid?: string;
 }
 
 export interface UploadResponse {
@@ -60,11 +54,22 @@ export const uploadDataset = async (
       }
     }
 
-    // Add dataset info with uid
+    // Prepare dataset info with vectorization settings
     const datasetInfoWithUid = {
-      ...datasetInfo,
       uid: uid,
+      dimensions:
+        type !== "raw"
+          ? parseInt(datasetInfo.dimensions?.toString() || "0")
+          : undefined,
+      vector_database: type !== "raw" ? datasetInfo.vector_database : undefined,
+      model_name: type !== "raw" ? datasetInfo.model_name : undefined,
+      dataset_info: {
+        ...datasetInfo,
+        datasetId: `${datasetInfo.name}_${Date.now()}`,
+        isEdit: false,
+      },
     };
+
     formData.append("type", type);
     formData.append("datasetInfo", JSON.stringify(datasetInfoWithUid));
     formData.append("uid", uid);

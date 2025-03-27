@@ -19,6 +19,7 @@ from src.bot import FRIDAY
 from typing import Optional 
 from src.models.chat_models import General, Issue, IssueReply
 from src.database import mongodb
+from src.models.dataset_models import DatasetSchema, DatasetInfo, Files
 
 app = FastAPI()
 
@@ -291,10 +292,12 @@ async def log_dataset_click(data: dict):
         
         if not dataset:
             raise HTTPException(status_code=404, detail="Dataset not found")
-            
+        
+        # Convert to DatasetSchema format    
         dataset["_id"] = str(dataset["_id"])
-        dataset["username"] = username  # Add username to the response
-        return jsonable_encoder(dataset)
+        dataset["username"] = username
+        return jsonable_encoder(DatasetSchema(**dataset))
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -347,45 +350,41 @@ async def log_dataset_edit(data: dict):
 async def update_dataset(dataset_id: str, updated_data: dict):
     logging.info(f"Endpoint called: update_dataset() for dataset_id: {dataset_id} with data: {updated_data}")
     try:
-        # Convert string ID back to ObjectId
         object_id = ObjectId(dataset_id)
         
-        # Check if user has permission to update this dataset
         if not updated_data.get("userId"):
             raise HTTPException(status_code=400, detail="User ID is required")
             
-        # Verify dataset ownership
         dataset = await datasets_collection.find_one({
             "_id": object_id,
             "uid": updated_data["userId"]
         })
         
         if not dataset:
-            raise HTTPException(status_code=404, detail="Dataset not found or you don't have permission to update it")
+            raise HTTPException(status_code=404, detail="Dataset not found")
         
-        # Prepare update data with timestamp
+        # Update using new schema format
         update_dict = {
             "dataset_info": {
                 "name": updated_data.get("name"),
                 "description": updated_data.get("description"),
                 "domain": updated_data.get("domain"),
-                "file_type": updated_data.get("fileType")
+                "file_type": updated_data.get("fileType"),
+                "dimensions": updated_data.get("vectorizedSettings", {}).get("dimensions"),
+                "vector_database": updated_data.get("vectorizedSettings", {}).get("vectorDatabase"),
+                "model_name": updated_data.get("vectorizedSettings", {}).get("modelName"),
+                "license": dataset["dataset_info"].get("license", ""),  # Preserve existing license
+                "username": dataset["dataset_info"].get("username", ""), # Preserve username
+                "datasetId": dataset["dataset_id"]  # Preserve dataset_id
             },
-            "dataset_type": updated_data.get("datasetType"),
-            "timestamp": datetime.now().isoformat()
+            "upload_type": updated_data.get("datasetType"),
+            "timestamp": datetime.now()
         }
         
-        # Only include vectorized_settings if provided
-        if updated_data.get("vectorizedSettings"):
-            update_dict["vectorized_settings"] = updated_data["vectorizedSettings"]
-        
-        # Update the dataset with the complete document update
         result = await datasets_collection.update_one(
             {"_id": object_id},
             {"$set": update_dict}
         )
-        
-        logging.info(f"Dataset updated: {result.modified_count} document(s) modified")
         
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Failed to update dataset")
