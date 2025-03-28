@@ -294,7 +294,7 @@ const DatasetEdit = () => {
       toast.success("Dataset deleted successfully");
 
       setTimeout(() => {
-        navigate(`/${username}`);
+        navigate("/settings");
       }, 1500);
     } catch (error) {
       console.error("Error deleting dataset:", error);
