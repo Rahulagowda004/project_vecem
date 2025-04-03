@@ -219,7 +219,20 @@ const Settings = () => {
 
   const handleSave = async () => {
     if (usernameStatus === "taken") {
-      alert("Please choose a different username");
+      toast.error(
+        "This username is already taken. Please choose a different one.",
+        {
+          duration: 4000,
+          style: {
+            background: "rgba(220, 38, 38, 0.1)",
+            color: "#ef4444",
+            border: "1px solid rgba(220, 38, 38, 0.2)",
+            backdropFilter: "blur(8px)",
+            padding: "12px",
+            borderRadius: "8px",
+          },
+        }
+      );
       return;
     }
     setIsEditing(false);
@@ -471,7 +484,7 @@ const Settings = () => {
 
   const paginatedItems = useMemo(() => {
     if (activeView === "prompts" && promptsLoading) {
-      return [];  // Return empty array while loading instead of dummy items
+      return []; // Return empty array while loading instead of dummy items
     }
 
     const items =
