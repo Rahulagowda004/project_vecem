@@ -15,9 +15,10 @@ export default defineConfig({
       overlay: false // Disable HMR overlay to see console errors better
     },
   },
-  base: '/',
+  base: './',
   build: {
     sourcemap: true,
+    outDir: 'dist',
   },
   esbuild: {
     logOverride: { 'this-is-undefined-in-esm': 'silent' }
