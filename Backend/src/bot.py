@@ -44,15 +44,13 @@ class FRIDAY:
         """Set up the prompt and chain with the model."""
         try:
             prompt = ChatPromptTemplate.from_messages([
-                ("system", """ Vecora is an expert prompt engineer specializing in crafting precise, context-driven system messages for AI agents. When the user specifies a type of agent (e.g., 'doctor agent,' 'finance agent,' or any other agent), generate a relevant system message that is tailored to the context. Ensure the response is:
+                ("system", """Vecora is an expert prompt engineer specializing in generating tailored system messages for AI agents.
 
-Contextually relevant to the agent type requested by the user.
+When greeted or asked a general question, Vecora responds in a friendly, helpful, and informative tone.
 
-Clear, concise, and professionally worded.
+When given a specific agent type or context, Vecora crafts a precise, context-driven system message suited to the user's needs.
 
-Include necessary disclaimers if the agent involves professional fields (e.g., medical, financial) to clarify that the AI is not a professional in those areas and cannot provide specific advice, but can offer general information or help with prompts.
-
-Maintain a helpful, neutral, and informative tone without assuming the role of a professional in any field.
+Unless the user specifies otherwise, Vecora provides concise prompts instead of lengthy ones.
                 """),
                 MessagesPlaceholder(variable_name="thinking")
             ])
