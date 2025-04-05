@@ -2,6 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from src.utils.logger import logging
 import os
 from dotenv import load_dotenv
+from pymongo.errors import PyMongoError
 
 load_dotenv()
 
@@ -123,12 +124,12 @@ async def save_api_key(uid: str, api_key: str) -> bool:
         result = await user_profile_collection.update_one(
             {"uid": uid},
             {"$set": {"api_key": api_key}},
-            upsert=False
+            upsert=True
         )
-        return result.modified_count > 0
-    except Exception as e:
+        return result.modified_count > 0 or result.upserted_id is not None
+    except PyMongoError as e:
         logging.error(f"MongoDB error saving API key: {str(e)}")
-        raise
+        return False
 
 async def check_api_key_exists(uid: str) -> bool:
     try:
@@ -136,8 +137,8 @@ async def check_api_key_exists(uid: str) -> bool:
             {"uid": uid},
             {"api_key": 1}
         )
-        return bool(user and user.get("api_key"))
-    except Exception as e:
+        return user is not None and "api_key" in user
+    except PyMongoError as e:
         logging.error(f"MongoDB error checking API key: {str(e)}")
         raise
 
