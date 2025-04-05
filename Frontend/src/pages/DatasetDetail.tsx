@@ -14,7 +14,7 @@ import {
   ChevronRight,
   ExternalLink,
   Home,
-  UserCircle2, // Add this import
+  UserCircle2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -28,9 +28,9 @@ const fadeIn = {
 const DatasetDetail = () => {
   const { username, datasetname } = useParams();
   const navigate = useNavigate();
-  const location = useLocation(); // Add this line
-  const isFromHome = location.state?.from === "home"; // Add this line to get the state
-  const { user } = useAuth(); // Add this near the top with other hooks
+  const location = useLocation();
+  const isFromHome = location.state?.from === "home";
+  const { user } = useAuth();
   const [dataset, setDataset] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -73,19 +73,25 @@ const DatasetDetail = () => {
           throw new Error("Invalid dataset response format");
         }
 
+        console.log("Dataset response:", data);
+
+        // Ensure we have a valid username from the response
+        const ownerName = data.username || username;
+
         setDataset({
           name: data.dataset_info.name,
           description: data.dataset_info.description,
-          license: data.dataset_info.license, // Add this line
+          license: data.dataset_info.license,
           datasetType: data.upload_type,
           domain: data.dataset_info.domain,
           fileType: data.dataset_info.file_type,
           size: {
-            raw: `${data.files.raw?.length || 0} files`, // Update with actual size calculation
+            raw: `${data.files.raw?.length || 0} files`,
             vectorized: `${data.files.vectorized?.length || 0} files`,
           },
           uploadDate: data.timestamp,
-          owner: data.username, // Change this line to use data.username
+          owner: ownerName, // Ensure we set a valid owner name
+          owner_uid: data.owner_uid,
           files: data.files,
           base_directory: data.base_directory,
           vectorizedSettings: {
@@ -121,13 +127,11 @@ const DatasetDetail = () => {
     }
 
     try {
-      // Get the first URL from the specified file type array
       const downloadUrl = dataset.files[fileType][0];
 
-      // Create an anchor element and trigger download
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.target = "_blank"; // Open in new tab
+      link.target = "_blank";
       link.rel = "noopener noreferrer";
       document.body.appendChild(link);
       link.click();
@@ -190,7 +194,6 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
     } as const;
   };
 
-  // Replace the existing pythonExamples constant with a call to getPythonExample
   const pythonExamples = getPythonExample(dataset.datasetType);
 
   const handleCopy = (code: string) => {
@@ -201,7 +204,6 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
-      {/* Breadcrumb Navigation - Keep existing code but update styles */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -225,7 +227,6 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
         </nav>
       </motion.div>
 
-      {/* Header Section - Reorganized for better hierarchy */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -259,7 +260,6 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
               </div>
             </motion.div>
 
-            {/* Download Buttons - Updated styling */}
             <motion.div className="flex flex-wrap gap-3 w-full md:w-auto">
               {dataset.datasetType === "both" ? (
                 <>
@@ -302,7 +302,6 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
         </div>
       </motion.header>
 
-      {/* Main Content - Reorganized grid layout */}
       <motion.div
         variants={fadeIn}
         initial="initial"
@@ -310,9 +309,7 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
         className="max-w-6xl mx-auto px-4 py-8"
       >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Dataset Info */}
           <motion.div className="lg:col-span-2 space-y-8">
-            {/* Stats Cards - Updated grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {[
                 {
@@ -367,7 +364,6 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
               ))}
             </div>
 
-            {/* Description Section - Enhanced styling */}
             <motion.div
               variants={fadeIn}
               className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 shadow-xl"
@@ -387,9 +383,7 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
             </motion.div>
           </motion.div>
 
-          {/* Right Column - Sidebar */}
           <motion.div variants={fadeIn} className="space-y-6">
-            {/* Code Usage Section - Updated styling */}
             <motion.div
               layout
               className="bg-gray-800/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-700/50 shadow-xl"
@@ -426,7 +420,6 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
               </div>
             </motion.div>
 
-            {/* About Section - Enhanced with metadata */}
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
               <h2 className="text-lg font-semibold text-white mb-4">
                 Uploaded User
@@ -434,12 +427,16 @@ dataset = vc.load_dataset("${username}/${datasetname}/${dataset.datasetType}")`,
               <div className="space-y-3">
                 <p className="text-cyan-100">
                   Uploaded by:{" "}
-                  <Link
-                    to={`/${dataset.owner}/view`}
-                    className="text-cyan-400 hover:text-white transition-colors"
-                  >
-                    {dataset.owner}
-                  </Link>
+                  {dataset.owner ? (
+                    <Link
+                      to={`/${dataset.owner}/view`}
+                      className="text-cyan-400 hover:text-white transition-colors"
+                    >
+                      {dataset.owner}
+                    </Link>
+                  ) : (
+                    <span className="text-white">Unknown</span>
+                  )}
                 </p>
                 <p className="text-cyan-100">
                   Upload Date:{" "}
