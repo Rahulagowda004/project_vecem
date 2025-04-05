@@ -9,7 +9,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCOvJJJ09So-UMX48LPD11Qph5u4kHdY5c",
   authDomain: "vecem-a2b35.firebaseapp.com",
   projectId: "vecem-a2b35",
-  storageBucket: "vecem-a2b35.appspot.com",
+  storageBucket: "vecem-a2b35.firebasestorage.app",
   messagingSenderId: "1001351785962",
   appId: "1:1001351785962:web:56e302507f3a89aa0e5693",
   measurementId: "G-N2XVLS35MY",
