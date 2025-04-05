@@ -21,11 +21,11 @@ import {
   Trash2,
   AlertTriangle,
   Home,
-  UserCircle2, // Add this import
-  Settings, // Add this import
-  LucideIcon, // Add LucideIcon type
+  UserCircle2,
+  Settings,
+  LucideIcon,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext"; // Add this import at the top
+import { useAuth } from "../contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import {
   fetchDatasetForEdit,
@@ -35,14 +35,12 @@ import {
   Dataset,
 } from "../services/datasetEditService";
 
-// Add DirectoryInputElement interface
 interface DirectoryInputElement extends HTMLInputElement {
   webkitdirectory: boolean;
   directory?: string;
   mozdirectory?: string;
 }
 
-// Animation variants
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -54,11 +52,9 @@ const DatasetEdit = () => {
   const { username, datasetname } = useParams();
   const navigate = useNavigate();
 
-  // File input refs
   const rawInputRef = useRef<DirectoryInputElement>(null);
   const vectorizedInputRef = useRef<DirectoryInputElement>(null);
 
-  // All state declarations consolidated at the top
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -76,7 +72,6 @@ const DatasetEdit = () => {
     message: string;
   }>({ show: false, success: false, message: "" });
 
-  // Form states
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [datasetType, setDatasetType] = useState("Both");
@@ -100,7 +95,6 @@ const DatasetEdit = () => {
   );
   const [dataset, setDataset] = useState<Dataset | null>(null);
 
-  // Add domains array at the top of the component
   const domains = [
     "Health",
     "Education",
@@ -118,7 +112,6 @@ const DatasetEdit = () => {
     "E-Commerce",
   ];
 
-  // Add this right after the domains array
   const fileTypes = {
     Image: {
       label: "Image Files",
@@ -197,7 +190,6 @@ const DatasetEdit = () => {
     fetchDataset();
   }, [datasetname, user, navigate]);
 
-  // Add StatusMessage component
   const StatusMessage = () => {
     if (!uploadStatus.show) return null;
 
@@ -229,7 +221,6 @@ const DatasetEdit = () => {
     );
   };
 
-  // Update handleSave function
   const handleSave = async () => {
     if (!dataset?._id) {
       setUploadStatus({
@@ -408,7 +399,6 @@ const DatasetEdit = () => {
     </motion.div>
   );
 
-  // Define the interface for stats card items
   interface StatCard {
     label: string;
     value: string | number;
@@ -446,7 +436,6 @@ const DatasetEdit = () => {
       },
     ];
 
-    // Only add vectorized settings for Raw or Both types
     const vectorizedStats =
       datasetType !== "Vectorized"
         ? [
@@ -490,11 +479,6 @@ const DatasetEdit = () => {
     return [...baseStats, ...vectorizedStats];
   };
 
-  // The refs are already declared at the top of the component
-
-  // Note: selectedFiles and showConfirmation states are already declared at the top
-
-  // Add file type validation
   const fileTypeMap = {
     Image: {
       mimeTypes: [
@@ -525,7 +509,6 @@ const DatasetEdit = () => {
     },
   };
 
-  // Add file change handler
   const handleFileInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     type: "raw" | "vectorized"
@@ -538,31 +521,28 @@ const DatasetEdit = () => {
 
     const filesArray = Array.from(files);
 
-    if (type === "raw") {
+    if (type === "raw" && fileType) {
       const allowedExtensions =
         fileTypeMap[fileType as keyof typeof fileTypeMap]?.extensions;
-      if (!allowedExtensions) {
-        toast.error("Invalid file type selected");
-        return;
-      }
 
-      const invalidFiles = filesArray.filter((file) => {
-        const extension = "." + file.name.split(".").pop()?.toLowerCase();
-        return !allowedExtensions.includes(extension);
-      });
+      if (allowedExtensions && allowedExtensions.length > 0) {
+        const invalidFiles = filesArray.filter((file) => {
+          const extension = "." + file.name.split(".").pop()?.toLowerCase();
+          return !allowedExtensions.includes(extension);
+        });
 
-      if (invalidFiles.length > 0) {
-        toast.error(
-          `Invalid file types detected. Allowed extensions: ${allowedExtensions.join(
-            ", "
-          )}`
-        );
-        if (event.target) event.target.value = "";
-        return;
+        if (invalidFiles.length > 0) {
+          toast.error(
+            `Invalid file types detected. Allowed extensions: ${allowedExtensions.join(
+              ", "
+            )}`
+          );
+          if (event.target) event.target.value = "";
+          return;
+        }
       }
     }
 
-    // Create a new FileList-like object with the filtered files
     const filteredFiles = new DataTransfer();
     filesArray.forEach((file) => filteredFiles.items.add(file));
 
@@ -573,7 +553,6 @@ const DatasetEdit = () => {
     setShowConfirmation(true);
   };
 
-  // Add file upload handler
   const handleUpload = async (files: FileList, type: "raw" | "vectorized") => {
     if (!dataset?._id || !user?.uid) {
       toast.error("Missing required information");
@@ -582,12 +561,19 @@ const DatasetEdit = () => {
 
     setIsUploading(true);
     try {
+      console.log(`Uploading ${type} files:`, {
+        count: files.length,
+        fileNames: Array.from(files).map((f) => f.name),
+        fileType: fileType,
+        datasetType: datasetType,
+      });
+
       const result = await uploadDatasetFiles(
         type === "raw" ? files : null,
         type === "vectorized" ? files : null,
         type,
         {
-          userId: user.uid, // Add this explicitly
+          userId: user.uid,
           datasetId: dataset._id,
           name: name,
           description: description,
@@ -607,6 +593,12 @@ const DatasetEdit = () => {
           ...prev,
           [type]: files.length,
         }));
+
+        if (type === "raw" && datasetType === "Vectorized") {
+          setDatasetType("Both");
+        } else if (type === "vectorized" && datasetType === "Raw") {
+          setDatasetType("Both");
+        }
       } else {
         throw new Error(result?.message || "Upload failed");
       }
@@ -621,7 +613,6 @@ const DatasetEdit = () => {
     }
   };
 
-  // Add ConfirmationDialog component
   const ConfirmationDialog = () => (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-md w-full mx-4">
@@ -656,7 +647,6 @@ const DatasetEdit = () => {
 
   const renderRightColumn = () => (
     <motion.div variants={fadeIn} className="space-y-6">
-      {/* Dataset Status Section */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
         <h3 className="text-sm font-medium text-gray-400 mb-3">
           Dataset Status
@@ -683,7 +673,6 @@ const DatasetEdit = () => {
         </div>
       </div>
 
-      {/* File Upload Section */}
       {(datasetType === "Raw" || datasetType === "Vectorized") && (
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
           <h3 className="text-lg font-medium text-white mb-4">
@@ -704,11 +693,11 @@ const DatasetEdit = () => {
               file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
               hover:file:bg-cyan-700 file:transition-colors"
             accept={
-              datasetType === "Raw"
-                ? undefined
-                : fileTypeMap[
+              datasetType === "Vectorized" && fileType
+                ? fileTypeMap[
                     fileType as keyof typeof fileTypeMap
-                  ]?.extensions.join(",")
+                  ]?.extensions.join(",").replace(/\./g, "")
+                : undefined
             }
           />
           <p className="mt-2 text-sm text-gray-400">
@@ -724,7 +713,6 @@ const DatasetEdit = () => {
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
       {uploadStatus.show && <StatusMessage />}
-      {/* Breadcrumb Navigation */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -735,15 +723,13 @@ const DatasetEdit = () => {
             to={`/settings`}
             className="text-gray-400 hover:text-cyan-400 transition-colors flex items-center gap-1"
           >
-            <Settings className="w-4 h-4" /> {/* Add this icon */}
+            <Settings className="w-4 h-4" />
             Settings
           </Link>
           <ChevronRight className="w-4 h-4 text-gray-600" />
           <span className="text-cyan-400">Edit</span>
         </nav>
       </motion.div>
-
-      {/* Header Section - Updated */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -780,8 +766,6 @@ const DatasetEdit = () => {
                 </motion.span>
               </div>
             </motion.div>
-
-            {/* Action Buttons */}
             <motion.div className="flex flex-wrap gap-3 w-full md:w-auto">
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -793,7 +777,6 @@ const DatasetEdit = () => {
                 <Save className="w-4 h-4" />
                 {isSaving ? "Saving..." : "Save Changes"}
               </motion.button>
-
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -807,8 +790,6 @@ const DatasetEdit = () => {
           </div>
         </div>
       </motion.header>
-
-      {/* Main Content */}
       <motion.div
         variants={fadeIn}
         initial="initial"
@@ -816,9 +797,7 @@ const DatasetEdit = () => {
         className="max-w-6xl mx-auto px-4 py-8"
       >
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column */}
           <motion.div className="lg:col-span-2 space-y-8">
-            {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {getStatsCards().map((stat) => (
                 <motion.div
@@ -835,7 +814,7 @@ const DatasetEdit = () => {
                   </div>
                   {stat.isReadOnly ? (
                     <div className="text-lg font-semibold text-white">
-                      {stat.value} data
+                      {stat.value}
                     </div>
                   ) : stat.isSelect ? (
                     <select
@@ -883,8 +862,6 @@ const DatasetEdit = () => {
                 </motion.div>
               ))}
             </div>
-
-            {/* Description Section */}
             <motion.div
               variants={fadeIn}
               className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 shadow-xl"
@@ -906,8 +883,6 @@ const DatasetEdit = () => {
               />
             </motion.div>
           </motion.div>
-
-          {/* Right Column - Settings */}
           {renderRightColumn()}
         </div>
       </motion.div>

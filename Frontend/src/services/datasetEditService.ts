@@ -131,7 +131,13 @@ export const uploadDatasetFiles = async (
 
     const formData = new FormData();
 
-    // Add files based on type
+    console.log(`Setting up ${type} files for upload:`, {
+      rawFiles: rawFiles?.length || 0,
+      vectorizedFiles: vectorizedFiles?.length || 0,
+      fileType: metadata.file_type
+    });
+
+    // Add files based on type - make sure to use the correct field names
     if (type === "raw" && rawFiles) {
       Array.from(rawFiles).forEach((file) => {
         formData.append("raw_files", file);
@@ -163,7 +169,9 @@ export const uploadDatasetFiles = async (
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({
+        detail: `Server returned ${response.status}: ${response.statusText}`
+      }));
       throw new Error(errorData.detail || "Failed to upload files");
     }
 

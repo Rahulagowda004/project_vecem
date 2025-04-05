@@ -139,19 +139,27 @@ async def edit_dataset_files(
 
         # Preserve existing files
         uploaded_files = existing_dataset.get("files", {"raw": [], "vectorized": []})
+        
+        # Ensure uploaded_files has both raw and vectorized keys
+        if "raw" not in uploaded_files:
+            uploaded_files["raw"] = []
+        if "vectorized" not in uploaded_files:
+            uploaded_files["vectorized"] = []
 
         try:
             # Handle file uploads based on type
             if type == "raw" and raw_files:
                 raw_url = await create_and_upload_zip(raw_files, username, dataset_name, "raw")
-                uploaded_files["raw"] = [raw_url]
+                uploaded_files["raw"] = [raw_url]  # This replaces existing raw files
             elif type == "vectorized" and vectorized_files:
                 vec_url = await create_and_upload_zip(vectorized_files, username, dataset_name, "vectorized")
-                uploaded_files["vectorized"] = [vec_url]
+                uploaded_files["vectorized"] = [vec_url]  # This replaces existing vectorized files
 
             # Determine upload_type based on available files
             has_raw = bool(uploaded_files.get("raw"))
             has_vectorized = bool(uploaded_files.get("vectorized"))
+            
+            # Update the upload_type to reflect the correct dataset type
             upload_type = "both" if has_raw and has_vectorized else (
                 "raw" if has_raw else "vectorized" if has_vectorized else type
             )
