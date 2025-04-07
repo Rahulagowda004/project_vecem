@@ -170,8 +170,8 @@ const DatasetEdit = () => {
 
         // Update vectorized settings from dataset_info
         setVectorizedSettings({
-          dimensions: data.dataset_info.dimensions || 768,
-          vectorDatabase: data.dataset_info.vector_database || "Pinecone",
+          dimensions: data.dataset_info.dimensions || "",
+          vectorDatabase: data.dataset_info.vector_database || "",
           modelName: data.dataset_info.model_name || "",
         });
 
