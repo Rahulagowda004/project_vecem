@@ -76,8 +76,8 @@ const DatasetEdit = () => {
   const [description, setDescription] = useState("");
   const [datasetType, setDatasetType] = useState("Both");
   const [vectorizedSettings, setVectorizedSettings] = useState({
-    dimensions: 768,
-    vectorDatabase: "Pinecone",
+    dimensions: "",
+    vectorDatabase: "",
     modelName: "",
   });
   const [domain, setDomain] = useState("");
