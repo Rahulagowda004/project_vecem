@@ -156,16 +156,28 @@ const DatasetEdit = () => {
         setDataset(data);
         setName(data.dataset_info.name || datasetname);
         setDescription(data.dataset_info.description || "");
-        setDatasetType(data.upload_type === "vectorized" ? "Vectorized" : "Raw");
+        
+        // Update dataset type logic
+        const hasRawFiles = data.files?.raw?.length > 0;
+        const hasVectorizedFiles = data.files?.vectorized?.length > 0;
+        
+        let type = "Raw";
+        if (hasRawFiles && hasVectorizedFiles) {
+          type = "Both";
+        } else if (hasVectorizedFiles) {
+          type = "Vectorized";
+        }
+        setDatasetType(type);
+
         setDomain(data.dataset_info.domain || "");
         setFileType(data.dataset_info.file_type || "");
 
-        const hasRawFiles = data.files?.raw?.length > 0;
-        const hasVectorizedFiles = data.files?.vectorized?.length > 0;
+        const hasRawFilesForSize = data.files?.raw?.length > 0;
+        const hasVectorizedFilesForSize = data.files?.vectorized?.length > 0;
 
         setFileSize({
-          raw: hasRawFiles ? 1 : 0,
-          vectorized: hasVectorizedFiles ? 1 : 0,
+          raw: hasRawFilesForSize ? 1 : 0,
+          vectorized: hasVectorizedFilesForSize ? 1 : 0,
         });
 
         // Update vectorized settings from dataset_info
