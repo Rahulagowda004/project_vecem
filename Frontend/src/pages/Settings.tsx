@@ -436,9 +436,6 @@ const Settings = () => {
       case "name":
         result.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case "size":
-        result.sort((a, b) => b.size - a.size);
-        break;
       case "latest":
       default:
         result.sort(
@@ -867,7 +864,6 @@ const Settings = () => {
                   >
                     <option value="latest">Sort by: Latest</option>
                     <option value="name">Sort by: Name</option>
-                    <option value="size">Sort by: Size</option>
                   </select>
                   {searchQuery && (
                     <div className="text-gray-400">
