@@ -230,6 +230,22 @@ const DatasetEdit = () => {
       return;
     }
 
+    // Add validation for vectorized settings
+    if (fileSize.raw > 0) {
+      if (!vectorizedSettings.dimensions) {
+        toast.error("Please specify the dimensions for vectorization");
+        return;
+      }
+      if (!vectorizedSettings.vectorDatabase) {
+        toast.error("Please specify the vector database");
+        return;
+      }
+      if (!vectorizedSettings.modelName) {
+        toast.error("Please specify the model name");
+        return;
+      }
+    }
+
     setIsSaving(true);
     setUploadStatus({ show: false, success: false, message: "" });
 
