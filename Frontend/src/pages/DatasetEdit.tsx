@@ -156,7 +156,7 @@ const DatasetEdit = () => {
         setDataset(data);
         setName(data.dataset_info.name || datasetname);
         setDescription(data.dataset_info.description || "");
-        setDatasetType(data.dataset_type || "Raw");
+        setDatasetType(data.upload_type === "vectorized" ? "Vectorized" : "Raw");
         setDomain(data.dataset_info.domain || "");
         setFileType(data.dataset_info.file_type || "");
 
@@ -168,14 +168,13 @@ const DatasetEdit = () => {
           vectorized: hasVectorizedFiles ? 1 : 0,
         });
 
-        if (data.vectorized_settings) {
-          setVectorizedSettings({
-            dimensions: data.vectorized_settings.dimensions || 768,
-            vectorDatabase:
-              data.vectorized_settings.vectorDatabase || "Pinecone",
-            modelName: data.vectorized_settings.modelName || "",
-          });
-        }
+        // Update vectorized settings from dataset_info
+        setVectorizedSettings({
+          dimensions: data.dataset_info.dimensions || 768,
+          vectorDatabase: data.dataset_info.vector_database || "Pinecone",
+          modelName: data.dataset_info.model_name || "",
+        });
+
       } catch (error) {
         console.error("Error fetching dataset:", error);
         toast.error(
@@ -437,7 +436,7 @@ const DatasetEdit = () => {
     ];
 
     const vectorizedStats =
-      datasetType !== "Vectorized"
+      datasetType === "Vectorized" || datasetType === "Both"
         ? [
             {
               label: "Model Name",
