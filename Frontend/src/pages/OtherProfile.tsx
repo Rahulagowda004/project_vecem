@@ -441,7 +441,6 @@ const OtherProfile = () => {
                   >
                     <option value="latest">Sort by: Latest</option>
                     <option value="name">Sort by: Name</option>
-                    <option value="size">Sort by: Size</option>
                   </select>
                   {searchQuery && (
                     <div className="text-gray-400">
