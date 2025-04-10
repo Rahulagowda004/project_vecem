@@ -1,16 +1,10 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from src.utils.logger import logging
-import os
-from dotenv import load_dotenv
 from pymongo.errors import PyMongoError
+from src.config import settings
 
-load_dotenv()
-
-MONGO_URL = "mongodb+srv://admin:8bx2pW7Dglj9j5RY@cluster0.tui77.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-DB_NAME = "vecem"
-
-client = AsyncIOMotorClient(MONGO_URL)
-db = client[DB_NAME]
+client = AsyncIOMotorClient(settings.MONGODB_URL)
+db = client[settings.DATABASE_NAME]
 user_profile_collection = db.userprofile
 datasets_collection = db.datasets
 deleted_datasets_collection = db.deleteddatasets

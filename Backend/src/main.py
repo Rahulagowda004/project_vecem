@@ -20,26 +20,26 @@ from typing import Optional
 from src.models.chat_models import General, Issue, IssueReply
 from src.database import mongodb
 from src.models.dataset_models import DatasetSchema, DatasetInfo, Files
+from src.config import settings
+from src.middleware.error_handler import error_handler
 
-app = FastAPI()
-
-CORS_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "https://project-vecem.vercel.app",
-    "https://*.vercel.app"
-]
+app = FastAPI(
+    title="Vecem API",
+    version="1.0.0",
+    description="Vecem API for managing datasets and user profiles",
+)
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add error handler middleware
+app.middleware("http")(error_handler)
 
 # Include routers
 app.include_router(upload_router)
