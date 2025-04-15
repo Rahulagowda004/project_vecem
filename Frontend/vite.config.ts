@@ -12,9 +12,13 @@ export default defineConfig(({ command, mode }) => {
     server: {
       port: 5173,
       host: true,
+      strictPort: true,
       open: true,
       hmr: {
         overlay: false,
+      },
+      watch: {
+        usePolling: true,
       },
     },
     build: {

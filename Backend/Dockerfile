@@ -1,10 +1,25 @@
-FROM python:3.13.0-slim
+# Use Python 3.11
+FROM python:3.11-slim
 
-WORKDIR /usr/src/app
-COPY requirements.txt ./
+# Set working directory
+WORKDIR /app
 
-RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-EXPOSE 3000
+# Copy requirements file
+COPY requirements.txt .
 
-CMD [ "python", "./src/server.py" ]
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY . .
+
+# Expose port 5000
+EXPOSE 5000
+
+# Start the FastAPI app with uvicorn
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
