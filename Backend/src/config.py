@@ -1,25 +1,22 @@
-from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-import os
 from typing import List, Optional
-
-load_dotenv()
+import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # MongoDB Configuration
-    MONGODB_URL: str = os.getenv("MONGODB_URL", "mongodb+srv://admin:8bx2pW7Dglj9j5RY@cluster0.tui77.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "vecem")
+    MONGODB_URL: Optional[str] = None
+    DATABASE_NAME: str = "vecem"
     
     # Azure Storage Configuration
-    AZURE_STORAGE_CONNECTION_STRING: str = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "DefaultEndpointsProtocol=https;AccountName=vecem;AccountKey=IBA8NXAJTBmjGRulpPWNE+v/7xGTW8rK+eaxzo0DiWSAJAYxaFQkrnMl8ga+Pa7FsaC5lxrUPZRQ+ASt0ZJj3w==;EndpointSuffix=core.windows.net")
-    AZURE_CONTAINER_NAME: str = os.getenv("AZURE_CONTAINER_NAME", "datasets")
+    AZURE_STORAGE_CONNECTION_STRING: Optional[str] = None
+    AZURE_CONTAINER_NAME: str = "datasets"
     
     # API Configuration
-    PORT: Optional[int] = os.getenv("PORT", 5000)
-    ENV: str = os.getenv("ENV", "development")
+    PORT: int = 5000
+    ENV: str = "development"
     
     # Logging Configuration
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    LOG_LEVEL: str = "INFO"
     
     # CORS Configuration
     CORS_ORIGINS: List[str] = [
@@ -31,9 +28,32 @@ class Settings(BaseSettings):
         "https://*.vercel.app"
     ]
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "ignore"  # This allows extra fields in the environment without causing errors
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+
+    def validate_settings(self) -> None:
+        missing_vars = []
+        
+        if not self.MONGODB_URL:
+            missing_vars.append("MONGODB_URL")
+        
+        if not self.AZURE_STORAGE_CONNECTION_STRING:
+            missing_vars.append("AZURE_STORAGE_CONNECTION_STRING")
+        
+        if missing_vars:
+            error_message = (
+                "Missing required environment variables:\n"
+                f"{', '.join(missing_vars)}\n\n"
+                "Please ensure these variables are set in your .env file or environment.\n"
+                "Example .env file:\n"
+                "MONGODB_URL=mongodb+srv://username:password@cluster.mongodb.net/db\n"
+                "AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;..."
+            )
+            raise ValueError(error_message)
 
 settings = Settings()
+try:
+    settings.validate_settings()
+except ValueError as e:
+    print("\033[91mConfiguration Error:\033[0m")  # Red color for error
+    print(str(e))
+    raise SystemExit(1)

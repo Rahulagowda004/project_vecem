@@ -3,17 +3,32 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
-import { sendFirebaseUidAndEmail } from "../services/uploadService"; // Import the updated function
+import { sendFirebaseUidAndEmail } from "../services/uploadService";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCOvJJJ09So-UMX48LPD11Qph5u4kHdY5c",
-  authDomain: "vecem-a2b35.firebaseapp.com",
-  projectId: "vecem-a2b35",
-  storageBucket: "vecem-a2b35.firebasestorage.app",
-  messagingSenderId: "1001351785962",
-  appId: "1:1001351785962:web:56e302507f3a89aa0e5693",
-  measurementId: "G-N2XVLS35MY",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
+
+// Validate required Firebase configuration
+const requiredConfig = [
+  'apiKey',
+  'authDomain',
+  'projectId',
+  'storageBucket',
+  'messagingSenderId',
+  'appId'
+];
+
+const missingConfig = requiredConfig.filter(key => !firebaseConfig[key]);
+if (missingConfig.length > 0) {
+  throw new Error(`Missing required Firebase configuration: ${missingConfig.join(', ')}`);
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -33,7 +48,7 @@ auth.onAuthStateChanged(async (user) => {
     console.log("User UID:", uid);
     console.log("User Email:", email);
     console.log("User Name:", name);
-    await sendFirebaseUidAndEmail(uid, email, name); // Send UID and email to backend
+    await sendFirebaseUidAndEmail(uid, email, name);
   }
 });
 
