@@ -790,3 +790,54 @@ async def create_prompt(prompt: Prompts):
     except Exception as e:
         logging.error(f"Error saving prompt: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for monitoring and status verification
+    Returns health status of API and connected services
+    """
+    try:
+        # Check MongoDB connection
+        db_status = "healthy"
+        db_error = None
+        try:
+            # Ping MongoDB to verify connection
+            await mongodb.mongo_client.admin.command('ping')
+        except Exception as e:
+            db_status = "unhealthy"
+            db_error = str(e)
+        
+        # Check Azure Blob Storage connection
+        storage_status = "healthy"
+        storage_error = None
+        try:
+            # List containers to verify connection
+            from src.utils.azure_storage import blob_service_client
+            containers = list(blob_service_client.list_containers(max_results=1))
+        except Exception as e:
+            storage_status = "unhealthy"
+            storage_error = str(e)
+            
+        return {
+            "status": "online",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0.0",
+            "services": {
+                "database": {
+                    "status": db_status,
+                    "error": db_error
+                },
+                "storage": {
+                    "status": storage_status,
+                    "error": storage_error
+                }
+            }
+        }
+    except Exception as e:
+        logging.error(f"Health check failed: {str(e)}")
+        return {
+            "status": "degraded",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e)
+        }
