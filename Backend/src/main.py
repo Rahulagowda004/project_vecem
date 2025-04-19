@@ -38,6 +38,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add security middleware
+from src.middleware.security import SecurityMiddleware
+app.middleware("http")(SecurityMiddleware(
+    rate_limit_requests=100,
+    rate_limit_window=60,
+    allowed_hosts=settings.ALLOWED_HOSTS if hasattr(settings, 'ALLOWED_HOSTS') else []
+))
+
 # Add error handler middleware
 app.middleware("http")(error_handler)
 

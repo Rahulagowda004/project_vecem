@@ -88,5 +88,5 @@ async def delete_dataset_blobs(dataset_name: str, username: str):
             container_client.delete_blob(blob.name)
             
     except Exception as e:
-        logging.error(f"Error deleting blobs: {str(e)}")
+        logging.error(f"Error deleting dataset blobs: {str(e)}")
         raise
