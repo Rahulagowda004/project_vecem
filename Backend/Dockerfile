@@ -1,5 +1,5 @@
 # Use Python 3.11
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Set working directory
 WORKDIR /app
@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files
 COPY . .
 
-# Expose port 5000
-EXPOSE 5000
+# ✅ Expose port 8000 (not 5000)
+EXPOSE 8000
 
-# Start the FastAPI app with uvicorn
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "5000"]
+# ✅ Run uvicorn on port 8000 (not 5000)
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
