@@ -10,6 +10,7 @@ import { getUserDisplayName } from "../utils/userManagement";
 import PromptCard from "../components/PromptCard";
 import { getPromptDetails, logPromptClick } from "../services/promptService";
 import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "../config";
 
 interface Dataset {
   id: string;
@@ -242,7 +243,7 @@ const UserProfile = () => {
   const handleDatasetClick = async (_id: string, datasetName: string) => {
     try {
       // Log the click to backend
-      const response = await fetch("http://127.0.0.1:5000/dataset-click", {
+      const response = await fetch(`${API_BASE_URL}/dataset-click`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

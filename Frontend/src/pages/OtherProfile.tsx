@@ -5,10 +5,11 @@ import { getUserProfileByUsername } from "../services/userService";
 import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 import NavbarPro from "../components/NavbarPro";
-import { MessageSquarePlus } from 'lucide-react';
-import PromptCard from '../components/PromptCard';
+import { MessageSquarePlus } from "lucide-react";
+import PromptCard from "../components/PromptCard";
 import { getPromptDetails, logPromptClick } from "../services/promptService";
 import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "../config";
 
 interface UserProfileData {
   uid: string;
@@ -47,27 +48,29 @@ const OtherProfile = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
-  const [activeView, setActiveView] = useState<'datasets' | 'prompts'>('datasets');
+  const [activeView, setActiveView] = useState<"datasets" | "prompts">(
+    "datasets"
+  );
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [isPromptCardOpen, setIsPromptCardOpen] = useState(false);
   const [promptsLoading, setPromptsLoading] = useState(false);
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'Date not available';
-    
+    if (!dateString) return "Date not available";
+
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
-        throw new Error('Invalid date');
+        throw new Error("Invalid date");
       }
-      return date.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
+      return date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       });
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Date not available';
+      console.error("Error formatting date:", error);
+      return "Date not available";
     }
   };
 
@@ -83,7 +86,7 @@ const OtherProfile = () => {
 
         // Get profile data directly
         const profileData = await getUserProfileByUsername(username);
-        
+
         // SECURITY CHECK: If no profile data, show error
         if (!profileData) {
           throw new Error("Profile not found");
@@ -124,7 +127,7 @@ const OtherProfile = () => {
 
   const handleDatasetClick = async (datasetId: string, datasetName: string) => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/dataset-click", {
+      const response = await fetch(`${API_BASE_URL}/dataset-click`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -206,29 +209,38 @@ const OtherProfile = () => {
   }, [userData?.prompts, searchQuery, sortOption, promptsLoading]);
 
   const paginatedItems = useMemo(() => {
-    const items = activeView === 'datasets' ? filteredAndSortedDatasets : filteredAndSortedPrompts;
+    const items =
+      activeView === "datasets"
+        ? filteredAndSortedDatasets
+        : filteredAndSortedPrompts;
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return items.slice(startIndex, endIndex);
-  }, [filteredAndSortedDatasets, filteredAndSortedPrompts, currentPage, activeView]);
+  }, [
+    filteredAndSortedDatasets,
+    filteredAndSortedPrompts,
+    currentPage,
+    activeView,
+  ]);
 
   const totalPages = Math.ceil(
-    (activeView === 'datasets' ? filteredAndSortedDatasets.length : filteredAndSortedPrompts.length) 
-    / itemsPerPage
+    (activeView === "datasets"
+      ? filteredAndSortedDatasets.length
+      : filteredAndSortedPrompts.length) / itemsPerPage
   );
 
   const handlePromptClick = async (promptId: string, promptName: string) => {
     try {
       try {
-        await logPromptClick(userData?.uid || '', promptName);
+        await logPromptClick(userData?.uid || "", promptName);
       } catch (error) {
-        console.warn('Failed to log prompt click:', error);
+        console.warn("Failed to log prompt click:", error);
       }
 
-      const loadingToast = toast.loading('Loading prompt details...');
+      const loadingToast = toast.loading("Loading prompt details...");
 
-      const promptData = await getPromptDetails(username || '', promptName);
-      
+      const promptData = await getPromptDetails(username || "", promptName);
+
       toast.dismiss(loadingToast);
 
       setSelectedPrompt({
@@ -237,20 +249,23 @@ const OtherProfile = () => {
         prompt: promptData.prompt,
         username: promptData.username, // Include username in the prompt data
         createdAt: promptData.createdAt,
-        updatedAt: promptData.updatedAt
+        updatedAt: promptData.updatedAt,
       });
       setIsPromptCardOpen(true);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load prompt details';
-      console.error('Error fetching prompt details:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to load prompt details";
+      console.error("Error fetching prompt details:", error);
       toast.error(errorMessage);
     }
   };
 
   const activeViewCount = useMemo(() => {
     if (!userData) return 0;
-    return activeView === 'datasets' 
-      ? userData.datasets.length 
+    return activeView === "datasets"
+      ? userData.datasets.length
       : userData.prompts?.length || 0;
   }, [userData, activeView]);
 
@@ -385,21 +400,21 @@ const OtherProfile = () => {
                 {/* View Selector */}
                 <div className="flex space-x-4">
                   <button
-                    onClick={() => setActiveView('datasets')}
+                    onClick={() => setActiveView("datasets")}
                     className={`px-4 py-2 rounded-lg transition-all ${
-                      activeView === 'datasets'
-                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                        : 'text-gray-400 hover:text-cyan-400'
+                      activeView === "datasets"
+                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                        : "text-gray-400 hover:text-cyan-400"
                     }`}
                   >
                     Datasets
                   </button>
                   <button
-                    onClick={() => setActiveView('prompts')}
+                    onClick={() => setActiveView("prompts")}
                     className={`px-4 py-2 rounded-lg transition-all ${
-                      activeView === 'prompts'
-                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                        : 'text-gray-400 hover:text-cyan-400'
+                      activeView === "prompts"
+                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                        : "text-gray-400 hover:text-cyan-400"
                     }`}
                   >
                     Prompts
@@ -444,9 +459,11 @@ const OtherProfile = () => {
                   </select>
                   {searchQuery && (
                     <div className="text-gray-400">
-                      Found {activeView === 'datasets' 
-                        ? filteredAndSortedDatasets.length 
-                        : filteredAndSortedPrompts.length} results
+                      Found{" "}
+                      {activeView === "datasets"
+                        ? filteredAndSortedDatasets.length
+                        : filteredAndSortedPrompts.length}{" "}
+                      results
                     </div>
                   )}
                 </div>
@@ -460,20 +477,24 @@ const OtherProfile = () => {
               animate="show"
               className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
             >
-              {activeView === 'datasets' ? (
+              {activeView === "datasets" ? (
                 paginatedItems.length > 0 ? (
                   paginatedItems.map((dataset) => (
                     <motion.li
                       key={dataset.id}
                       variants={item}
                       whileHover={{ scale: 1.02 }}
-                      onClick={() => handleDatasetClick(dataset.id, dataset.name)}
+                      onClick={() =>
+                        handleDatasetClick(dataset.id, dataset.name)
+                      }
                       className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
                     >
                       <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
                         {dataset.name}
                       </h3>
-                      <p className="text-gray-300 mb-4">{dataset.description}</p>
+                      <p className="text-gray-300 mb-4">
+                        {dataset.description}
+                      </p>
                       <div className="flex items-center space-x-4 text-sm text-gray-400">
                         <span className="flex items-center">
                           <svg
@@ -514,12 +535,25 @@ const OtherProfile = () => {
                     className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
                   >
                     <div className="w-24 h-24 mb-6 text-gray-600">
-                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      <svg
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                        />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-400 mb-2">No datasets yet</h3>
-                    <p className="text-gray-500">This user hasn't uploaded any datasets</p>
+                    <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                      No datasets yet
+                    </h3>
+                    <p className="text-gray-500">
+                      This user hasn't uploaded any datasets
+                    </p>
                   </motion.div>
                 )
               ) : promptsLoading ? (
@@ -530,8 +564,20 @@ const OtherProfile = () => {
                 >
                   <div className="w-24 h-24 mb-6 text-cyan-400">
                     <svg className="animate-spin" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                   </div>
                   <p className="text-gray-400">Loading prompts...</p>
@@ -544,62 +590,78 @@ const OtherProfile = () => {
                 >
                   <div className="w-24 h-24 mb-6 text-gray-600">
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-400 mb-2">No prompts yet</h3>
-                  <p className="text-gray-500">This user hasn't shared any prompts</p>
+                  <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                    No prompts yet
+                  </h3>
+                  <p className="text-gray-500">
+                    This user hasn't shared any prompts
+                  </p>
                 </motion.div>
-              ) : (
-                paginatedItems.length > 0 ? (
-                  paginatedItems.map((prompt) => (
-                    <motion.li
-                      key={prompt.id}
-                      variants={item}
-                      whileHover={{ scale: 1.02 }}
-                      onClick={() => handlePromptClick(prompt.id, prompt.name)}
-                      className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
-                    >
-                      <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                        {prompt.name}
-                      </h3>
-                      <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <span className="flex items-center">
-                          <MessageSquarePlus className="w-4 h-4 mr-1" />
-                          {prompt.domain || "General"}
-                        </span>
-                        <span className="flex items-center">
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          {formatDate(prompt.updatedAt || prompt.createdAt)}
-                        </span>
-                      </div>
-                    </motion.li>
-                  ))
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+              ) : paginatedItems.length > 0 ? (
+                paginatedItems.map((prompt) => (
+                  <motion.li
+                    key={prompt.id}
+                    variants={item}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => handlePromptClick(prompt.id, prompt.name)}
+                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
                   >
-                    <div className="w-24 h-24 mb-6 text-gray-600">
-                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                      </svg>
+                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      {prompt.name}
+                    </h3>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <span className="flex items-center">
+                        <MessageSquarePlus className="w-4 h-4 mr-1" />
+                        {prompt.domain || "General"}
+                      </span>
+                      <span className="flex items-center">
+                        <svg
+                          className="w-4 h-4 mr-1"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        {formatDate(prompt.updatedAt || prompt.createdAt)}
+                      </span>
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-400 mb-2">No prompts yet</h3>
-                    <p className="text-gray-500">This user hasn't shared any prompts</p>
-                  </motion.div>
-                )
+                  </motion.li>
+                ))
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
+                >
+                  <div className="w-24 h-24 mb-6 text-gray-600">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                    No prompts yet
+                  </h3>
+                  <p className="text-gray-500">
+                    This user hasn't shared any prompts
+                  </p>
+                </motion.div>
               )}
             </motion.ul>
 
@@ -608,7 +670,9 @@ const OtherProfile = () => {
               <div className="border-t border-gray-700/50 p-4">
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
                     disabled={currentPage === 1}
                   >
@@ -643,7 +707,9 @@ const OtherProfile = () => {
                     ))}
                   </div>
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
                     disabled={currentPage === totalPages}
                   >
@@ -668,7 +734,7 @@ const OtherProfile = () => {
           </div>
         </motion.div>
       </div>
-      
+
       <PromptCard
         prompt={selectedPrompt}
         isOpen={isPromptCardOpen}
@@ -678,4 +744,4 @@ const OtherProfile = () => {
   );
 };
 
-export default OtherProfile;
+export default OtherProfile;

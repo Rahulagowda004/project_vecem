@@ -17,6 +17,7 @@ import {
   UserCircle2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "../config";
 
 // Animation variants
 const fadeIn = {
@@ -45,7 +46,7 @@ const DatasetDetail = () => {
           throw new Error("Invalid URL parameters");
         }
 
-        const response = await fetch("http://127.0.0.1:5000/dataset-click", {
+        const response = await fetch(`${API_BASE_URL}/dataset-click`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

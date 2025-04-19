@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from '../contexts/AuthContext';
-import {
-  User,
-  ChevronDown,
-  LogOut,
-  Settings,
-  Bot,
-} from "lucide-react";
-import { getUserProfileByUid } from '../services/userService';
+import { useAuth } from "../contexts/AuthContext";
+import { User, ChevronDown, LogOut, Settings, Bot } from "lucide-react";
+import { getUserProfileByUid } from "../services/userService";
+import { API_BASE_URL } from "../config";
 
 const LogoutButton = () => {
   const { logout } = useAuth();
@@ -17,9 +12,9 @@ const LogoutButton = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
@@ -38,7 +33,9 @@ const NavbarPro = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [userAvatar, setUserAvatar] = useState(user?.photoURL || "/avatars/default.png");
+  const [userAvatar, setUserAvatar] = useState(
+    user?.photoURL || "/avatars/default.png"
+  );
   const [username, setUsername] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
 
@@ -62,12 +59,12 @@ const NavbarPro = () => {
   useEffect(() => {
     const fetchUserAvatar = async () => {
       if (!user?.uid) return;
-      
+
       try {
         setAvatarLoading(true);
-        const response = await fetch(`http://127.0.0.1:5000/user-avatar/${user.uid}`);
+        const response = await fetch(`${API_BASE_URL}/user-avatar/${user.uid}`);
         const data = await response.json();
-        
+
         if (data.avatar) {
           setUserAvatar(data.avatar);
         }
@@ -85,14 +82,15 @@ const NavbarPro = () => {
     <nav className="bg-gray-900/90 backdrop-blur-lg border-b border-gray-800 fixed w-full z-50">
       <div className="max-w-full mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex-shrink-0 transition-transform hover:scale-105">
+          <Link
+            to="/"
+            className="flex-shrink-0 transition-transform hover:scale-105"
+          >
             <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-200 bg-clip-text text-transparent">
               Vecem
             </span>
           </Link>
-
           <div className="flex-1" /> {/* Spacer */}
-
           {user && (
             <div className="relative">
               <button
@@ -119,7 +117,7 @@ const NavbarPro = () => {
                 <div className="absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-gray-900 ring-1 ring-cyan-400/10">
                   <div className="py-1 divide-y divide-gray-800">
                     <Link
-                      to={username ? `/${username}` : '#'}
+                      to={username ? `/${username}` : "#"}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
                     >
                       <User className="h-4 w-4 mr-3 text-cyan-400" />

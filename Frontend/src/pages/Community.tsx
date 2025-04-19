@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { Link } from "react-router-dom"; // Add this import
+import { API_BASE_URL } from "../config";
 
 interface Message {
   id: number;
@@ -195,7 +196,7 @@ const Community = () => {
         created_at: new Date().toISOString(),
       };
 
-      const response = await fetch(`http://127.0.0.1:5000/community/${tag}`, {
+      const response = await fetch(`${API_BASE_URL}/community/${tag}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -228,7 +229,7 @@ const Community = () => {
         created_at: new Date().toISOString(),
       };
 
-      const response = await fetch("http://127.0.0.1:5000/community/reply", {
+      const response = await fetch(`${API_BASE_URL}/community/reply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -254,9 +255,7 @@ const Community = () => {
         setIsLoading(true);
       }
       setFetchError(null);
-      const response = await fetch(
-        `http://127.0.0.1:5000/community/messages/${tag}`
-      );
+      const response = await fetch(`${API_BASE_URL}/community/messages/${tag}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch messages: ${response.statusText}`);
       }

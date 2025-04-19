@@ -1,8 +1,9 @@
 import axios from "axios";
 import { getAuth } from "firebase/auth";
 import { DatasetInfo, Files } from "../types/dataset";
+import { API_BASE_URL } from "../config";
 
-const API_URL = "http://127.0.0.1:5000";
+const API_URL = API_BASE_URL;
 
 export interface DatasetForm extends Omit<DatasetInfo, "username"> {
   uid?: string;

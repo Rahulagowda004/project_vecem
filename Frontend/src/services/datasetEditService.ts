@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "../config";
+
 export interface Dataset {
   _id: string;
   dataset_info: {
@@ -35,7 +37,7 @@ interface UploadResponse {
   files: string[];
 }
 
-const API_URL = "http://127.0.0.1:5000";
+const API_URL = API_BASE_URL;
 
 export const fetchDatasetForEdit = async (
   uid: string,
@@ -134,7 +136,7 @@ export const uploadDatasetFiles = async (
     console.log(`Setting up ${type} files for upload:`, {
       rawFiles: rawFiles?.length || 0,
       vectorizedFiles: vectorizedFiles?.length || 0,
-      fileType: metadata.file_type
+      fileType: metadata.file_type,
     });
 
     // Add files based on type - make sure to use the correct field names
@@ -170,7 +172,7 @@ export const uploadDatasetFiles = async (
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({
-        detail: `Server returned ${response.status}: ${response.statusText}`
+        detail: `Server returned ${response.status}: ${response.statusText}`,
       }));
       throw new Error(errorData.detail || "Failed to upload files");
     }

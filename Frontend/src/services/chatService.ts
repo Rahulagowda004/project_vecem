@@ -1,4 +1,6 @@
-const API_URL = "http://127.0.0.1:5000";
+import { API_BASE_URL } from "../config";
+
+const API_URL = API_BASE_URL;
 
 export interface ChatMessage {
   id: string;
@@ -27,7 +29,7 @@ export const sendChatMessage = async (message: string, uid: string) => {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail || 'Failed to send chat message');
+    throw new Error(error.detail || "Failed to send chat message");
   }
 
   return response.json();

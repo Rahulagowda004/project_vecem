@@ -1,7 +1,8 @@
 import { firestore } from "../firebase/firebase";
 import { doc, getDoc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { API_BASE_URL } from "../config";
 
-const API_URL = "http://127.0.0.1:5000";
+const API_URL = API_BASE_URL;
 
 interface UserData {
   username: string;
@@ -252,41 +253,45 @@ export const deleteAccount = async (uid: string) => {
 export const getUserPrompts = async (uid: string) => {
   try {
     const response = await fetch(`${API_URL}/user-profile/${uid}`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `Failed to fetch prompts: ${response.status}`);
+      throw new Error(
+        errorData.detail || `Failed to fetch prompts: ${response.status}`
+      );
     }
 
     const data = await response.json();
     return data.prompts || [];
   } catch (error) {
-    console.error('Error fetching user prompts:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to fetch user prompts');
+    console.error("Error fetching user prompts:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to fetch user prompts"
+    );
   }
 };
 
 export const deletePrompt = async (promptId: string) => {
   try {
     const response = await fetch(`${API_URL}/prompts/${promptId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to delete prompt');
+      throw new Error("Failed to delete prompt");
     }
 
     return true;
   } catch (error) {
-    console.error('Error deleting prompt:', error);
+    console.error("Error deleting prompt:", error);
     throw error;
   }
 };

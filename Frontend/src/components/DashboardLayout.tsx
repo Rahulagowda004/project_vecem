@@ -22,15 +22,16 @@ import { getUserProfileByUid } from "../services/userService";
 import { getUserDisplayName } from "../utils/userManagement";
 import { motion } from "framer-motion";
 import { ChatMessage, sendChatMessage } from "../services/chatService";
-import { checkApiKey, saveApiKey } from '../services/apiKeyService';
-import { toast } from 'react-hot-toast';
+import { checkApiKey, saveApiKey } from "../services/apiKeyService";
+import { toast } from "react-hot-toast";
 import PromptsGrid from "./PromptsGrid";
 import Community from "../pages/Community";
+import { API_BASE_URL } from "../config";
 
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'bot';
+  sender: "user" | "bot";
   timestamp: string;
 }
 
@@ -46,7 +47,7 @@ interface Prompt {
 
 const LogoutButton = () => {
   const { logout } = useAuth();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
@@ -80,12 +81,14 @@ const DashboardLayout = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
   const [datasets, setDatasets] = useState([]);
-  const [currentView, setCurrentView] = useState<"datasets" | "chatbot" | "prompts" | "community">("datasets");
+  const [currentView, setCurrentView] = useState<
+    "datasets" | "chatbot" | "prompts" | "community"
+  >("datasets");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       content:
-      "Welcome to Vecora! I help you optimize system messages, refine prompts, create new ones, and improve AI interactions. Ask me anything about prompt engineering!",
+        "Welcome to Vecora! I help you optimize system messages, refine prompts, create new ones, and improve AI interactions. Ask me anything about prompt engineering!",
       sender: "bot",
       timestamp: new Date().toISOString(),
     },
@@ -95,21 +98,21 @@ const DashboardLayout = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isFullWidth, setIsFullWidth] = useState(false);
   const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [apiKeyError, setApiKeyError] = useState('');
+  const [apiKey, setApiKey] = useState("");
+  const [apiKeyError, setApiKeyError] = useState("");
   const [prompts, setPrompts] = useState<Prompt[]>([]);
 
   useEffect(() => {
     const fetchPrompts = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/prompts');
+        const response = await fetch(`${API_BASE_URL}/prompts`);
         if (!response.ok) {
-          throw new Error('Failed to fetch prompts');
+          throw new Error("Failed to fetch prompts");
         }
         const data = await response.json();
         setPrompts(data.slice(0, 15)); // Changed from 12 to 15 prompts
       } catch (error) {
-        console.error('Error fetching prompts:', error);
+        console.error("Error fetching prompts:", error);
         setPrompts([]);
       }
     };
@@ -155,7 +158,10 @@ const DashboardLayout = () => {
       console.error("Chat error:", error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: error instanceof Error ? error.message : "I encountered an error. Please try again.",
+        content:
+          error instanceof Error
+            ? error.message
+            : "I encountered an error. Please try again.",
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
@@ -188,9 +194,7 @@ const DashboardLayout = () => {
 
       try {
         setAvatarLoading(true);
-        const response = await fetch(
-          `http://127.0.0.1:5000/user-avatar/${user.uid}`
-        );
+        const response = await fetch(`${API_BASE_URL}/user-avatar/${user.uid}`);
         const data = await response.json();
 
         if (data.avatar) {
@@ -224,7 +228,7 @@ const DashboardLayout = () => {
   const handleCategorySelect = async (category: string) => {
     setSelectedCategory(category);
     try {
-      const response = await fetch("http://127.0.0.1:5000/dataset-category", {
+      const response = await fetch(`${API_BASE_URL}/dataset-category`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -256,11 +260,11 @@ const DashboardLayout = () => {
       if (!hasApiKey) {
         setShowApiKeyDialog(true);
       } else {
-        setCurrentView('chatbot');
+        setCurrentView("chatbot");
       }
     } catch (error) {
-      console.error('Error checking API key:', error);
-      toast.error('Failed to verify API key access');
+      console.error("Error checking API key:", error);
+      toast.error("Failed to verify API key access");
     }
   };
 
@@ -269,16 +273,16 @@ const DashboardLayout = () => {
     if (!user?.uid) return;
 
     try {
-      setApiKeyError('');
+      setApiKeyError("");
       await saveApiKey(user.uid, apiKey);
       setShowApiKeyDialog(false);
-      setCurrentView('chatbot');
-      setApiKey('');
-      toast.success('API key saved successfully');
+      setCurrentView("chatbot");
+      setApiKey("");
+      toast.success("API key saved successfully");
     } catch (error) {
-      console.error('Error saving API key:', error);
-      setApiKeyError('Failed to save API key. Please try again.');
-      toast.error('Failed to save API key');
+      console.error("Error saving API key:", error);
+      setApiKeyError("Failed to save API key. Please try again.");
+      toast.error("Failed to save API key");
     }
   };
 
@@ -479,11 +483,7 @@ const DashboardLayout = () => {
                   currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
-                <img 
-                  src="/robot.png" 
-                  alt="Bot" 
-                  className="w-8 h-8 mr-3" 
-                />
+                <img src="/robot.png" alt="Bot" className="w-8 h-8 mr-3" />
                 <span className="group-hover:text-cyan-400 transition-colors">
                   Vecora
                 </span>
@@ -508,7 +508,6 @@ const DashboardLayout = () => {
           <main className="h-full relative">
             {currentView === "community" ? (
               <div className="flex flex-col h-[calc(100vh-4rem)]">
-                
                 <div className="flex-1 overflow-y-auto">
                   <Community />
                 </div>
@@ -536,24 +535,24 @@ const DashboardLayout = () => {
                         >
                           {message.sender === "bot" && (
                             <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
-                              <motion.img 
-                                src="/robot.png" 
-                                alt="Bot" 
+                              <motion.img
+                                src="/robot.png"
+                                alt="Bot"
                                 className="w-8 h-8"
-                                whileHover={{ 
+                                whileHover={{
                                   scale: 1.2,
                                   rotate: [0, -10, 10, -10, 0],
-                                  transition: { duration: 0.5 }
+                                  transition: { duration: 0.5 },
                                 }}
-                                animate={{ 
+                                animate={{
                                   scale: [1, 1.1, 1],
                                   rotate: [0, 5, 0, -5, 0],
-                                  y: [0, -3, 0]
+                                  y: [0, -3, 0],
                                 }}
                                 transition={{
                                   duration: 3,
                                   repeat: Infinity,
-                                  ease: "easeInOut"
+                                  ease: "easeInOut",
                                 }}
                               />
                             </div>
@@ -662,7 +661,6 @@ const DashboardLayout = () => {
                               alt={user.displayName || "User avatar"}
                             />
                           </div>
-
                         </div>
 
                         {/* Welcome Text Section */}
@@ -671,9 +669,9 @@ const DashboardLayout = () => {
                             Welcome back, {getUserDisplayName(user)}
                           </h2>
                           <p className="text-gray-400 text-md tracking-wide truncate">
-  You're in! Now explore datasets, contribute insights, and connect with the community.
-</p>
-
+                            You're in! Now explore datasets, contribute
+                            insights, and connect with the community.
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -687,8 +685,12 @@ const DashboardLayout = () => {
                     ) : (
                       <div className="flex flex-col items-center justify-center p-8 bg-gray-800/50 rounded-xl border border-gray-700/50">
                         <TerminalSquare className="w-12 h-12 text-gray-500 mb-4" />
-                        <h3 className="text-lg font-medium text-gray-300 mb-2">No Prompts Found</h3>
-                        <p className="text-gray-500 text-center">There are no prompts available at the moment.</p>
+                        <h3 className="text-lg font-medium text-gray-300 mb-2">
+                          No Prompts Found
+                        </h3>
+                        <p className="text-gray-500 text-center">
+                          There are no prompts available at the moment.
+                        </p>
                       </div>
                     )
                   ) : (
@@ -713,49 +715,63 @@ const DashboardLayout = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
           >
-           <motion.img 
-             src="/robot.png" 
-             alt="Bot" 
-             className="w-12 h-12 mx-auto mb-4"
-             animate={{ 
-               scale: [1, 1.15, 1],
-               rotate: [0, -15, 15, -5, 0],
-               y: [0, -6, 0],
-             }}
-             transition={{
-               duration: 3,
-               repeat: Infinity,
-               ease: "easeInOut",
-               times: [0, 0.2, 0.5, 0.8, 1],
-             }}
-             whileHover={{
-               scale: 1.2,
-               rotate: [0, -10, 10, -10, 0],
-               transition: {
-                 duration: 0.3,
-                 ease: "easeOut",
-               }
-             }}
-             drag
-             dragConstraints={{
-               top: -10,
-               left: -10,
-               right: 10,
-               bottom: 10,
-             }}
-             whileDrag={{ scale: 1.1 }}
-           />
-            <h2 className="text-xl font-bold text-white mb-4">Google AI Studio API Key Required</h2>
+            <motion.img
+              src="/robot.png"
+              alt="Bot"
+              className="w-12 h-12 mx-auto mb-4"
+              animate={{
+                scale: [1, 1.15, 1],
+                rotate: [0, -15, 15, -5, 0],
+                y: [0, -6, 0],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+                times: [0, 0.2, 0.5, 0.8, 1],
+              }}
+              whileHover={{
+                scale: 1.2,
+                rotate: [0, -10, 10, -10, 0],
+                transition: {
+                  duration: 0.3,
+                  ease: "easeOut",
+                },
+              }}
+              drag
+              dragConstraints={{
+                top: -10,
+                left: -10,
+                right: 10,
+                bottom: 10,
+              }}
+              whileDrag={{ scale: 1.1 }}
+            />
+            <h2 className="text-xl font-bold text-white mb-4">
+              Google AI Studio API Key Required
+            </h2>
             <div className="text-gray-300 text-sm mb-6 space-y-3">
               <p>To obtain your Google AI Studio API key:</p>
               <ol className="list-decimal list-inside space-y-2">
-                <li>Visit <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300">Google AI Studio</a></li>
+                <li>
+                  Visit{" "}
+                  <a
+                    href="https://makersuite.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:text-cyan-300"
+                  >
+                    Google AI Studio
+                  </a>
+                </li>
                 <li>Sign in with your Google account</li>
                 <li>Click on "Get API key" in the top menu</li>
                 <li>Either select an existing key or click "Create API key"</li>
                 <li>Copy the generated API key and paste it below</li>
               </ol>
-              <p className="mt-2 text-yellow-400">Note: Keep your API key secure and never share it publicly.</p>
+              <p className="mt-2 text-yellow-400">
+                Note: Keep your API key secure and never share it publicly.
+              </p>
             </div>
             <form onSubmit={handleApiKeySubmit}>
               <input
