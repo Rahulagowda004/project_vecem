@@ -4,6 +4,7 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 import { sendFirebaseUidAndEmail } from "../services/uploadService";
+import config from "../config"; // Import the config with fallbacks
 
 // Define Firebase config type for TypeScript
 type FirebaseConfigType = {
@@ -16,19 +17,11 @@ type FirebaseConfigType = {
   measurementId?: string;
 };
 
-// Use environment variables directly for Firebase configuration
-const firebaseConfig: FirebaseConfigType = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
+// Use the Firebase configuration from config.ts which includes fallbacks
+const firebaseConfig: FirebaseConfigType = config.FIREBASE_CONFIG;
 
 // Log environment variable loading status for debugging
-console.log("Firebase config environment variables loaded:", {
+console.log("Firebase config loaded:", {
   apiKey: !!firebaseConfig.apiKey,
   authDomain: !!firebaseConfig.authDomain,
   projectId: !!firebaseConfig.projectId,
@@ -38,26 +31,7 @@ console.log("Firebase config environment variables loaded:", {
   measurementId: !!firebaseConfig.measurementId,
 });
 
-// Validate required Firebase configuration
-const requiredConfig = [
-  "apiKey",
-  "authDomain",
-  "projectId",
-  "storageBucket",
-  "messagingSenderId",
-  "appId",
-] as const;
-
-// Type-safe check for missing config
-const missingConfig = requiredConfig.filter((key) => !firebaseConfig[key]);
-if (missingConfig.length > 0) {
-  console.error("Missing Firebase configuration:", missingConfig);
-  throw new Error(
-    `Missing required Firebase configuration: ${missingConfig.join(", ")}`
-  );
-}
-
-// Initialize Firebase
+// Initialize Firebase without additional validation (already handled in config.ts)
 const app = initializeApp(firebaseConfig);
 
 // Initialize services
