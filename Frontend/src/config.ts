@@ -80,6 +80,7 @@ const config: Config = {
   ),
 };
 
+//its working
 // Log warnings for missing environment variables in production instead of throwing errors
 if (import.meta.env && import.meta.env.PROD) {
   const requiredVars = [
