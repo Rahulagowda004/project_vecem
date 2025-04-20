@@ -16,6 +16,17 @@ interface Config {
 const DEFAULT_API_URL =
   "https://vecem-fkhdbxcpcrhscmge.centralindia-01.azurewebsites.net";
 
+// Default Firebase configuration values
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCOvJJJ09So-UMX48LPD11Qph5u4kHdY5c",
+  authDomain: "vecem-a2b35.firebaseapp.com",
+  projectId: "vecem-a2b35",
+  storageBucket: "vecem-a2b35.firebasestorage.app",
+  messagingSenderId: "1001351785962",
+  appId: "1:1001351785962:web:56e302507f3a89aa0e5693",
+  measurementId: "G-N2XVLS35MY",
+};
+
 // Helper function to access environment variables safely
 const getEnvVar = (key: string, defaultValue: string = ""): string => {
   // Check if we're in a browser environment (where import.meta.env would be undefined in older browsers)
@@ -34,17 +45,35 @@ const getEnvVar = (key: string, defaultValue: string = ""): string => {
 // Export the API base URL separately for easier imports
 export const API_BASE_URL = getEnvVar("VITE_API_BASE_URL", DEFAULT_API_URL);
 
+// Get Firebase configuration with fallbacks to default values
+const firebaseConfig = {
+  apiKey: getEnvVar("VITE_FIREBASE_API_KEY", DEFAULT_FIREBASE_CONFIG.apiKey),
+  authDomain: getEnvVar(
+    "VITE_FIREBASE_AUTH_DOMAIN",
+    DEFAULT_FIREBASE_CONFIG.authDomain
+  ),
+  projectId: getEnvVar(
+    "VITE_FIREBASE_PROJECT_ID",
+    DEFAULT_FIREBASE_CONFIG.projectId
+  ),
+  storageBucket: getEnvVar(
+    "VITE_FIREBASE_STORAGE_BUCKET",
+    DEFAULT_FIREBASE_CONFIG.storageBucket
+  ),
+  messagingSenderId: getEnvVar(
+    "VITE_FIREBASE_MESSAGING_SENDER_ID",
+    DEFAULT_FIREBASE_CONFIG.messagingSenderId
+  ),
+  appId: getEnvVar("VITE_FIREBASE_APP_ID", DEFAULT_FIREBASE_CONFIG.appId),
+  measurementId: getEnvVar(
+    "VITE_FIREBASE_MEASUREMENT_ID",
+    DEFAULT_FIREBASE_CONFIG.measurementId
+  ),
+};
+
 const config: Config = {
   API_BASE_URL,
-  FIREBASE_CONFIG: {
-    apiKey: getEnvVar("VITE_FIREBASE_API_KEY"),
-    authDomain: getEnvVar("VITE_FIREBASE_AUTH_DOMAIN"),
-    projectId: getEnvVar("VITE_FIREBASE_PROJECT_ID"),
-    storageBucket: getEnvVar("VITE_FIREBASE_STORAGE_BUCKET"),
-    messagingSenderId: getEnvVar("VITE_FIREBASE_MESSAGING_SENDER_ID"),
-    appId: getEnvVar("VITE_FIREBASE_APP_ID"),
-    measurementId: getEnvVar("VITE_FIREBASE_MEASUREMENT_ID"),
-  },
+  FIREBASE_CONFIG: firebaseConfig,
   ENCRYPTION_KEY: getEnvVar(
     "VITE_ENCRYPTION_KEY",
     "default-key-for-development"
