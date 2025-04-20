@@ -5,7 +5,19 @@ import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 import { sendFirebaseUidAndEmail } from "../services/uploadService";
 
-const firebaseConfig = {
+// Define Firebase config type for TypeScript
+type FirebaseConfigType = {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+  measurementId?: string;
+};
+
+// Use environment variables directly for Firebase configuration
+const firebaseConfig: FirebaseConfigType = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -15,19 +27,34 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
+// Log environment variable loading status for debugging
+console.log("Firebase config environment variables loaded:", {
+  apiKey: !!firebaseConfig.apiKey,
+  authDomain: !!firebaseConfig.authDomain,
+  projectId: !!firebaseConfig.projectId,
+  storageBucket: !!firebaseConfig.storageBucket,
+  messagingSenderId: !!firebaseConfig.messagingSenderId,
+  appId: !!firebaseConfig.appId,
+  measurementId: !!firebaseConfig.measurementId,
+});
+
 // Validate required Firebase configuration
 const requiredConfig = [
-  'apiKey',
-  'authDomain',
-  'projectId',
-  'storageBucket',
-  'messagingSenderId',
-  'appId'
-];
+  "apiKey",
+  "authDomain",
+  "projectId",
+  "storageBucket",
+  "messagingSenderId",
+  "appId",
+] as const;
 
-const missingConfig = requiredConfig.filter(key => !firebaseConfig[key]);
+// Type-safe check for missing config
+const missingConfig = requiredConfig.filter((key) => !firebaseConfig[key]);
 if (missingConfig.length > 0) {
-  throw new Error(`Missing required Firebase configuration: ${missingConfig.join(', ')}`);
+  console.error("Missing Firebase configuration:", missingConfig);
+  throw new Error(
+    `Missing required Firebase configuration: ${missingConfig.join(", ")}`
+  );
 }
 
 // Initialize Firebase
