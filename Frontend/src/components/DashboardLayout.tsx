@@ -102,6 +102,7 @@ const DashboardLayout = () => {
   const [apiKey, setApiKey] = useState("");
   const [apiKeyError, setApiKeyError] = useState("");
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [filteredPrompts, setFilteredPrompts] = useState<Prompt[]>([]);
 
   useEffect(() => {
     const fetchPrompts = async () => {
@@ -111,15 +112,29 @@ const DashboardLayout = () => {
           throw new Error("Failed to fetch prompts");
         }
         const data = await response.json();
-        setPrompts(data.slice(0, 15)); // Changed from 12 to 15 prompts
+        setPrompts(data.slice(0, 15));
+        setFilteredPrompts(data.slice(0, 15));
       } catch (error) {
         console.error("Error fetching prompts:", error);
         setPrompts([]);
+        setFilteredPrompts([]);
       }
     };
 
     fetchPrompts();
   }, []);
+
+  // Add search effect
+  useEffect(() => {
+    if (currentView === "prompts") {
+      const filtered = prompts.filter(
+        (prompt) =>
+          prompt.prompt_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          prompt.domain.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredPrompts(filtered);
+    }
+  }, [searchQuery, currentView, prompts]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -305,18 +320,38 @@ const DashboardLayout = () => {
             </Link>
 
             <div className="flex-1 max-w-2xl mx-8">
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+              {currentView !== "chatbot" && currentView !== "community" && (
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-800 rounded-xl leading-5 bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
+                    placeholder={`Search ${currentView === "prompts" ? "prompts" : "datasets"}...`}
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-800 rounded-xl leading-5 bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
-                  placeholder="Search datasets..."
-                />
-              </div>
+              )}
+              
+              {currentView === "chatbot" && (
+                <div className="flex items-center justify-center space-x-2">
+                  <Bot className="h-6 w-6 text-cyan-400" />
+                  <h1 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                    Vecora 
+                  </h1>
+                </div>
+              )}
+              
+              {currentView === "community" && (
+                <div className="flex items-center justify-center space-x-2">
+                  <Users className="h-6 w-6 text-cyan-400" />
+                  <h1 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                    Community 
+                  </h1>
+                </div>
+              )}
             </div>
 
             {user && (
@@ -671,9 +706,8 @@ const DashboardLayout = () => {
                           <h2 className="text-3xl font-semibold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                             Welcome back, {getUserDisplayName(user)}
                           </h2>
-                          <p className="text-gray-400 text-md tracking-wide truncate">
-                            You're in! Now explore datasets, contribute
-                            insights, and connect with the community.
+                          <p className="text-gray-400 text-sm tracking-wide truncate">
+                          You’re live on Vecem! Explore datasets, craft prompts, and make your mark in our creative community.
                           </p>
                         </div>
                       </div>
@@ -683,8 +717,8 @@ const DashboardLayout = () => {
 
                 <div className="w-full px-6">
                   {currentView === "prompts" ? (
-                    prompts.length > 0 ? (
-                      <PromptsGrid prompts={prompts} />
+                    filteredPrompts.length > 0 ? (
+                      <PromptsGrid prompts={filteredPrompts} />
                     ) : (
                       <div className="flex flex-col items-center justify-center p-8 bg-gray-800/50 rounded-xl border border-gray-700/50">
                         <TerminalSquare className="w-12 h-12 text-gray-500 mb-4" />
