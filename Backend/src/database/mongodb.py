@@ -131,7 +131,7 @@ async def check_api_key_exists(uid: str) -> bool:
             {"uid": uid},
             {"api_key": 1}
         )
-        return user is not None and "api_key" in user
+        return user is not None and "api_key" in user and user["api_key"] is not None
     except PyMongoError as e:
         logging.error(f"MongoDB error checking API key: {str(e)}")
         raise
