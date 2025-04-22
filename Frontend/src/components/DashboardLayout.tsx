@@ -712,108 +712,157 @@ const DashboardLayout = () => {
 
       {/* API Key Dialog */}
       {showApiKeyDialog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="bg-gray-800/90 backdrop-blur-sm rounded-xl p-8 w-full max-w-lg mx-4 border border-gray-700/50 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="bg-gradient-to-b from-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl p-6 w-full max-w-md mx-4 border border-gray-700/30 shadow-2xl relative overflow-hidden"
           >
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+
             <motion.div
-              className="w-16 h-16 mx-auto mb-6 text-cyan-400"
+              className="w-16 h-16 mx-auto mb-4 text-cyan-400 relative"
               animate={{
                 scale: [1, 1.1, 1],
                 rotate: [0, -5, 5, -5, 0],
               }}
               transition={{
-                duration: 2,
+                duration: 3,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
             >
-              <Bot className="w-full h-full" />
+              <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl"></div>
+              <Bot className="w-full h-full relative z-10" />
             </motion.div>
             
-            <h2 className="text-2xl font-bold text-white mb-4 text-center">
-              Google AI Studio API Key Required
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-3 text-center">
+              Connect to Google AI Studio
             </h2>
             
-            <div className="text-gray-300 space-y-4 mb-6">
-              <p className="text-sm">To get started with Vecora, you'll need a Google AI Studio API key. Follow these steps:</p>
+            <div className="text-gray-300 space-y-4 mb-8">
+              <p className="text-base text-center text-gray-400">
+                Enter your API key to unlock the full potential of Vecora's AI capabilities
+              </p>
               
-              <ol className="list-decimal list-inside space-y-3 text-sm bg-gray-900/50 p-4 rounded-lg">
-                <li className="flex items-start">
-                  <span className="mr-2">→</span>
-                  Visit{" "}
-                  <a
-                    href="https://makersuite.google.com/app/apikey"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1"
-                  >
-                    Google AI Studio
-                  </a>
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">→</span>
-                  Sign in with your Google account
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">→</span>
-                  Click on "Get API key" in the top menu
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">→</span>
-                  Create a new API key or select an existing one
-                </li>
-                <li className="flex items-start">
-                  <span className="mr-2">→</span>
-                  Copy your API key and paste it below
-                </li>
-              </ol>
+              <div className="flex flex-col gap-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-5 rounded-xl border border-gray-700/30">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-cyan-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-cyan-400 text-sm">1</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-300">Visit{" "}
+                      <a
+                        href="https://makersuite.google.com/app/apikey"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cyan-400 hover:text-cyan-300 inline-flex items-center group"
+                      >
+                        Google AI Studio
+                        <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                
+                {[
+                  "Sign in with your Google account",
+                  'Click on "Get API key" in the top menu',
+                  "Create a new API key or select an existing one",
+                  "Copy your API key and paste it below"
+                ].map((step, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-cyan-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-cyan-400 text-sm">{index + 2}</span>
+                    </div>
+                    <p className="text-sm text-gray-300">{step}</p>
+                  </div>
+                ))}
+              </div>
 
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mt-4">
-                <p className="text-yellow-400 text-sm">
-                  Important: Your API key is sensitive information. Never share it publicly or commit it to version control.
-                </p>
+              <div className="bg-gradient-to-r from-yellow-500/5 to-orange-500/5 border border-yellow-500/10 rounded-xl p-4 mt-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 text-yellow-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <p className="text-yellow-300/90 text-sm">
+                    Your API key is sensitive information. Never share it publicly or commit it to version control.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <form onSubmit={handleApiKeySubmit} className="space-y-4">
-              <div>
+            <form onSubmit={handleApiKeySubmit} className="space-y-6">
+              <div className="relative">
                 <label htmlFor="apiKey" className="block text-sm font-medium text-gray-300 mb-2">
                   Your API Key
                 </label>
-                <input
-                  id="apiKey"
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full bg-gray-900/50 border border-gray-600 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
-                  placeholder="Enter your API key"
-                  required
-                />
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg blur transition duration-300 group-hover:opacity-75 opacity-50"></div>
+                  <input
+                    id="apiKey"
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="block w-full px-4 py-3 bg-gray-900/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 relative z-10 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your API key"
+                    required
+                  />
+                </div>
               </div>
 
               {apiKeyError && (
-                <p className="text-red-400 text-sm">{apiKeyError}</p>
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-red-400 text-sm flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {apiKeyError}
+                </motion.p>
               )}
 
-              <div className="flex justify-end space-x-3">
-                <button
+              <div className="flex justify-end gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={() => setShowApiKeyDialog(false)}
-                  className="px-4 py-2 text-gray-400 hover:text-gray-300 transition-colors"
+                  className="px-5 py-2.5 text-gray-400 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800/50"
                 >
                   Cancel
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-colors shadow-lg"
+                  className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center gap-2 group"
                 >
-                  Save API Key
-                </button>
+                  <span>Save API Key</span>
+                  <svg
+                    className="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </motion.button>
               </div>
             </form>
           </motion.div>
