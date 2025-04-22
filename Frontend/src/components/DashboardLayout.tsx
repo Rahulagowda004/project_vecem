@@ -16,6 +16,7 @@ import {
   BookOpen,
   Send,
   TerminalSquare,
+  Bot,
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
 import { getUserProfileByUid } from "../services/userService";
@@ -483,7 +484,7 @@ const DashboardLayout = () => {
                   currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
-                <img src="/robot.png" alt="Bot" className="w-8 h-8 mr-3" />
+                <Bot className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
                 <span className="group-hover:text-cyan-400 transition-colors">
                   Vecora
                 </span>
@@ -535,10 +536,8 @@ const DashboardLayout = () => {
                         >
                           {message.sender === "bot" && (
                             <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
-                              <motion.img
-                                src="/robot.png"
-                                alt="Bot"
-                                className="w-8 h-8"
+                              <motion.div
+                                className="w-8 h-8 text-cyan-400"
                                 whileHover={{
                                   scale: 1.2,
                                   rotate: [0, -10, 10, -10, 0],
@@ -554,7 +553,9 @@ const DashboardLayout = () => {
                                   repeat: Infinity,
                                   ease: "easeInOut",
                                 }}
-                              />
+                              >
+                                <Bot className="w-full h-full" />
+                              </motion.div>
                             </div>
                           )}
                           <div
@@ -715,10 +716,8 @@ const DashboardLayout = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
           >
-            <motion.img
-              src="/robot.png"
-              alt="Bot"
-              className="w-12 h-12 mx-auto mb-4"
+            <motion.div
+              className="w-12 h-12 mx-auto mb-4 text-cyan-400"
               animate={{
                 scale: [1, 1.15, 1],
                 rotate: [0, -15, 15, -5, 0],
@@ -746,7 +745,9 @@ const DashboardLayout = () => {
                 bottom: 10,
               }}
               whileDrag={{ scale: 1.1 }}
-            />
+            >
+              <Bot className="w-full h-full" />
+            </motion.div>
             <h2 className="text-xl font-bold text-white mb-4">
               Google AI Studio API Key Required
             </h2>
