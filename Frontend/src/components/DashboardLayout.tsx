@@ -259,6 +259,8 @@ const DashboardLayout = () => {
     try {
       const hasApiKey = await checkApiKey(user.uid);
       if (!hasApiKey) {
+        setApiKey("");  // Reset API key input
+        setApiKeyError("");  // Reset any previous errors
         setShowApiKeyDialog(true);
       } else {
         setCurrentView("chatbot");
@@ -710,95 +712,107 @@ const DashboardLayout = () => {
 
       {/* API Key Dialog */}
       {showApiKeyDialog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className="bg-gray-800/90 backdrop-blur-sm rounded-xl p-8 w-full max-w-lg mx-4 border border-gray-700/50 shadow-2xl"
           >
             <motion.div
-              className="w-12 h-12 mx-auto mb-4 text-cyan-400"
+              className="w-16 h-16 mx-auto mb-6 text-cyan-400"
               animate={{
-                scale: [1, 1.15, 1],
-                rotate: [0, -15, 15, -5, 0],
-                y: [0, -6, 0],
+                scale: [1, 1.1, 1],
+                rotate: [0, -5, 5, -5, 0],
               }}
               transition={{
-                duration: 3,
+                duration: 2,
                 repeat: Infinity,
                 ease: "easeInOut",
-                times: [0, 0.2, 0.5, 0.8, 1],
               }}
-              whileHover={{
-                scale: 1.2,
-                rotate: [0, -10, 10, -10, 0],
-                transition: {
-                  duration: 0.3,
-                  ease: "easeOut",
-                },
-              }}
-              drag
-              dragConstraints={{
-                top: -10,
-                left: -10,
-                right: 10,
-                bottom: 10,
-              }}
-              whileDrag={{ scale: 1.1 }}
             >
               <Bot className="w-full h-full" />
             </motion.div>
-            <h2 className="text-xl font-bold text-white mb-4">
+            
+            <h2 className="text-2xl font-bold text-white mb-4 text-center">
               Google AI Studio API Key Required
             </h2>
-            <div className="text-gray-300 text-sm mb-6 space-y-3">
-              <p>To obtain your Google AI Studio API key:</p>
-              <ol className="list-decimal list-inside space-y-2">
-                <li>
+            
+            <div className="text-gray-300 space-y-4 mb-6">
+              <p className="text-sm">To get started with Vecora, you'll need a Google AI Studio API key. Follow these steps:</p>
+              
+              <ol className="list-decimal list-inside space-y-3 text-sm bg-gray-900/50 p-4 rounded-lg">
+                <li className="flex items-start">
+                  <span className="mr-2">→</span>
                   Visit{" "}
                   <a
                     href="https://makersuite.google.com/app/apikey"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-cyan-400 hover:text-cyan-300"
+                    className="text-cyan-400 hover:text-cyan-300 hover:underline ml-1"
                   >
                     Google AI Studio
                   </a>
                 </li>
-                <li>Sign in with your Google account</li>
-                <li>Click on "Get API key" in the top menu</li>
-                <li>Either select an existing key or click "Create API key"</li>
-                <li>Copy the generated API key and paste it below</li>
+                <li className="flex items-start">
+                  <span className="mr-2">→</span>
+                  Sign in with your Google account
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">→</span>
+                  Click on "Get API key" in the top menu
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">→</span>
+                  Create a new API key or select an existing one
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">→</span>
+                  Copy your API key and paste it below
+                </li>
               </ol>
-              <p className="mt-2 text-yellow-400">
-                Note: Keep your API key secure and never share it publicly.
-              </p>
+
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mt-4">
+                <p className="text-yellow-400 text-sm">
+                  Important: Your API key is sensitive information. Never share it publicly or commit it to version control.
+                </p>
+              </div>
             </div>
-            <form onSubmit={handleApiKeySubmit}>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white mb-4"
-                placeholder="Enter your API key"
-                required
-              />
+
+            <form onSubmit={handleApiKeySubmit} className="space-y-4">
+              <div>
+                <label htmlFor="apiKey" className="block text-sm font-medium text-gray-300 mb-2">
+                  Your API Key
+                </label>
+                <input
+                  id="apiKey"
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full bg-gray-900/50 border border-gray-600 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                  placeholder="Enter your API key"
+                  required
+                />
+              </div>
+
               {apiKeyError && (
-                <p className="text-red-400 text-sm mb-4">{apiKeyError}</p>
+                <p className="text-red-400 text-sm">{apiKeyError}</p>
               )}
-              <div className="flex justify-end space-x-4">
+
+              <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setShowApiKeyDialog(false)}
-                  className="px-4 py-2 text-gray-300 hover:text-white"
+                  className="px-4 py-2 text-gray-400 hover:text-gray-300 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
+                  className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg hover:from-cyan-600 hover:to-cyan-700 transition-colors shadow-lg"
                 >
-                  Save
+                  Save API Key
                 </button>
               </div>
             </form>
