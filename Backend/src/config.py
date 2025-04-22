@@ -19,14 +19,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     
     # CORS Configuration
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "https://project-vecem.vercel.app",
-        "https://*.vercel.app"
-    ]
+    CORS_ORIGINS: List[str] = ["*"]
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
