@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Database, Upload, UserCircle2, Settings, Menu, ChevronDown, BadgeCheck } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from 'react';
+import { motion } from "framer-motion";
+import { BookOpen, Database, Upload, UserCircle2, Settings, Menu, BadgeCheck } from "lucide-react";
 import NavbarPro from '../components/NavbarPro';
 
 const Documentation = () => {
@@ -10,11 +9,12 @@ const Documentation = () => {
 
   const sections = [
     { id: "getting-started", title: "Getting Started", icon: BookOpen },
-    { id: "using-datasets", title: "Using Datasets", icon: Database },
     { id: "uploading-datasets", title: "Uploading Datasets", icon: Upload },
+    { id: "using-datasets", title: "Using Datasets", icon: Database },
     { id: "managing-datasets", title: "Managing Datasets", icon: Settings },
-    { id: "prompts", title: "Prompts", icon: UserCircle2 },
     { id: "library", title: "Library", icon: BookOpen },
+    { id: "prompts", title: "Prompts", icon: UserCircle2 },
+    { id: "vecora-bot", title: "Vecora Bot", icon: UserCircle2 },
     { id: "license", title: "License", icon: BadgeCheck },
   ];
 
@@ -97,6 +97,75 @@ const Documentation = () => {
     }
 
     switch (activeSection) {
+      case "vecora-bot":
+        return (
+          <div className="space-y-6 text-gray-300">
+            <p className="text-lg">
+              Vecora Bot is your AI-powered prompt engineering assistant built into Vecem, powered by the Google AI Studio API. It's designed to help users craft, refine, and generate high-quality prompts for AI models and agentic systems.
+            </p>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">Core Features</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Prompt Engineering Support</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Generates prompts using Google AI Studio API</li>
+                    <li>Refines and optimizes user-provided prompts</li>
+                    <li>Provides suggestions for structure, tone, and clarity</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Prompt Management Assistance</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Directly upload Vecora-generated prompts to the Prompts section</li>
+                    <li>Edit and organize your prompts for agentic AI workflows</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">Interactive Capabilities</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Natural Language Understanding</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Interprets complex prompt requests</li>
+                    <li>Suggests improvements for prompt phrasing, variables, and instruction clarity</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Smart Recommendations</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Offers prompt templates for common use cases (chatbots, summarization, classification, etc.)</li>
+                    <li>Refines prompts for better AI performance</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">Using Vecora Bot</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Access the Bot</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Click the chat icon in the bottom right corner of the platform interface</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Upload Workflow</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Generate or refine a prompt with Vecora</li>
+                    <li>Select "Upload to Prompts" to save it directly into your Vecem account</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case "getting-started":
         return (
           <div className="space-y-6 text-gray-300">
