@@ -16,10 +16,10 @@ import {
   BookOpen,
   Send,
   TerminalSquare,
+  Bot,
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
 import { getUserProfileByUid } from "../services/userService";
-import { getUserDisplayName } from "../utils/userManagement";
 import { motion } from "framer-motion";
 import { ChatMessage, sendChatMessage } from "../services/chatService";
 import { checkApiKey, saveApiKey } from "../services/apiKeyService";
@@ -101,6 +101,8 @@ const DashboardLayout = () => {
   const [apiKey, setApiKey] = useState("");
   const [apiKeyError, setApiKeyError] = useState("");
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [filteredPrompts, setFilteredPrompts] = useState<Prompt[]>([]);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const fetchPrompts = async () => {
@@ -110,15 +112,29 @@ const DashboardLayout = () => {
           throw new Error("Failed to fetch prompts");
         }
         const data = await response.json();
-        setPrompts(data.slice(0, 15)); // Changed from 12 to 15 prompts
+        setPrompts(data.slice(0, 15));
+        setFilteredPrompts(data.slice(0, 15));
       } catch (error) {
         console.error("Error fetching prompts:", error);
         setPrompts([]);
+        setFilteredPrompts([]);
       }
     };
 
     fetchPrompts();
   }, []);
+
+  // Add search effect
+  useEffect(() => {
+    if (currentView === "prompts") {
+      const filtered = prompts.filter(
+        (prompt) =>
+          prompt.prompt_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          prompt.domain.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredPrompts(filtered);
+    }
+  }, [searchQuery, currentView, prompts]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -225,6 +241,23 @@ const DashboardLayout = () => {
     setIsFullWidth(currentView === "chatbot");
   }, [currentView]);
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.uid) {
+        try {
+          const profileData = await getUserProfileByUid(user.uid);
+          if (profileData?.name) {
+            setUserName(profileData.name);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
   const handleCategorySelect = async (category: string) => {
     setSelectedCategory(category);
     try {
@@ -258,6 +291,8 @@ const DashboardLayout = () => {
     try {
       const hasApiKey = await checkApiKey(user.uid);
       if (!hasApiKey) {
+        setApiKey("");  // Reset API key input
+        setApiKeyError("");  // Reset any previous errors
         setShowApiKeyDialog(true);
       } else {
         setCurrentView("chatbot");
@@ -302,18 +337,38 @@ const DashboardLayout = () => {
             </Link>
 
             <div className="flex-1 max-w-2xl mx-8">
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+              {currentView !== "chatbot" && currentView !== "community" && (
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-800 rounded-xl leading-5 bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
+                    placeholder={`Search ${currentView === "prompts" ? "prompts" : "datasets"}...`}
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-800 rounded-xl leading-5 bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
-                  placeholder="Search datasets..."
-                />
-              </div>
+              )}
+              
+              {currentView === "chatbot" && (
+                <div className="flex items-center justify-center space-x-2">
+                  <Bot className="h-6 w-6 text-cyan-400" />
+                  <h1 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                    Vecora 
+                  </h1>
+                </div>
+              )}
+              
+              {currentView === "community" && (
+                <div className="flex items-center justify-center space-x-2">
+                  <Users className="h-6 w-6 text-cyan-400" />
+                  <h1 className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                    Community 
+                  </h1>
+                </div>
+              )}
             </div>
 
             {user && (
@@ -483,7 +538,7 @@ const DashboardLayout = () => {
                   currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
-                <img src="/robot.png" alt="Bot" className="w-8 h-8 mr-3" />
+                <Bot className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
                 <span className="group-hover:text-cyan-400 transition-colors">
                   Vecora
                 </span>
@@ -535,10 +590,8 @@ const DashboardLayout = () => {
                         >
                           {message.sender === "bot" && (
                             <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
-                              <motion.img
-                                src="/robot.png"
-                                alt="Bot"
-                                className="w-8 h-8"
+                              <motion.div
+                                className="w-8 h-8 text-cyan-400"
                                 whileHover={{
                                   scale: 1.2,
                                   rotate: [0, -10, 10, -10, 0],
@@ -554,7 +607,9 @@ const DashboardLayout = () => {
                                   repeat: Infinity,
                                   ease: "easeInOut",
                                 }}
-                              />
+                              >
+                                <Bot className="w-full h-full" />
+                              </motion.div>
                             </div>
                           )}
                           <div
@@ -666,11 +721,10 @@ const DashboardLayout = () => {
                         {/* Welcome Text Section */}
                         <div className="space-y-0.5 flex-1">
                           <h2 className="text-3xl font-semibold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
-                            Welcome back, {getUserDisplayName(user)}
+                            Welcome back, {userName || "Guest"}
                           </h2>
-                          <p className="text-gray-400 text-md tracking-wide truncate">
-                            You're in! Now explore datasets, contribute
-                            insights, and connect with the community.
+                          <p className="text-gray-400 text-sm tracking-wide truncate">
+                          You’re live on Vecem! Explore datasets, craft prompts, and make your mark in our creative community.
                           </p>
                         </div>
                       </div>
@@ -680,8 +734,8 @@ const DashboardLayout = () => {
 
                 <div className="w-full px-6">
                   {currentView === "prompts" ? (
-                    prompts.length > 0 ? (
-                      <PromptsGrid prompts={prompts} />
+                    filteredPrompts.length > 0 ? (
+                      <PromptsGrid prompts={filteredPrompts} />
                     ) : (
                       <div className="flex flex-col items-center justify-center p-8 bg-gray-800/50 rounded-xl border border-gray-700/50">
                         <TerminalSquare className="w-12 h-12 text-gray-500 mb-4" />
@@ -709,96 +763,157 @@ const DashboardLayout = () => {
 
       {/* API Key Dialog */}
       {showApiKeyDialog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="bg-gradient-to-b from-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl p-6 w-full max-w-md mx-4 border border-gray-700/30 shadow-2xl relative overflow-hidden"
           >
-            <motion.img
-              src="/robot.png"
-              alt="Bot"
-              className="w-12 h-12 mx-auto mb-4"
+            {/* Decorative background elements */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
+
+            <motion.div
+              className="w-16 h-16 mx-auto mb-4 text-cyan-400 relative"
               animate={{
-                scale: [1, 1.15, 1],
-                rotate: [0, -15, 15, -5, 0],
-                y: [0, -6, 0],
+                scale: [1, 1.1, 1],
+                rotate: [0, -5, 5, -5, 0],
               }}
               transition={{
                 duration: 3,
                 repeat: Infinity,
                 ease: "easeInOut",
-                times: [0, 0.2, 0.5, 0.8, 1],
               }}
-              whileHover={{
-                scale: 1.2,
-                rotate: [0, -10, 10, -10, 0],
-                transition: {
-                  duration: 0.3,
-                  ease: "easeOut",
-                },
-              }}
-              drag
-              dragConstraints={{
-                top: -10,
-                left: -10,
-                right: 10,
-                bottom: 10,
-              }}
-              whileDrag={{ scale: 1.1 }}
-            />
-            <h2 className="text-xl font-bold text-white mb-4">
-              Google AI Studio API Key Required
+            >
+              <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl"></div>
+              <Bot className="w-full h-full relative z-10" />
+            </motion.div>
+            
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-3 text-center">
+              Connect to Google AI Studio
             </h2>
-            <div className="text-gray-300 text-sm mb-6 space-y-3">
-              <p>To obtain your Google AI Studio API key:</p>
-              <ol className="list-decimal list-inside space-y-2">
-                <li>
-                  Visit{" "}
-                  <a
-                    href="https://makersuite.google.com/app/apikey"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 hover:text-cyan-300"
-                  >
-                    Google AI Studio
-                  </a>
-                </li>
-                <li>Sign in with your Google account</li>
-                <li>Click on "Get API key" in the top menu</li>
-                <li>Either select an existing key or click "Create API key"</li>
-                <li>Copy the generated API key and paste it below</li>
-              </ol>
-              <p className="mt-2 text-yellow-400">
-                Note: Keep your API key secure and never share it publicly.
+            
+            <div className="text-gray-300 space-y-4 mb-8">
+              <p className="text-base text-center text-gray-400">
+                Enter your API key to unlock the full potential of Vecora's AI capabilities
               </p>
+              
+              <div className="flex flex-col gap-4 bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-5 rounded-xl border border-gray-700/30">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-cyan-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-cyan-400 text-sm">1</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-300">Visit{" "}
+                      <a
+                        href="https://makersuite.google.com/app/apikey"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cyan-400 hover:text-cyan-300 inline-flex items-center group"
+                      >
+                        Google AI Studio
+                        <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                
+                {[
+                  "Sign in with your Google account",
+                  'Click on "Get API key" in the top menu',
+                  "Create a new API key or select an existing one",
+                  "Copy your API key and paste it below"
+                ].map((step, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-cyan-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-cyan-400 text-sm">{index + 2}</span>
+                    </div>
+                    <p className="text-sm text-gray-300">{step}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-gradient-to-r from-yellow-500/5 to-orange-500/5 border border-yellow-500/10 rounded-xl p-4 mt-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 text-yellow-400">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <p className="text-yellow-300/90 text-sm">
+                    Your API key is sensitive information. Never share it publicly or commit it to version control.
+                  </p>
+                </div>
+              </div>
             </div>
-            <form onSubmit={handleApiKeySubmit}>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-white mb-4"
-                placeholder="Enter your API key"
-                required
-              />
+
+            <form onSubmit={handleApiKeySubmit} className="space-y-6">
+              <div className="relative">
+                <label htmlFor="apiKey" className="block text-sm font-medium text-gray-300 mb-2">
+                  Your API Key
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg blur transition duration-300 group-hover:opacity-75 opacity-50"></div>
+                  <input
+                    id="apiKey"
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="block w-full px-4 py-3 bg-gray-900/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 relative z-10 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-transparent transition-all duration-300"
+                    placeholder="Enter your API key"
+                    required
+                  />
+                </div>
+              </div>
+
               {apiKeyError && (
-                <p className="text-red-400 text-sm mb-4">{apiKeyError}</p>
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-red-400 text-sm flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {apiKeyError}
+                </motion.p>
               )}
-              <div className="flex justify-end space-x-4">
-                <button
+
+              <div className="flex justify-end gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={() => setShowApiKeyDialog(false)}
-                  className="px-4 py-2 text-gray-300 hover:text-white"
+                  className="px-5 py-2.5 text-gray-400 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800/50"
                 >
                   Cancel
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
+                  className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center gap-2 group"
                 >
-                  Save
-                </button>
+                  <span>Save API Key</span>
+                  <svg
+                    className="w-4 h-4 transform group-hover:translate-x-0.5 transition-transform"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </motion.button>
               </div>
             </form>
           </motion.div>

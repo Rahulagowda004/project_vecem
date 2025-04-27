@@ -27,7 +27,12 @@ async def upload_files(
     vectorized_files: List[UploadFile] = File(None),
     type: str = Form(...),
     datasetInfo: str = Form(...),
-    uid: str = Form(...)
+    uid: str = Form(...),
+    isFolder: str = Form(None),
+    folder_names: List[str] = Form(None),
+    raw_folder_names: List[str] = Form(None),
+    vectorized_folder_names: List[str] = Form(None),
+    folders_meta: str = Form(None)
 ):
     try:
         if not uid:
@@ -60,19 +65,67 @@ async def upload_files(
         dataset_name = dataset_info_dict["name"].replace(" ", "_").lower()
 
         uploaded_files = {"raw": [], "vectorized": []}
-
+        
+        # Check if this is a folder upload
+        is_folder_upload = isFolder == "true"
+        
+        logging.info(f"Processing {'folder' if is_folder_upload else 'file'} upload for dataset {dataset_name}")
+        
+        if is_folder_upload and folders_meta:
+            try:
+                # Parse folders metadata for better organization
+                folders_structure = json.loads(folders_meta)
+                logging.info(f"Folder structure: {folders_structure}")
+            except Exception as e:
+                logging.error(f"Error parsing folders metadata: {str(e)}")
+        
         # Handle file uploads based on type
         if type.lower() == "both":
             if raw_files:
-                raw_url = await create_and_upload_zip(raw_files, username, dataset_name, "raw")
+                # For folder uploads, we need to preserve the folder structure
+                if is_folder_upload:
+                    logging.info(f"Processing {len(raw_files)} raw files from folders")
+                    # Group files by their relative paths to maintain structure
+                    raw_url = await create_and_upload_zip(
+                        raw_files, 
+                        username, 
+                        dataset_name, 
+                        "raw", 
+                        preserve_structure=True
+                    )
+                else:
+                    raw_url = await create_and_upload_zip(raw_files, username, dataset_name, "raw")
+                
                 uploaded_files["raw"].append(raw_url)
 
             if vectorized_files:
-                vec_url = await create_and_upload_zip(vectorized_files, username, dataset_name, "vectorized")
+                if is_folder_upload:
+                    logging.info(f"Processing {len(vectorized_files)} vectorized files from folders")
+                    vec_url = await create_and_upload_zip(
+                        vectorized_files, 
+                        username, 
+                        dataset_name, 
+                        "vectorized", 
+                        preserve_structure=True
+                    )
+                else:
+                    vec_url = await create_and_upload_zip(vectorized_files, username, dataset_name, "vectorized")
+                
                 uploaded_files["vectorized"].append(vec_url)
         else:
             if files:
-                url = await create_and_upload_zip(files, username, dataset_name, type.lower())
+                if is_folder_upload:
+                    logging.info(f"Processing {len(files)} {type.lower()} files from folders")
+                    url = await create_and_upload_zip(
+                        files, 
+                        username, 
+                        dataset_name, 
+                        type.lower(), 
+                        preserve_structure=True
+                    )
+                else:
+                    url = await create_and_upload_zip(files, username, dataset_name, type.lower())
+                
                 uploaded_files[type.lower()].append(url)
 
         # Prepare metadata
@@ -82,7 +135,8 @@ async def upload_files(
             "upload_type": type.lower(),
             "timestamp": datetime.now().isoformat(),
             "files": uploaded_files,
-            "uid": uid
+            "uid": uid,
+            "is_folder": is_folder_upload
         }
 
         # Save metadata and update user profile

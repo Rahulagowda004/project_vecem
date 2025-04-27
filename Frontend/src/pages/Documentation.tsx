@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Database, Upload, UserCircle2, Settings, Menu, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useState } from 'react';
+import { motion } from "framer-motion";
+import { BookOpen, Database, Upload, UserCircle2, Settings, Menu, BadgeCheck } from "lucide-react";
 import NavbarPro from '../components/NavbarPro';
 
 const Documentation = () => {
@@ -10,11 +9,13 @@ const Documentation = () => {
 
   const sections = [
     { id: "getting-started", title: "Getting Started", icon: BookOpen },
-    { id: "using-datasets", title: "Using Datasets", icon: Database },
     { id: "uploading-datasets", title: "Uploading Datasets", icon: Upload },
+    { id: "using-datasets", title: "Using Datasets", icon: Database },
     { id: "managing-datasets", title: "Managing Datasets", icon: Settings },
-    { id: "prompts", title: "Prompts", icon: UserCircle2 },
     { id: "library", title: "Library", icon: BookOpen },
+    { id: "prompts", title: "Prompts", icon: UserCircle2 },
+    { id: "vecora-bot", title: "Vecora Bot", icon: UserCircle2 },
+    { id: "license", title: "License", icon: BadgeCheck },
   ];
 
   const scrollToSection = (sectionId: string) => {
@@ -96,6 +97,75 @@ const Documentation = () => {
     }
 
     switch (activeSection) {
+      case "vecora-bot":
+        return (
+          <div className="space-y-6 text-gray-300">
+            <p className="text-lg">
+              Vecora Bot is your AI-powered prompt engineering assistant built into Vecem, powered by the Google AI Studio API. It's designed to help users craft, refine, and generate high-quality prompts for AI models and agentic systems.
+            </p>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">Core Features</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Prompt Engineering Support</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Generates prompts using Google AI Studio API</li>
+                    <li>Refines and optimizes user-provided prompts</li>
+                    <li>Provides suggestions for structure, tone, and clarity</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Prompt Management Assistance</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Directly upload Vecora-generated prompts to the Prompts section</li>
+                    <li>Edit and organize your prompts for agentic AI workflows</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">Interactive Capabilities</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Natural Language Understanding</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Interprets complex prompt requests</li>
+                    <li>Suggests improvements for prompt phrasing, variables, and instruction clarity</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Smart Recommendations</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Offers prompt templates for common use cases (chatbots, summarization, classification, etc.)</li>
+                    <li>Refines prompts for better AI performance</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">Using Vecora Bot</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Access the Bot</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Click the chat icon in the bottom right corner of the platform interface</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-cyan-300 mb-2">Upload Workflow</h4>
+                  <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
+                    <li>Generate or refine a prompt with Vecora</li>
+                    <li>Select "Upload to Prompts" to save it directly into your Vecem account</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case "getting-started":
         return (
           <div className="space-y-6 text-gray-300">
@@ -525,6 +595,98 @@ const Documentation = () => {
                   </ul>
                 </li>
               </ul>
+            </div>
+          </div>
+        );
+
+      case "license":
+        return (
+          <div className="space-y-6 text-gray-300">
+            <p className="text-lg">
+              Vecem supports a variety of dataset licenses. Please review the license associated with each dataset before use.
+            </p>
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-cyan-400">Common Dataset Licenses</h3>
+              <ol className="list-decimal list-inside ml-4 space-y-4">
+                <li>
+                  <span className="font-semibold text-cyan-300">CC0 1.0 Universal (Public Domain Dedication)</span>
+                  <div>
+                    This license places the dataset into the public domain. You can copy, modify, distribute, and use the dataset for any purpose without asking for permission or giving attribution.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Creative Commons Attribution 4.0 International (CC BY 4.0)</span>
+                  <div>
+                    You are free to share and adapt the dataset for any purpose, even commercially, as long as you give appropriate credit to the creator.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)</span>
+                  <div>
+                    You can share and adapt the dataset for any purpose, but you must credit the creator and license your new datasets under the same terms.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)</span>
+                  <div>
+                    You can share and adapt the dataset, but only for non-commercial purposes. You must also credit the creator.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)</span>
+                  <div>
+                    You can reuse the dataset for any purpose, including commercial use, but you cannot share modified versions. Attribution is required.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Open Data Commons Public Domain Dedication and License (PDDL)</span>
+                  <div>
+                    This license dedicates the dataset to the public domain, allowing unrestricted use, modification, and redistribution, with no conditions.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Open Data Commons Attribution License (ODC-By)</span>
+                  <div>
+                    You can use, modify, and share the dataset freely, but you must always provide proper attribution to the original source.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Open Data Commons Open Database License (ODbL)</span>
+                  <div>
+                    You may copy, distribute, and use the database, and produce works from it. However, you must attribute the source, and if you modify the database, you must share your changes under the same license.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">MIT License (for datasets bundled with code)</span>
+                  <div>
+                    A permissive license allowing reuse for any purpose, including commercial use, with only a simple attribution requirement. Typically used for datasets with accompanying code/scripts.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Apache License 2.0 (for datasets with software tools or APIs)</span>
+                  <div>
+                    You are allowed to use, modify, and distribute the dataset and software, even commercially, but you must include a copy of the license and provide attribution. Also provides an express grant of patent rights.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Proprietary License (Custom Terms)</span>
+                  <div>
+                    Use of the dataset is restricted by specific terms defined by the uploader or organization. Users must agree to these custom conditions before using the dataset.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">Research-Only License</span>
+                  <div>
+                    The dataset can only be used for academic, educational, or research purposes. Commercial use is prohibited without additional permission.
+                  </div>
+                </li>
+                <li>
+                  <span className="font-semibold text-cyan-300">No License (All Rights Reserved)</span>
+                  <div>
+                    No permission is granted to use, modify, or share the dataset without explicit authorization from the creator. All rights are reserved.
+                  </div>
+                </li>
+              </ol>
             </div>
           </div>
         );
