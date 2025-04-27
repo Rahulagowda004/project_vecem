@@ -105,12 +105,19 @@ const UploadFile = () => {
   const folderInputRef = useRef<HTMLInputElement>(null);
 
   const licenses = [
-    "MIT License",
-    "Apache License 2.0",
-    "GNU General Public License v3.0",
-    "BSD 3-Clause License",
-    "Creative Commons Attribution 4.0",
-    "Mozilla Public License 2.0",
+    "CC0 1.0 Universal (Public Domain Dedication)",
+    "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)",
+    "Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)",
+    "Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)",
+    "Open Data Commons Public Domain Dedication and License (PDDL)",
+    "Open Data Commons Attribution License (ODC-By)",
+    "Open Data Commons Open Database License (ODbL)",
+    "MIT License (for datasets with code)",
+    "Apache License 2.0 (optional for datasets + software tools)",
+    "Proprietary License (Custom Terms)",
+    "Research-Only License (for datasets restricted to academic or research use)",
+    "No License (All rights reserved)"
   ];
 
   const domains = [
