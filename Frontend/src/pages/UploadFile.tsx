@@ -93,7 +93,6 @@ const UploadFile = () => {
     null
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [folderMode, setFolderMode] = useState<boolean>(false);
   const [folderContents, setFolderContents] = useState<{
     raw: File[];
     vectorized: File[];
@@ -164,14 +163,23 @@ const UploadFile = () => {
     },
   };
 
-  // Update handleFileInputChange to remove file type validation
+  // Remove folderMode state as we'll detect automatically
+  const [selectedUploadTypes, setSelectedUploadTypes] = useState<{
+    raw: "files" | "folders" | null;
+    vectorized: "files" | "folders" | null;
+  }>({
+    raw: null,
+    vectorized: null,
+  });
+
+  // Update handleFileInputChange to set upload type to files
   const handleFileInputChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     type: "raw" | "vectorized"
   ) => {
     const files = event.target.files;
     if (!files || files.length === 0) {
-      setError("Please select a folder containing files");
+      setError("Please select files");
       return;
     }
 
@@ -184,6 +192,13 @@ const UploadFile = () => {
       files: filteredFiles.files,
       type,
     });
+
+    // Update selected upload type
+    setSelectedUploadTypes((prev) => ({
+      ...prev,
+      [type]: "files",
+    }));
+
     setShowConfirmation(true);
   };
 
@@ -225,6 +240,12 @@ const UploadFile = () => {
         vectorized: [...prev.vectorized, ...filesArray],
       }));
     }
+
+    // Update selected upload type
+    setSelectedUploadTypes((prev) => ({
+      ...prev,
+      [type]: "folders",
+    }));
 
     setError("");
 
@@ -408,44 +429,26 @@ const UploadFile = () => {
     // Validate file or folder selection
     let hasFiles = false;
 
-    if (folderMode) {
-      // Check for folder uploads
-      if (datasetType === "Both") {
-        if (
-          folderContents.raw.length > 0 &&
-          folderContents.vectorized.length > 0
-        ) {
-          hasFiles = true;
-        }
-      } else {
-        if (datasetType === "Raw" && folderContents.raw.length > 0)
-          hasFiles = true;
-        if (
-          datasetType === "Vectorized" &&
-          folderContents.vectorized.length > 0
-        )
-          hasFiles = true;
-      }
+    // Check for folder uploads
+    if (
+      datasetType === "Both" &&
+      folderContents.raw.length > 0 &&
+      folderContents.vectorized.length > 0
+    ) {
+      hasFiles = true;
     } else {
-      // Check for file uploads
-      if (datasetType === "Both") {
-        const rawFiles = rawInputRef.current?.files;
-        const vectorizedFiles = vectorizedInputRef.current?.files;
-        if (rawFiles?.length && vectorizedFiles?.length) {
-          hasFiles = true;
-        }
-      } else {
-        const files = fileInputRef.current?.files;
-        if (files?.length) {
-          hasFiles = true;
-        }
-      }
+      if (datasetType === "Raw" && folderContents.raw.length > 0)
+        hasFiles = true;
+      if (datasetType === "Vectorized" && folderContents.vectorized.length > 0)
+        hasFiles = true;
     }
 
     if (!hasFiles) {
       setError(
         `Please select ${fileType.toLowerCase()} ${
-          folderMode ? "folders" : "files"
+          folderContents.raw.length > 0 || folderContents.vectorized.length > 0
+            ? "folders"
+            : "files"
         } to upload`
       );
       setIsUploading(false);
@@ -482,7 +485,10 @@ const UploadFile = () => {
         vector_database: formData.vectorDatabase,
       };
 
-      if (folderMode) {
+      if (
+        folderContents.raw.length > 0 ||
+        folderContents.vectorized.length > 0
+      ) {
         // Handle folder upload
         result = await uploadFolders(
           {
@@ -619,21 +625,21 @@ const UploadFile = () => {
               setShowConfirmation(false);
               // Clear the file input
               if (selectedFiles?.type === "raw") {
-                if (folderMode && rawFolderInputRef.current) {
+                if (rawFolderInputRef.current) {
                   rawFolderInputRef.current.value = "";
                   setFolderContents((prev) => ({ ...prev, raw: [] }));
                 } else if (rawInputRef.current) {
                   rawInputRef.current.value = "";
                 }
               } else if (selectedFiles?.type === "vectorized") {
-                if (folderMode && vectorizedFolderInputRef.current) {
+                if (vectorizedFolderInputRef.current) {
                   vectorizedFolderInputRef.current.value = "";
                   setFolderContents((prev) => ({ ...prev, vectorized: [] }));
                 } else if (vectorizedInputRef.current) {
                   vectorizedInputRef.current.value = "";
                 }
               } else {
-                if (folderMode && folderInputRef.current) {
+                if (folderInputRef.current) {
                   folderInputRef.current.value = "";
                   if (selectedFiles?.type === "raw") {
                     setFolderContents((prev) => ({ ...prev, raw: [] }));
@@ -714,10 +720,74 @@ const UploadFile = () => {
   const folderInputProps = {
     className:
       "w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 file:transition-colors",
-    webkitdirectory: "",
-    directory: "",
     multiple: true,
   };
+
+  // Create a function to correctly apply folder input attributes
+  const applyFolderAttributes = (
+    inputRef: React.RefObject<HTMLInputElement>
+  ) => {
+    if (inputRef.current) {
+      // Set webkitdirectory as a boolean property rather than a string attribute
+      inputRef.current.webkitdirectory = true;
+    }
+  };
+
+  useEffect(() => {
+    // Apply the webkitdirectory attribute to all folder input refs
+    applyFolderAttributes(rawFolderInputRef);
+    applyFolderAttributes(vectorizedFolderInputRef);
+    applyFolderAttributes(folderInputRef);
+  }, []);
+
+  // Additionally set webkitdirectory whenever selectedUploadTypes changes
+  useEffect(() => {
+    if (selectedUploadTypes.raw === "folders") {
+      applyFolderAttributes(rawFolderInputRef);
+    }
+    if (selectedUploadTypes.vectorized === "folders") {
+      applyFolderAttributes(vectorizedFolderInputRef);
+    }
+  }, [selectedUploadTypes]);
+
+  useEffect(() => {
+    // Set initial upload types based on datasetType to avoid null states
+    if (
+      selectedUploadTypes.raw === null ||
+      selectedUploadTypes.vectorized === null
+    ) {
+      setSelectedUploadTypes({
+        raw: "folders", // Default to folders for better UX
+        vectorized: "folders", // Default to folders for better UX
+      });
+    }
+  }, [datasetType]);
+
+  // Create a specialized FolderInput component for selecting folders
+  // This will replace our existing implementation
+  const FolderInput = React.forwardRef<
+    HTMLInputElement,
+    {
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+      onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
+      className?: string;
+    }
+  >((props, ref) => {
+    return (
+      <input
+        type="file"
+        ref={ref}
+        onChange={props.onChange}
+        onClick={props.onClick}
+        className={props.className}
+        // Set attributes directly in HTML to ensure browser compatibility
+        webkitdirectory="true"
+        directory="true"
+        mozdirectory="true"
+        multiple
+      />
+    );
+  });
 
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
@@ -961,59 +1031,75 @@ const UploadFile = () => {
                 Upload Dataset
               </label>
 
-              {/* Add toggle between file and folder upload */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2 text-white">
-                  Upload Mode
-                </label>
-                <div className="flex gap-4 mb-4">
-                  <button
-                    type="button"
-                    onClick={() => setFolderMode(false)}
-                    className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all duration-200 flex items-center justify-center gap-2
-                      ${
-                        !folderMode
-                          ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
-                          : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
-                      }`}
-                  >
-                    <FileType className="w-5 h-5" />
-                    <span>Files</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFolderMode(true)}
-                    className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all duration-200 flex items-center justify-center gap-2
-                      ${
-                        folderMode
-                          ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
-                          : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
-                      }`}
-                  >
-                    <Folder className="w-5 h-5" />
-                    <span>Folders</span>
-                  </button>
-                </div>
-              </div>
-
               <div className="space-y-4">
                 {datasetType === "Both" ? (
                   <>
                     {/* Raw Data Upload */}
                     <div>
                       <label className="block text-sm font-medium mb-2 text-white">
-                        Raw Data {folderMode ? "Folder" : "Files"}
+                        Raw Data{" "}
+                        {selectedUploadTypes.raw === "folders"
+                          ? "Folders"
+                          : "Files"}
                       </label>
-                      {folderMode ? (
-                        <input
-                          {...folderInputProps}
-                          type="file"
+                      <div className="flex items-center gap-3 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Clear any existing selection
+                            setFolderContents((prev) => ({ ...prev, raw: [] }));
+                            setSelectedUploadTypes((prev) => ({
+                              ...prev,
+                              raw: "files",
+                            }));
+                            if (rawFolderInputRef.current)
+                              rawFolderInputRef.current.value = "";
+                            if (rawInputRef.current)
+                              rawInputRef.current.value = "";
+                          }}
+                          className={`text-xs px-3 py-1 rounded-full 
+                            ${
+                              selectedUploadTypes.raw !== "folders"
+                                ? "bg-cyan-600/80 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                        >
+                          Files
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Clear any existing selection
+                            setFolderContents((prev) => ({ ...prev, raw: [] }));
+                            setSelectedUploadTypes((prev) => ({
+                              ...prev,
+                              raw: "folders",
+                            }));
+                            if (rawFolderInputRef.current)
+                              rawFolderInputRef.current.value = "";
+                            if (rawInputRef.current)
+                              rawInputRef.current.value = "";
+                          }}
+                          className={`text-xs px-3 py-1 rounded-full 
+                            ${
+                              selectedUploadTypes.raw === "folders"
+                                ? "bg-cyan-600/80 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                        >
+                          Folders
+                        </button>
+                      </div>
+
+                      {selectedUploadTypes.raw === "folders" ? (
+                        <FolderInput
                           ref={rawFolderInputRef}
                           onChange={(e) => handleFolderSelect(e, "raw")}
                           onClick={(e) => {
                             const element = e.target as HTMLInputElement;
                             element.value = "";
                           }}
+                          className={folderInputProps.className}
                         />
                       ) : (
                         <input
@@ -1033,18 +1119,75 @@ const UploadFile = () => {
                     {/* Vectorized Data Upload */}
                     <div>
                       <label className="block text-sm font-medium mb-2 text-white">
-                        Vectorized Data {folderMode ? "Folder" : "Files"}
+                        Vectorized Data{" "}
+                        {selectedUploadTypes.vectorized === "folders"
+                          ? "Folders"
+                          : "Files"}
                       </label>
-                      {folderMode ? (
-                        <input
-                          {...folderInputProps}
-                          type="file"
+                      <div className="flex items-center gap-3 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Clear any existing selection
+                            setFolderContents((prev) => ({
+                              ...prev,
+                              vectorized: [],
+                            }));
+                            setSelectedUploadTypes((prev) => ({
+                              ...prev,
+                              vectorized: "files",
+                            }));
+                            if (vectorizedFolderInputRef.current)
+                              vectorizedFolderInputRef.current.value = "";
+                            if (vectorizedInputRef.current)
+                              vectorizedInputRef.current.value = "";
+                          }}
+                          className={`text-xs px-3 py-1 rounded-full 
+                            ${
+                              selectedUploadTypes.vectorized !== "folders"
+                                ? "bg-cyan-600/80 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                        >
+                          Files
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Clear any existing selection
+                            setFolderContents((prev) => ({
+                              ...prev,
+                              vectorized: [],
+                            }));
+                            setSelectedUploadTypes((prev) => ({
+                              ...prev,
+                              vectorized: "folders",
+                            }));
+                            if (vectorizedFolderInputRef.current)
+                              vectorizedFolderInputRef.current.value = "";
+                            if (vectorizedInputRef.current)
+                              vectorizedInputRef.current.value = "";
+                          }}
+                          className={`text-xs px-3 py-1 rounded-full 
+                            ${
+                              selectedUploadTypes.vectorized === "folders"
+                                ? "bg-cyan-600/80 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                        >
+                          Folders
+                        </button>
+                      </div>
+
+                      {selectedUploadTypes.vectorized === "folders" ? (
+                        <FolderInput
                           ref={vectorizedFolderInputRef}
                           onChange={(e) => handleFolderSelect(e, "vectorized")}
                           onClick={(e) => {
                             const element = e.target as HTMLInputElement;
                             element.value = "";
                           }}
+                          className={folderInputProps.className}
                         />
                       ) : (
                         <input
@@ -1063,43 +1206,113 @@ const UploadFile = () => {
                       )}
                     </div>
                   </>
-                ) : folderMode ? (
-                  <input
-                    {...folderInputProps}
-                    type="file"
-                    ref={folderInputRef}
-                    onChange={(e) =>
-                      handleFolderSelect(
-                        e,
-                        datasetType.toLowerCase() as "raw" | "vectorized"
-                      )
-                    }
-                    onClick={(e) => {
-                      const element = e.target as HTMLInputElement;
-                      element.value = "";
-                    }}
-                  />
                 ) : (
-                  <input
-                    {...fileInputProps}
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={(e) =>
-                      handleFileInputChange(
-                        e,
-                        datasetType.toLowerCase() as "raw" | "vectorized"
-                      )
-                    }
-                    onClick={(e) => {
-                      const element = e.target as HTMLInputElement;
-                      element.value = "";
-                    }}
-                    accept={
-                      datasetType.toLowerCase() === "raw"
-                        ? fileTypeMap[fileType].extensions.join(",")
-                        : undefined
-                    }
-                  />
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Clear any existing selection
+                          const type = datasetType.toLowerCase() as
+                            | "raw"
+                            | "vectorized";
+                          setFolderContents((prev) => ({
+                            ...prev,
+                            [type]: [],
+                          }));
+                          setSelectedUploadTypes((prev) => ({
+                            ...prev,
+                            [type]: "files",
+                          }));
+                          if (folderInputRef.current)
+                            folderInputRef.current.value = "";
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
+                        }}
+                        className={`text-xs px-3 py-1 rounded-full 
+                          ${
+                            selectedUploadTypes[
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            ] !== "folders"
+                              ? "bg-cyan-600/80 text-white"
+                              : "bg-gray-700 text-gray-300"
+                          }`}
+                      >
+                        Files
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Clear any existing selection
+                          const type = datasetType.toLowerCase() as
+                            | "raw"
+                            | "vectorized";
+                          setFolderContents((prev) => ({
+                            ...prev,
+                            [type]: [],
+                          }));
+                          setSelectedUploadTypes((prev) => ({
+                            ...prev,
+                            [type]: "folders",
+                          }));
+                          if (folderInputRef.current)
+                            folderInputRef.current.value = "";
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
+                        }}
+                        className={`text-xs px-3 py-1 rounded-full 
+                          ${
+                            selectedUploadTypes[
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            ] === "folders"
+                              ? "bg-cyan-600/80 text-white"
+                              : "bg-gray-700 text-gray-300"
+                          }`}
+                      >
+                        Folders
+                      </button>
+                    </div>
+
+                    {selectedUploadTypes[
+                      datasetType.toLowerCase() as "raw" | "vectorized"
+                    ] === "folders" ? (
+                      <FolderInput
+                        ref={folderInputRef}
+                        onChange={(e) =>
+                          handleFolderSelect(
+                            e,
+                            datasetType.toLowerCase() as "raw" | "vectorized"
+                          )
+                        }
+                        onClick={(e) => {
+                          const element = e.target as HTMLInputElement;
+                          element.value = "";
+                        }}
+                        className={folderInputProps.className}
+                      />
+                    ) : (
+                      <input
+                        {...fileInputProps}
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={(e) =>
+                          handleFileInputChange(
+                            e,
+                            datasetType.toLowerCase() as "raw" | "vectorized"
+                          )
+                        }
+                        onClick={(e) => {
+                          const element = e.target as HTMLInputElement;
+                          element.value = "";
+                        }}
+                        accept={
+                          datasetType.toLowerCase() === "raw"
+                            ? fileTypeMap[fileType].extensions.join(",")
+                            : undefined
+                        }
+                      />
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -1108,94 +1321,89 @@ const UploadFile = () => {
 
               {/* Help text */}
               <p className="mt-2 text-sm text-gray-400">
-                {folderMode
-                  ? `Select one or more folders containing ${
+                {folderContents.raw.length > 0 ||
+                folderContents.vectorized.length > 0
+                  ? `Selected folders will be used for ${
                       datasetType.toLowerCase() === "vectorized"
                         ? "vectorized data"
                         : fileType.toLowerCase() + " files"
-                    }. You can select multiple folders by clicking again.`
+                    }.`
                   : datasetType === "Vectorized"
                   ? "Select files containing vectorized data"
                   : `Select ${fileType.toLowerCase()} files to upload`}
               </p>
 
-              {folderMode &&
-                folderContents[
-                  datasetType.toLowerCase() === "vectorized"
-                    ? "vectorized"
-                    : "raw"
-                ].length > 0 && (
-                  <div className="mt-4 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-medium text-cyan-400">
-                        Selected Folders
-                      </h4>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          // Clear selected folders for the current type
-                          const type =
-                            datasetType.toLowerCase() === "vectorized"
-                              ? "vectorized"
-                              : "raw";
-                          setFolderContents((prev) => ({
-                            ...prev,
-                            [type]: [],
-                          }));
+              {(folderContents.raw.length > 0 ||
+                folderContents.vectorized.length > 0) && (
+                <div className="mt-4 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-cyan-400">
+                      Selected Folders
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Clear selected folders for the current type
+                        const type =
+                          datasetType.toLowerCase() === "vectorized"
+                            ? "vectorized"
+                            : "raw";
+                        setFolderContents((prev) => ({
+                          ...prev,
+                          [type]: [],
+                        }));
 
-                          // Reset associated input
-                          if (type === "raw" && rawFolderInputRef.current) {
-                            rawFolderInputRef.current.value = "";
-                          } else if (
-                            type === "vectorized" &&
-                            vectorizedFolderInputRef.current
-                          ) {
-                            vectorizedFolderInputRef.current.value = "";
-                          } else if (folderInputRef.current) {
-                            folderInputRef.current.value = "";
-                          }
-                        }}
-                        className="text-xs px-2 py-1 bg-gray-600 hover:bg-gray-500 rounded text-gray-300 transition-colors"
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                    <div className="max-h-32 overflow-y-auto">
-                      {(() => {
-                        // Calculate folder stats
-                        const files =
-                          folderContents[
-                            datasetType.toLowerCase() === "vectorized"
-                              ? "vectorized"
-                              : "raw"
-                          ];
-                        const folders: { [key: string]: number } = {};
-
-                        files.forEach((file) => {
-                          const folderPath =
-                            file.webkitRelativePath.split("/")[0];
-                          folders[folderPath] = (folders[folderPath] || 0) + 1;
-                        });
-
-                        return Object.entries(folders).map(
-                          ([folder, count]) => (
-                            <div
-                              key={folder}
-                              className="flex items-center justify-between py-1 border-b border-gray-600 last:border-0"
-                            >
-                              <span className="text-sm text-gray-300">
-                                {folder}
-                              </span>
-                              <span className="text-xs bg-gray-600 px-2 py-0.5 rounded-full text-gray-300">
-                                {count} files
-                              </span>
-                            </div>
-                          )
-                        );
-                      })()}
-                    </div>
+                        // Reset associated input
+                        if (type === "raw" && rawFolderInputRef.current) {
+                          rawFolderInputRef.current.value = "";
+                        } else if (
+                          type === "vectorized" &&
+                          vectorizedFolderInputRef.current
+                        ) {
+                          vectorizedFolderInputRef.current.value = "";
+                        } else if (folderInputRef.current) {
+                          folderInputRef.current.value = "";
+                        }
+                      }}
+                      className="text-xs px-2 py-1 bg-gray-600 hover:bg-gray-500 rounded text-gray-300 transition-colors"
+                    >
+                      Clear All
+                    </button>
                   </div>
-                )}
+                  <div className="max-h-32 overflow-y-auto">
+                    {(() => {
+                      // Calculate folder stats
+                      const files =
+                        folderContents[
+                          datasetType.toLowerCase() === "vectorized"
+                            ? "vectorized"
+                            : "raw"
+                        ];
+                      const folders: { [key: string]: number } = {};
+
+                      files.forEach((file) => {
+                        const folderPath =
+                          file.webkitRelativePath.split("/")[0];
+                        folders[folderPath] = (folders[folderPath] || 0) + 1;
+                      });
+
+                      return Object.entries(folders).map(([folder, count]) => (
+                        <div
+                          key={folder}
+                          className="flex items-center justify-between py-1 border-b border-gray-600 last:border-0"
+                        >
+                          <span className="text-sm text-gray-300">
+                            {folder}
+                          </span>
+                          <span className="text-xs bg-gray-600 px-2 py-0.5 rounded-full text-gray-300">
+                            {count} files
+                          </span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Submit button */}
