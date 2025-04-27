@@ -200,36 +200,42 @@ const UploadFile = () => {
 
     const filesArray = Array.from(files);
 
+    // Group files by their top-level folders
+    const folderGroups: { [folderName: string]: File[] } = {};
+    filesArray.forEach((file) => {
+      const path = file.webkitRelativePath;
+      const topFolder = path.split("/")[0]; // Get top-level folder name
+
+      if (!folderGroups[topFolder]) {
+        folderGroups[topFolder] = [];
+      }
+      folderGroups[topFolder].push(file);
+    });
+
     // Update the folder contents for the appropriate type
     if (type === "raw") {
-      setFolderContents((prev) => ({ ...prev, raw: filesArray }));
+      // Add to existing files rather than replacing them
+      setFolderContents((prev) => ({
+        ...prev,
+        raw: [...prev.raw, ...filesArray],
+      }));
     } else {
-      setFolderContents((prev) => ({ ...prev, vectorized: filesArray }));
+      setFolderContents((prev) => ({
+        ...prev,
+        vectorized: [...prev.vectorized, ...filesArray],
+      }));
     }
 
     setError("");
 
-    // Show a confirmation with folder details
+    // Calculate total size and file count for the confirmation dialog
     const totalSize = filesArray.reduce((sum, file) => sum + file.size, 0);
     const filesCount = filesArray.length;
+    const folderCount = Object.keys(folderGroups).length;
 
-    // Structure the folders based on paths
-    const folderStructure: { [key: string]: number } = {};
-    filesArray.forEach((file) => {
-      // Get the folder path from the relative path
-      const path = file.webkitRelativePath;
-      const folderPath = path.split("/")[0]; // Get top-level folder
-
-      if (folderStructure[folderPath]) {
-        folderStructure[folderPath]++;
-      } else {
-        folderStructure[folderPath] = 1;
-      }
-    });
-
-    // Convert to a readable string
-    const foldersDescription = Object.entries(folderStructure)
-      .map(([folder, count]) => `${folder} (${count} files)`)
+    // Create a readable description of the folders
+    const foldersDescription = Object.entries(folderGroups)
+      .map(([folder, files]) => `${folder} (${files.length} files)`)
       .join(", ");
 
     setSelectedFiles({
@@ -242,6 +248,11 @@ const UploadFile = () => {
         description: foldersDescription,
       },
     });
+
+    // Show folder selection summary
+    console.log(
+      `Selected ${folderCount} folders with ${filesCount} files for ${type} data`
+    );
     setShowConfirmation(true);
   };
 
@@ -1098,17 +1109,93 @@ const UploadFile = () => {
               {/* Help text */}
               <p className="mt-2 text-sm text-gray-400">
                 {folderMode
-                  ? `Select a ${
+                  ? `Select one or more folders containing ${
                       datasetType.toLowerCase() === "vectorized"
-                        ? "folder containing vectorized data"
-                        : "folder containing " +
-                          fileType.toLowerCase() +
-                          " files"
-                    }`
+                        ? "vectorized data"
+                        : fileType.toLowerCase() + " files"
+                    }. You can select multiple folders by clicking again.`
                   : datasetType === "Vectorized"
-                  ? "Select a folder containing vectorized data files"
-                  : `Select a folder containing only ${fileType.toLowerCase()} files`}
+                  ? "Select files containing vectorized data"
+                  : `Select ${fileType.toLowerCase()} files to upload`}
               </p>
+
+              {folderMode &&
+                folderContents[
+                  datasetType.toLowerCase() === "vectorized"
+                    ? "vectorized"
+                    : "raw"
+                ].length > 0 && (
+                  <div className="mt-4 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium text-cyan-400">
+                        Selected Folders
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Clear selected folders for the current type
+                          const type =
+                            datasetType.toLowerCase() === "vectorized"
+                              ? "vectorized"
+                              : "raw";
+                          setFolderContents((prev) => ({
+                            ...prev,
+                            [type]: [],
+                          }));
+
+                          // Reset associated input
+                          if (type === "raw" && rawFolderInputRef.current) {
+                            rawFolderInputRef.current.value = "";
+                          } else if (
+                            type === "vectorized" &&
+                            vectorizedFolderInputRef.current
+                          ) {
+                            vectorizedFolderInputRef.current.value = "";
+                          } else if (folderInputRef.current) {
+                            folderInputRef.current.value = "";
+                          }
+                        }}
+                        className="text-xs px-2 py-1 bg-gray-600 hover:bg-gray-500 rounded text-gray-300 transition-colors"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    <div className="max-h-32 overflow-y-auto">
+                      {(() => {
+                        // Calculate folder stats
+                        const files =
+                          folderContents[
+                            datasetType.toLowerCase() === "vectorized"
+                              ? "vectorized"
+                              : "raw"
+                          ];
+                        const folders: { [key: string]: number } = {};
+
+                        files.forEach((file) => {
+                          const folderPath =
+                            file.webkitRelativePath.split("/")[0];
+                          folders[folderPath] = (folders[folderPath] || 0) + 1;
+                        });
+
+                        return Object.entries(folders).map(
+                          ([folder, count]) => (
+                            <div
+                              key={folder}
+                              className="flex items-center justify-between py-1 border-b border-gray-600 last:border-0"
+                            >
+                              <span className="text-sm text-gray-300">
+                                {folder}
+                              </span>
+                              <span className="text-xs bg-gray-600 px-2 py-0.5 rounded-full text-gray-300">
+                                {count} files
+                              </span>
+                            </div>
+                          )
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
             </div>
 
             {/* Submit button */}
