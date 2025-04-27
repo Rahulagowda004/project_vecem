@@ -42,6 +42,32 @@ interface DirectoryInputElement extends HTMLInputElement {
   mozdirectory?: string;
 }
 
+// Create a specialized FolderInput component for selecting folders
+const FolderInput = React.forwardRef<
+  HTMLInputElement,
+  {
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
+    className?: string;
+    multiple?: boolean;
+  }
+>((props, ref) => {
+  return (
+    <input
+      type="file"
+      ref={ref}
+      onChange={props.onChange}
+      onClick={props.onClick}
+      className={props.className}
+      // Set attributes directly in HTML to ensure browser compatibility
+      webkitdirectory="true"
+      directory="true"
+      mozdirectory="true"
+      multiple={props.multiple !== false}
+    />
+  );
+});
+
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -66,6 +92,13 @@ const DatasetEdit = () => {
     files: FileList | null;
     type: "raw" | "vectorized";
   } | null>(null);
+
+  // Track selected folders for multi-folder selection
+  const [selectedFolders, setSelectedFolders] = useState<{
+    files: File[];
+    type: "raw" | "vectorized";
+  } | null>(null);
+  const [showFolderSelection, setShowFolderSelection] = useState(false);
 
   const [uploadStatus, setUploadStatus] = useState<{
     show: boolean;
@@ -95,6 +128,11 @@ const DatasetEdit = () => {
     }
   );
   const [dataset, setDataset] = useState<Dataset | null>(null);
+
+  // Add state for selected upload type (files or folders)
+  const [selectedUploadType, setSelectedUploadType] = useState<
+    "files" | "folders"
+  >("files");
 
   const domains = [
     "Health",
@@ -157,11 +195,11 @@ const DatasetEdit = () => {
         setDataset(data);
         setName(data.dataset_info.name || datasetname);
         setDescription(data.dataset_info.description || "");
-        
+
         // Update dataset type logic
         const hasRawFiles = data.files?.raw?.length > 0;
         const hasVectorizedFiles = data.files?.vectorized?.length > 0;
-        
+
         let type = "Raw";
         if (hasRawFiles && hasVectorizedFiles) {
           type = "Both";
@@ -187,7 +225,6 @@ const DatasetEdit = () => {
           vectorDatabase: data.dataset_info.vector_database || "",
           modelName: data.dataset_info.model_name || "",
         });
-
       } catch (error) {
         console.error("Error fetching dataset:", error);
         toast.error(
@@ -571,14 +608,33 @@ const DatasetEdit = () => {
       }
     }
 
-    const filteredFiles = new DataTransfer();
-    filesArray.forEach((file) => filteredFiles.items.add(file));
+    // Handle differently based on selection mode (files vs folders)
+    if (selectedUploadType === "files") {
+      // For files, use the standard approach with confirmation dialog
+      const filteredFiles = new DataTransfer();
+      filesArray.forEach((file) => filteredFiles.items.add(file));
 
-    setSelectedFiles({
-      files: filteredFiles.files,
-      type,
-    });
-    setShowConfirmation(true);
+      setSelectedFiles({
+        files: filteredFiles.files,
+        type,
+      });
+      setShowConfirmation(true);
+    } else {
+      // For folders, collect the files but don't show confirmation yet
+      // Instead, add them to selectedFolders state for review
+      setSelectedFolders({
+        files: [...(selectedFolders?.files || []), ...filesArray],
+        type,
+      });
+
+      // Show folder selection review modal
+      setShowFolderSelection(true);
+
+      // Clear the input for additional folder selections
+      if (event.target) event.target.value = "";
+
+      toast.success(`Added folder with ${filesArray.length} files`);
+    }
   };
 
   const handleUpload = async (files: FileList, type: "raw" | "vectorized") => {
@@ -673,6 +729,106 @@ const DatasetEdit = () => {
     </div>
   );
 
+  const FolderSelectionReview = () => {
+    if (!selectedFolders || selectedFolders.files.length === 0) return null;
+
+    // Group files by folder
+    const folderStructure: { [key: string]: File[] } = {};
+
+    selectedFolders.files.forEach((file) => {
+      // Get folder path from file path (usually the first part of the path)
+      const pathParts = file.webkitRelativePath.split("/");
+      const folderName = pathParts[0]; // First part is the folder name
+
+      if (!folderStructure[folderName]) {
+        folderStructure[folderName] = [];
+      }
+      folderStructure[folderName].push(file);
+    });
+
+    // Convert selected files to a FileList for upload
+    const uploadSelectedFolders = () => {
+      const dataTransfer = new DataTransfer();
+      selectedFolders.files.forEach((file) => dataTransfer.items.add(file));
+
+      // Use handleUpload with all selected files
+      handleUpload(dataTransfer.files, selectedFolders.type);
+
+      // Reset after upload
+      setSelectedFolders(null);
+      setShowFolderSelection(false);
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-2xl w-full mx-4">
+          <h3 className="text-xl font-semibold mb-2 text-white flex items-center justify-between">
+            <span>Selected Folders</span>
+            <span className="text-sm bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded-md">
+              {selectedFolders.files.length} files total
+            </span>
+          </h3>
+
+          <div className="mt-4 max-h-[400px] overflow-y-auto pr-2 space-y-4">
+            {Object.entries(folderStructure).map(([folderName, files]) => (
+              <div
+                key={folderName}
+                className="bg-gray-700/50 p-3 rounded-lg border border-gray-600"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Box className="w-4 h-4 text-cyan-400" />
+                    <span className="font-medium text-white">{folderName}</span>
+                  </div>
+                  <span className="text-xs bg-gray-900/50 text-gray-300 px-2 py-1 rounded-md">
+                    {files.length} files
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex justify-between items-center">
+            <button
+              onClick={() => {
+                // Allow selecting more folders without losing current selection
+                if (selectedFolders.type === "raw") {
+                  rawInputRef.current?.click();
+                } else {
+                  vectorizedInputRef.current?.click();
+                }
+              }}
+              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-white flex items-center gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              Add More Folders
+            </button>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setSelectedFolders(null);
+                  setShowFolderSelection(false);
+                }}
+                className="px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/30"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={uploadSelectedFolders}
+                disabled={isUploading}
+                className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save className="w-4 h-4" />
+                {isUploading ? "Uploading..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderRightColumn = () => (
     <motion.div variants={fadeIn} className="space-y-6">
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
@@ -706,30 +862,93 @@ const DatasetEdit = () => {
           <h3 className="text-lg font-medium text-white mb-4">
             Add {datasetType === "Raw" ? "Vectorized" : "Raw"} Data
           </h3>
-          <input
-            type="file"
-            ref={datasetType === "Raw" ? vectorizedInputRef : rawInputRef}
-            onChange={(e) =>
-              handleFileInputChange(
-                e,
-                datasetType === "Raw" ? "vectorized" : "raw"
-              )
-            }
-            multiple
-            className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-              text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
-              file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
-              hover:file:bg-cyan-700 file:transition-colors"
-            accept={
-              datasetType === "Vectorized" && fileType
-                ? fileTypeMap[
-                    fileType as keyof typeof fileTypeMap
-                  ]?.extensions.join(",").replace(/\./g, "")
-                : undefined
-            }
-          />
+
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              type="button"
+              onClick={() => {
+                // Switch to files upload mode
+                setSelectedUploadType("files");
+              }}
+              className={`text-xs px-3 py-1 rounded-full 
+                ${
+                  selectedUploadType !== "folders"
+                    ? "bg-cyan-600/80 text-white"
+                    : "bg-gray-700 text-gray-300"
+                }`}
+            >
+              Files
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                // Switch to folders upload mode
+                setSelectedUploadType("folders");
+              }}
+              className={`text-xs px-3 py-1 rounded-full 
+                ${
+                  selectedUploadType === "folders"
+                    ? "bg-cyan-600/80 text-white"
+                    : "bg-gray-700 text-gray-300"
+                }`}
+            >
+              Folders
+            </button>
+          </div>
+
+          {selectedUploadType === "folders" ? (
+            <FolderInput
+              ref={datasetType === "Raw" ? vectorizedInputRef : rawInputRef}
+              onChange={(e) =>
+                handleFileInputChange(
+                  e,
+                  datasetType === "Raw" ? "vectorized" : "raw"
+                )
+              }
+              onClick={(e) => {
+                const element = e.target as HTMLInputElement;
+                element.value = "";
+              }}
+              className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
+                file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
+                hover:file:bg-cyan-700 file:transition-colors"
+            />
+          ) : (
+            <input
+              type="file"
+              ref={datasetType === "Raw" ? vectorizedInputRef : rawInputRef}
+              onChange={(e) =>
+                handleFileInputChange(
+                  e,
+                  datasetType === "Raw" ? "vectorized" : "raw"
+                )
+              }
+              multiple
+              className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                text-white file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 
+                file:text-sm file:font-medium file:bg-cyan-600 file:text-white 
+                hover:file:bg-cyan-700 file:transition-colors"
+              accept={
+                datasetType === "Vectorized" && fileType
+                  ? fileTypeMap[
+                      fileType as keyof typeof fileTypeMap
+                    ]?.extensions
+                      .join(",")
+                      .replace(/\./g, "")
+                  : undefined
+              }
+            />
+          )}
+
           <p className="mt-2 text-sm text-gray-400">
-            {datasetType === "Raw"
+            {selectedUploadType === "folders"
+              ? `Select a folder containing ${
+                  datasetType === "Raw"
+                    ? "vectorized data"
+                    : fileType.toLowerCase() + " files"
+                }`
+              : datasetType === "Raw"
               ? "Add vectorized data to enable AI-powered search capabilities"
               : `Add raw ${fileType.toLowerCase()} files to store the original data`}
           </p>
@@ -741,7 +960,9 @@ const DatasetEdit = () => {
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0f1829] to-gray-900">
       <NavbarPro />
-      <div className="pt-16"> {/* Add padding-top to account for fixed navbar */}
+      <div className="pt-16">
+        {" "}
+        {/* Add padding-top to account for fixed navbar */}
         {uploadStatus.show && <StatusMessage />}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -918,6 +1139,7 @@ const DatasetEdit = () => {
         </motion.div>
         <AnimatePresence>{showDeleteModal && <DeleteModal />}</AnimatePresence>
         {showConfirmation && <ConfirmationDialog />}
+        {showFolderSelection && <FolderSelectionReview />}
       </div>
     </div>
   );

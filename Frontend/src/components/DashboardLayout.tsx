@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
 import { getUserProfileByUid } from "../services/userService";
-import { getUserDisplayName } from "../utils/userManagement";
 import { motion } from "framer-motion";
 import { ChatMessage, sendChatMessage } from "../services/chatService";
 import { checkApiKey, saveApiKey } from "../services/apiKeyService";
@@ -103,6 +102,7 @@ const DashboardLayout = () => {
   const [apiKeyError, setApiKeyError] = useState("");
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [filteredPrompts, setFilteredPrompts] = useState<Prompt[]>([]);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const fetchPrompts = async () => {
@@ -240,6 +240,23 @@ const DashboardLayout = () => {
   useEffect(() => {
     setIsFullWidth(currentView === "chatbot");
   }, [currentView]);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user?.uid) {
+        try {
+          const profileData = await getUserProfileByUid(user.uid);
+          if (profileData?.name) {
+            setUserName(profileData.name);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   const handleCategorySelect = async (category: string) => {
     setSelectedCategory(category);
@@ -704,7 +721,7 @@ const DashboardLayout = () => {
                         {/* Welcome Text Section */}
                         <div className="space-y-0.5 flex-1">
                           <h2 className="text-3xl font-semibold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
-                            Welcome back, {getUserDisplayName(user)}
+                            Welcome back, {userName || "Guest"}
                           </h2>
                           <p className="text-gray-400 text-sm tracking-wide truncate">
                           You’re live on Vecem! Explore datasets, craft prompts, and make your mark in our creative community.
