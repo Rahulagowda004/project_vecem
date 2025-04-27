@@ -93,6 +93,13 @@ const DatasetEdit = () => {
     type: "raw" | "vectorized";
   } | null>(null);
 
+  // Track selected folders for multi-folder selection
+  const [selectedFolders, setSelectedFolders] = useState<{
+    files: File[];
+    type: "raw" | "vectorized";
+  } | null>(null);
+  const [showFolderSelection, setShowFolderSelection] = useState(false);
+
   const [uploadStatus, setUploadStatus] = useState<{
     show: boolean;
     success: boolean;
@@ -601,14 +608,33 @@ const DatasetEdit = () => {
       }
     }
 
-    const filteredFiles = new DataTransfer();
-    filesArray.forEach((file) => filteredFiles.items.add(file));
+    // Handle differently based on selection mode (files vs folders)
+    if (selectedUploadType === "files") {
+      // For files, use the standard approach with confirmation dialog
+      const filteredFiles = new DataTransfer();
+      filesArray.forEach((file) => filteredFiles.items.add(file));
 
-    setSelectedFiles({
-      files: filteredFiles.files,
-      type,
-    });
-    setShowConfirmation(true);
+      setSelectedFiles({
+        files: filteredFiles.files,
+        type,
+      });
+      setShowConfirmation(true);
+    } else {
+      // For folders, collect the files but don't show confirmation yet
+      // Instead, add them to selectedFolders state for review
+      setSelectedFolders({
+        files: [...(selectedFolders?.files || []), ...filesArray],
+        type,
+      });
+
+      // Show folder selection review modal
+      setShowFolderSelection(true);
+
+      // Clear the input for additional folder selections
+      if (event.target) event.target.value = "";
+
+      toast.success(`Added folder with ${filesArray.length} files`);
+    }
   };
 
   const handleUpload = async (files: FileList, type: "raw" | "vectorized") => {
@@ -702,6 +728,106 @@ const DatasetEdit = () => {
       </div>
     </div>
   );
+
+  const FolderSelectionReview = () => {
+    if (!selectedFolders || selectedFolders.files.length === 0) return null;
+
+    // Group files by folder
+    const folderStructure: { [key: string]: File[] } = {};
+
+    selectedFolders.files.forEach((file) => {
+      // Get folder path from file path (usually the first part of the path)
+      const pathParts = file.webkitRelativePath.split("/");
+      const folderName = pathParts[0]; // First part is the folder name
+
+      if (!folderStructure[folderName]) {
+        folderStructure[folderName] = [];
+      }
+      folderStructure[folderName].push(file);
+    });
+
+    // Convert selected files to a FileList for upload
+    const uploadSelectedFolders = () => {
+      const dataTransfer = new DataTransfer();
+      selectedFolders.files.forEach((file) => dataTransfer.items.add(file));
+
+      // Use handleUpload with all selected files
+      handleUpload(dataTransfer.files, selectedFolders.type);
+
+      // Reset after upload
+      setSelectedFolders(null);
+      setShowFolderSelection(false);
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-2xl w-full mx-4">
+          <h3 className="text-xl font-semibold mb-2 text-white flex items-center justify-between">
+            <span>Selected Folders</span>
+            <span className="text-sm bg-cyan-900/30 text-cyan-400 px-2 py-1 rounded-md">
+              {selectedFolders.files.length} files total
+            </span>
+          </h3>
+
+          <div className="mt-4 max-h-[400px] overflow-y-auto pr-2 space-y-4">
+            {Object.entries(folderStructure).map(([folderName, files]) => (
+              <div
+                key={folderName}
+                className="bg-gray-700/50 p-3 rounded-lg border border-gray-600"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Box className="w-4 h-4 text-cyan-400" />
+                    <span className="font-medium text-white">{folderName}</span>
+                  </div>
+                  <span className="text-xs bg-gray-900/50 text-gray-300 px-2 py-1 rounded-md">
+                    {files.length} files
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 flex justify-between items-center">
+            <button
+              onClick={() => {
+                // Allow selecting more folders without losing current selection
+                if (selectedFolders.type === "raw") {
+                  rawInputRef.current?.click();
+                } else {
+                  vectorizedInputRef.current?.click();
+                }
+              }}
+              className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors text-white flex items-center gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              Add More Folders
+            </button>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setSelectedFolders(null);
+                  setShowFolderSelection(false);
+                }}
+                className="px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors border border-red-500/30"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={uploadSelectedFolders}
+                disabled={isUploading}
+                className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Save className="w-4 h-4" />
+                {isUploading ? "Uploading..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderRightColumn = () => (
     <motion.div variants={fadeIn} className="space-y-6">
@@ -1013,6 +1139,7 @@ const DatasetEdit = () => {
         </motion.div>
         <AnimatePresence>{showDeleteModal && <DeleteModal />}</AnimatePresence>
         {showConfirmation && <ConfirmationDialog />}
+        {showFolderSelection && <FolderSelectionReview />}
       </div>
     </div>
   );
