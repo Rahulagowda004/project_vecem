@@ -1,1 +1,13 @@
-{}
+{
+  "routes": [
+    {
+      "route": "/home",
+      "methods": [
+        "get"
+      ],
+      "allowedRoles": [
+        "authenticated"
+      ]
+    }
+  ]
+}
