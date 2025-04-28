@@ -1099,27 +1099,53 @@ const UploadFile = () => {
                       </div>
 
                       {selectedUploadTypes.raw === "folders" ? (
-                        <FolderInput
-                          ref={rawFolderInputRef}
-                          onChange={(e) => handleFolderSelect(e, "raw")}
-                          onClick={(e) => {
-                            const element = e.target as HTMLInputElement;
-                            element.value = "";
-                          }}
-                          className={folderInputProps.className}
-                        />
+                        <label className="block">
+                          <span className="sr-only">Choose Folders</span>
+                          <FolderInput
+                            ref={rawFolderInputRef}
+                            onChange={(e) => handleFolderSelect(e, "raw")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            className={folderInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (rawFolderInputRef.current)
+                                rawFolderInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Folders
+                          </button>
+                        </label>
                       ) : (
-                        <input
-                          {...fileInputProps}
-                          type="file"
-                          ref={rawInputRef}
-                          onChange={(e) => handleFileInputChange(e, "raw")}
-                          onClick={(e) => {
-                            const element = e.target as HTMLInputElement;
-                            element.value = "";
-                          }}
-                          accept={fileTypeMap[fileType].extensions.join(",")}
-                        />
+                        <label className="block">
+                          <span className="sr-only">Choose Files</span>
+                          <input
+                            {...fileInputProps}
+                            type="file"
+                            ref={rawInputRef}
+                            onChange={(e) => handleFileInputChange(e, "raw")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            accept={fileTypeMap[fileType].extensions.join(",")}
+                            className={fileInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (rawInputRef.current) rawInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Files
+                          </button>
+                        </label>
                       )}
                     </div>
 
@@ -1187,29 +1213,56 @@ const UploadFile = () => {
                       </div>
 
                       {selectedUploadTypes.vectorized === "folders" ? (
-                        <FolderInput
-                          ref={vectorizedFolderInputRef}
-                          onChange={(e) => handleFolderSelect(e, "vectorized")}
-                          onClick={(e) => {
-                            const element = e.target as HTMLInputElement;
-                            element.value = "";
-                          }}
-                          className={folderInputProps.className}
-                        />
+                        <label className="block">
+                          <span className="sr-only">Choose Folders</span>
+                          <FolderInput
+                            ref={vectorizedFolderInputRef}
+                            onChange={(e) => handleFolderSelect(e, "vectorized")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            className={folderInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (vectorizedFolderInputRef.current)
+                                vectorizedFolderInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Folders
+                          </button>
+                        </label>
                       ) : (
-                        <input
-                          {...fileInputProps}
-                          type="file"
-                          ref={vectorizedInputRef}
-                          onChange={(e) =>
-                            handleFileInputChange(e, "vectorized")
-                          }
-                          onClick={(e) => {
-                            const element = e.target as HTMLInputElement;
-                            element.value = "";
-                          }}
-                          accept={fileTypeMap[fileType].extensions.join(",")}
-                        />
+                        <label className="block">
+                          <span className="sr-only">Choose Files</span>
+                          <input
+                            {...fileInputProps}
+                            type="file"
+                            ref={vectorizedInputRef}
+                            onChange={(e) =>
+                              handleFileInputChange(e, "vectorized")
+                            }
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            accept={fileTypeMap[fileType].extensions.join(",")}
+                            className={fileInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (vectorizedInputRef.current)
+                                vectorizedInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Files
+                          </button>
+                        </label>
                       )}
                     </div>
                   </>
@@ -1283,41 +1336,67 @@ const UploadFile = () => {
                     {selectedUploadTypes[
                       datasetType.toLowerCase() as "raw" | "vectorized"
                     ] === "folders" ? (
-                      <FolderInput
-                        ref={folderInputRef}
-                        onChange={(e) =>
-                          handleFolderSelect(
-                            e,
-                            datasetType.toLowerCase() as "raw" | "vectorized"
-                          )
-                        }
-                        onClick={(e) => {
-                          const element = e.target as HTMLInputElement;
-                          element.value = "";
-                        }}
-                        className={folderInputProps.className}
-                      />
+                      <label className="block">
+                        <span className="sr-only">Choose Folders</span>
+                        <FolderInput
+                          ref={folderInputRef}
+                          onChange={(e) =>
+                            handleFolderSelect(
+                              e,
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            )
+                          }
+                          onClick={(e) => {
+                            const element = e.target as HTMLInputElement;
+                            element.value = "";
+                          }}
+                          className={folderInputProps.className + " hidden"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (folderInputRef.current)
+                              folderInputRef.current.click();
+                          }}
+                          className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                        >
+                          Choose Folders
+                        </button>
+                      </label>
                     ) : (
-                      <input
-                        {...fileInputProps}
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={(e) =>
-                          handleFileInputChange(
-                            e,
-                            datasetType.toLowerCase() as "raw" | "vectorized"
-                          )
-                        }
-                        onClick={(e) => {
-                          const element = e.target as HTMLInputElement;
-                          element.value = "";
-                        }}
-                        accept={
-                          datasetType.toLowerCase() === "raw"
-                            ? fileTypeMap[fileType].extensions.join(",")
-                            : undefined
-                        }
-                      />
+                      <label className="block">
+                        <span className="sr-only">Choose Files</span>
+                        <input
+                          {...fileInputProps}
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={(e) =>
+                            handleFileInputChange(
+                              e,
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            )
+                          }
+                          onClick={(e) => {
+                            const element = e.target as HTMLInputElement;
+                            element.value = "";
+                          }}
+                          accept={
+                            datasetType.toLowerCase() === "raw"
+                              ? fileTypeMap[fileType].extensions.join(",")
+                              : undefined
+                          }
+                          className={fileInputProps.className + " hidden"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (fileInputRef.current) fileInputRef.current.click();
+                          }}
+                          className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                        >
+                          Choose Files
+                        </button>
+                      </label>
                     )}
                   </div>
                 )}
