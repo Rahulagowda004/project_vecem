@@ -183,38 +183,54 @@ const NavbarPro = () => {
       </div>
 
       {/* Mobile menu, show/hide based on menu state */}
-      <div className={`sm:hidden ${mobileMenuOpen ? "block" : "hidden"}`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-900 border-t border-gray-800">
+      <div
+        className={`sm:hidden fixed inset-x-0 top-16 bottom-0 z-50 bg-gray-900/95 backdrop-blur-lg transform transition-transform duration-300 ease-in-out ${
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom, 0)",
+          paddingLeft: "env(safe-area-inset-left, 0)",
+          paddingRight: "env(safe-area-inset-right, 0)",
+        }}
+      >
+        <div className="px-4 py-3 space-y-2 flex flex-col h-full">
           {user && (
             <>
-              <div className="px-3 py-2 border-b border-gray-800 flex items-center">
+              <div className="px-3 py-4 border-b border-gray-800 flex items-center">
                 {avatarLoading ? (
-                  <div className="h-8 w-8 rounded-full bg-gray-800 animate-pulse mr-3" />
+                  <div className="h-10 w-10 rounded-full bg-gray-800 animate-pulse mr-4" />
                 ) : (
                   <img
-                    className="h-8 w-8 rounded-full ring-1 ring-cyan-400/20 object-cover mr-3"
+                    className="h-10 w-10 rounded-full ring-2 ring-cyan-400/20 object-cover mr-4"
                     src={userAvatar}
                     alt={user.displayName || "User avatar"}
                   />
                 )}
-                <span className="text-gray-300 text-sm">
-                  {username || user.email}
-                </span>
+                <div>
+                  <span className="text-gray-100 text-sm font-medium block">
+                    {username || user.email}
+                  </span>
+                  <span className="text-gray-400 text-xs">{user.email}</span>
+                </div>
               </div>
 
               {profileMenuLinks.map((link, index) => (
                 <Link
                   key={index}
                   to={link.to}
-                  className="flex items-center px-3 py-2 text-sm rounded-md text-gray-300 hover:bg-gray-800 transition-colors"
+                  className="flex items-center px-4 py-3 text-base rounded-xl text-gray-300 hover:bg-gray-800 transition-colors active:bg-gray-700"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {link.icon}
+                  <div className="bg-gray-800/80 p-2 rounded-lg mr-4">
+                    {React.cloneElement(link.icon, {
+                      className: "h-5 w-5 text-cyan-400",
+                    })}
+                  </div>
                   {link.label}
                 </Link>
               ))}
 
-              <div className="px-3 py-2">
+              <div className="mt-auto border-t border-gray-800 pt-4 pb-8">
                 <button
                   onClick={() => {
                     const { logout } = useAuth();
@@ -223,10 +239,10 @@ const NavbarPro = () => {
                       setMobileMenuOpen(false);
                     });
                   }}
-                  className="flex items-center w-full px-3 py-2 text-sm rounded-md text-gray-300 hover:bg-red-500 transition-colors"
+                  className="w-full flex items-center justify-center px-4 py-3 text-base font-medium rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 active:bg-red-500/30 transition-colors"
                 >
-                  <LogOut className="h-4 w-4 mr-3" />
-                  Logout
+                  <LogOut className="h-5 w-5 mr-3" />
+                  Sign Out
                 </button>
               </div>
             </>

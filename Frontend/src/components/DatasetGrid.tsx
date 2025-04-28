@@ -57,7 +57,23 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
   const [usernameCache, setUsernameCache] = useState<Record<string, string>>(
     {}
   );
+  const [swipeProgress, setSwipeProgress] = useState(0);
   const navigate = useNavigate();
+
+  // Swipe handlers for mobile devices
+  const handleDragEnd = (event: any, info: any) => {
+    if (info.offset.y > 100) {
+      setIsModalOpen(false);
+    }
+    setSwipeProgress(0);
+  };
+
+  const handleDrag = (event: any, info: any) => {
+    if (info.offset.y > 0) {
+      const progress = Math.min(info.offset.y / 200, 1);
+      setSwipeProgress(progress);
+    }
+  };
 
   const fetchUsername = async (uid: string) => {
     if (usernameCache[uid]) return usernameCache[uid];
@@ -122,7 +138,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4"
+        className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4"
       >
         {filteredDatasets.length === 0 ? (
           <div className="col-span-full">
@@ -153,7 +169,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                 className="group relative bg-gray-800/50 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-4 
                   hover:bg-gray-700/50 transition-all duration-300 cursor-pointer 
                   border border-gray-700/50 hover:border-cyan-500/30 shadow-lg 
-                  hover:shadow-cyan-500/10 h-[160px] sm:h-[200px] flex flex-col justify-between"
+                  hover:shadow-cyan-500/10 h-[140px] sm:h-[200px] flex flex-col justify-between"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -211,7 +227,25 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
               className="bg-gray-900/90 rounded-xl sm:rounded-2xl max-w-[95vw] sm:max-w-2xl w-full p-3 sm:p-6 relative border border-gray-800 shadow-xl overflow-hidden max-h-[90vh] sm:max-h-[80vh] flex flex-col"
               onClick={(e) => e.stopPropagation()}
+              style={{
+                paddingBottom: "calc(env(safe-area-inset-bottom, 0) + 1rem)",
+                paddingLeft: "calc(env(safe-area-inset-left, 0) + 0.75rem)",
+                paddingRight: "calc(env(safe-area-inset-right, 0) + 0.75rem)",
+                opacity: 1 - swipeProgress * 0.5,
+                transform: `scale(${1 - swipeProgress * 0.05}) translateY(${
+                  swipeProgress * 100
+                }px)`,
+              }}
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              onDragEnd={handleDragEnd}
+              onDrag={handleDrag}
             >
+              {/* Swipe Indicator - Only visible on small screens */}
+              <div className="sm:hidden w-full flex justify-center mb-2">
+                <div className="w-10 h-1 bg-gray-600 rounded-full" />
+              </div>
+
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-2 sm:top-4 right-2 sm:right-4 p-1.5 sm:p-2 rounded-full bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"

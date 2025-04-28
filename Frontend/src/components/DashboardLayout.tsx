@@ -368,12 +368,24 @@ const DashboardLayout = () => {
               >
                 <div className="relative w-5 h-5 flex items-center justify-center">
                   {/* Three lines that animate to X */}
-                  <span className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45' : '-translate-y-1'}`}></span>
-                  <span className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-                  <span className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45' : 'translate-y-1'}`}></span>
+                  <span
+                    className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${
+                      isMobileMenuOpen ? "rotate-45" : "-translate-y-1"
+                    }`}
+                  ></span>
+                  <span
+                    className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${
+                      isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                    }`}
+                  ></span>
+                  <span
+                    className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${
+                      isMobileMenuOpen ? "-rotate-45" : "translate-y-1"
+                    }`}
+                  ></span>
                 </div>
               </button>
-              
+
               <Link
                 to="/"
                 className="flex-shrink-0 transition-transform hover:scale-105"
@@ -486,39 +498,43 @@ const DashboardLayout = () => {
 
         {/* Mobile Search Modal */}
         <AnimatePresence>
-          {isMobileSearchOpen && currentView !== "chatbot" && currentView !== "community" && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="fixed top-14 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 shadow-lg px-3 py-3"
-              style={{
-                paddingTop: "calc(env(safe-area-inset-top, 0) + 0.75rem)",
-                paddingLeft: "calc(env(safe-area-inset-left, 0) + 0.75rem)",
-                paddingRight: "calc(env(safe-area-inset-right, 0) + 0.75rem)",
-              }}
-            >
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+          {isMobileSearchOpen &&
+            currentView !== "chatbot" &&
+            currentView !== "community" && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="fixed top-14 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 shadow-lg px-3 py-3"
+                style={{
+                  paddingTop: "calc(env(safe-area-inset-top, 0) + 0.75rem)",
+                  paddingLeft: "calc(env(safe-area-inset-left, 0) + 0.75rem)",
+                  paddingRight: "calc(env(safe-area-inset-right, 0) + 0.75rem)",
+                }}
+              >
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="block w-full pl-10 pr-10 py-2.5 border border-gray-700 rounded-xl bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all text-sm"
+                    placeholder={`Search ${
+                      currentView === "prompts" ? "prompts" : "datasets"
+                    }...`}
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => setIsMobileSearchOpen(false)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-2.5 border border-gray-700 rounded-xl bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all text-sm"
-                  placeholder={`Search ${currentView === "prompts" ? "prompts" : "datasets"}...`}
-                  autoFocus
-                />
-                <button 
-                  onClick={() => setIsMobileSearchOpen(false)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
         </AnimatePresence>
       </nav>
 
