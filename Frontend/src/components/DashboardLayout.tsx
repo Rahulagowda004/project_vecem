@@ -76,6 +76,7 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState(
     user?.photoURL || "/avatars/avatar1.png"
   );
@@ -347,23 +348,37 @@ const DashboardLayout = () => {
   return (
     <div className="min-h-screen h-full bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Navigation Bar */}
-      <nav className="bg-gray-900/90 backdrop-blur-lg border-b border-gray-800 fixed w-full z-50">
-        <div className="max-w-full mx-auto px-4">
+      <nav
+        className="bg-gray-900/90 backdrop-blur-lg border-b border-gray-800 fixed w-full z-50"
+        style={{
+          paddingTop: "env(safe-area-inset-top, 0)",
+          paddingLeft: "env(safe-area-inset-left, 0)",
+          paddingRight: "env(safe-area-inset-right, 0)",
+        }}
+      >
+        <div className="max-w-full mx-auto px-3 sm:px-4">
           <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center gap-2">
               {/* Mobile menu button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="sm:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800"
+                className="sm:hidden p-1.5 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 active:scale-95"
+                aria-label="Toggle navigation menu"
+                aria-expanded={isMobileMenuOpen}
               >
-                <Menu className="h-6 w-6" />
+                <div className="relative w-5 h-5 flex items-center justify-center">
+                  {/* Three lines that animate to X */}
+                  <span className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'rotate-45' : '-translate-y-1'}`}></span>
+                  <span className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+                  <span className={`absolute h-0.5 w-3.5 bg-current transform transition-all duration-300 ease-in-out ${isMobileMenuOpen ? '-rotate-45' : 'translate-y-1'}`}></span>
+                </div>
               </button>
-
+              
               <Link
                 to="/"
                 className="flex-shrink-0 transition-transform hover:scale-105"
               >
-                <span className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200">
+                <span className="text-lg sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200">
                   Vecem
                 </span>
               </Link>
@@ -410,10 +425,9 @@ const DashboardLayout = () => {
             {currentView !== "chatbot" && currentView !== "community" && (
               <div className="sm:hidden flex items-center mr-2">
                 <button
-                  onClick={() => {
-                    // Toggle search input or implement your search modal
-                  }}
-                  className="p-2 rounded-lg text-gray-400 hover:text-white"
+                  onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+                  className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 active:scale-95 transition-all"
+                  aria-label="Open search"
                 >
                   <Search className="h-5 w-5" />
                 </button>
@@ -424,13 +438,13 @@ const DashboardLayout = () => {
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-3 focus:outline-none p-2 rounded-lg hover:bg-slate-800 transition-colors"
+                  className="flex items-center space-x-1 sm:space-x-3 focus:outline-none p-1.5 sm:p-2 rounded-lg hover:bg-slate-800 transition-colors"
                 >
                   {avatarLoading ? (
-                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-800 animate-pulse" />
+                    <div className="h-7 w-7 sm:h-10 sm:w-10 rounded-full bg-gray-800 animate-pulse" />
                   ) : (
                     <img
-                      className="h-8 w-8 sm:h-10 sm:w-10 rounded-full ring-2 ring-cyan-400/20 object-cover"
+                      className="h-7 w-7 sm:h-10 sm:w-10 rounded-full ring-2 ring-cyan-400/20 object-cover"
                       src={userAvatar}
                       alt={user.displayName || "User avatar"}
                     />
@@ -470,29 +484,51 @@ const DashboardLayout = () => {
           </div>
         </div>
 
-        {/* Mobile search input - conditionally displayed */}
-        {currentView !== "chatbot" && currentView !== "community" && (
-          <div className="px-4 pb-3 sm:hidden">
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+        {/* Mobile Search Modal */}
+        <AnimatePresence>
+          {isMobileSearchOpen && currentView !== "chatbot" && currentView !== "community" && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-14 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 shadow-lg px-3 py-3"
+              style={{
+                paddingTop: "calc(env(safe-area-inset-top, 0) + 0.75rem)",
+                paddingLeft: "calc(env(safe-area-inset-left, 0) + 0.75rem)",
+                paddingRight: "calc(env(safe-area-inset-right, 0) + 0.75rem)",
+              }}
+            >
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-10 py-2.5 border border-gray-700 rounded-xl bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all text-sm"
+                  placeholder={`Search ${currentView === "prompts" ? "prompts" : "datasets"}...`}
+                  autoFocus
+                />
+                <button 
+                  onClick={() => setIsMobileSearchOpen(false)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-800 rounded-xl leading-5 bg-gray-800/50 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all text-sm"
-                placeholder={`Search ${
-                  currentView === "prompts" ? "prompts" : "datasets"
-                }...`}
-              />
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Sidebar and Main Content */}
-      <div className="flex pt-14 sm:pt-16 h-full">
+      <div
+        className="flex pt-14 sm:pt-16 h-full"
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom, 0)",
+        }}
+      >
         {/* Mobile Sidebar Overlay */}
         <AnimatePresence>
           {isMobileMenuOpen && (
@@ -500,7 +536,7 @@ const DashboardLayout = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 sm:hidden"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 sm:hidden"
               onClick={() => setIsMobileMenuOpen(false)}
             />
           )}
@@ -510,17 +546,17 @@ const DashboardLayout = () => {
         <motion.div
           ref={sidebarRef}
           className={`fixed left-0 h-full bg-gray-900/90 backdrop-blur-lg border-r border-gray-800 z-40 transition-all transform sm:translate-x-0 sm:w-64 ${
-            isMobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"
+            isMobileMenuOpen ? "translate-x-0 w-56" : "-translate-x-full w-56"
           }`}
         >
           <div className="flex flex-col h-full">
             {/* Close button for mobile */}
-            <div className="sm:hidden flex justify-end p-4">
+            <div className="sm:hidden flex justify-end p-2">
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="p-1 rounded-full bg-gray-800/50 text-gray-400 hover:text-white"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
@@ -530,35 +566,35 @@ const DashboardLayout = () => {
               <div className="space-y-1 sm:space-y-2">
                 <div
                   onClick={() => setCurrentView("datasets")}
-                  className={`flex items-center w-full px-4 py-2 sm:py-3 text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 cursor-pointer ${
+                  className={`flex items-center w-full px-3 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 cursor-pointer ${
                     currentView === "datasets" ? "bg-cyan-500/10" : ""
                   }`}
                 >
-                  <Database className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                  <Database className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-cyan-400 group-hover:animate-pulse" />
                   <span className="group-hover:text-cyan-400 transition-colors">
                     Datasets
                   </span>
                 </div>
 
-                <div className="ml-4 space-y-1 relative before:absolute before:left-[1.6rem] before:top-0 before:h-full before:w-px before:bg-gradient-to-b before:from-cyan-500/50 before:to-transparent before:opacity-25">
+                <div className="ml-4 space-y-1 relative before:absolute before:left-[1.1rem] sm:before:left-[1.6rem] before:top-0 before:h-full before:w-px before:bg-gradient-to-b before:from-cyan-500/50 before:to-transparent before:opacity-25">
                   {/* Dataset category buttons */}
                   <button
                     onClick={() => handleCategorySelect("all")}
-                    className={`flex items-center justify-between w-full px-4 py-2 text-sm ${
+                    className={`flex items-center justify-between w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm ${
                       selectedCategory === "all"
                         ? "bg-cyan-500/10 text-cyan-400"
                         : "text-gray-400"
-                    } rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6`}
+                    } rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-5 sm:hover:pl-6`}
                   >
                     <div className="flex items-center">
                       <Database
-                        className={`h-4 w-4 mr-3 ${
+                        className={`h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 ${
                           selectedCategory === "all"
                             ? "text-cyan-400"
                             : "text-cyan-400/50"
                         } group-hover:text-cyan-400 transition-colors`}
                       />
-                      <span className="group-hover:text-gray-200 transition-colors">
+                      <span className="group-hover:text-gray-200 transition-colors truncate">
                         All Datasets
                       </span>
                     </div>
@@ -581,21 +617,21 @@ const DashboardLayout = () => {
                     <button
                       key={label}
                       onClick={() => handleCategorySelect(category)}
-                      className={`flex items-center justify-between w-full px-4 py-2 text-sm ${
+                      className={`flex items-center justify-between w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm ${
                         selectedCategory === category
                           ? "bg-cyan-500/10 text-cyan-400"
                           : "text-gray-400"
-                      } rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-6`}
+                      } rounded-lg hover:bg-gray-800/50 transition-all duration-200 group hover:pl-5 sm:hover:pl-6`}
                     >
                       <div className="flex items-center">
                         <Icon
-                          className={`h-4 w-4 mr-3 ${
+                          className={`h-3 w-3 sm:h-4 sm:w-4 mr-2 sm:mr-3 ${
                             selectedCategory === category
                               ? "text-cyan-400"
                               : "text-cyan-400/50"
                           } group-hover:text-cyan-400 transition-colors`}
                         />
-                        <span className="group-hover:text-gray-200 transition-colors">
+                        <span className="group-hover:text-gray-200 transition-colors truncate">
                           {label}
                         </span>
                       </div>
@@ -607,11 +643,11 @@ const DashboardLayout = () => {
               {/* Prompts Section */}
               <button
                 onClick={() => setCurrentView("prompts")}
-                className={`flex items-center w-full px-4 py-2 sm:py-3 text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 ${
+                className={`flex items-center w-full px-3 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 ${
                   currentView === "prompts" ? "bg-cyan-500/10" : ""
                 }`}
               >
-                <TerminalSquare className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <TerminalSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-cyan-400 group-hover:animate-pulse" />
                 <span className="group-hover:text-cyan-400 transition-colors">
                   Prompts
                 </span>
@@ -620,11 +656,11 @@ const DashboardLayout = () => {
               {/* Community Section */}
               <button
                 onClick={() => setCurrentView("community")}
-                className={`flex items-center w-full px-4 py-2 sm:py-3 text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 ${
+                className={`flex items-center w-full px-3 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 ${
                   currentView === "community" ? "bg-cyan-500/10" : ""
                 }`}
               >
-                <Users className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-cyan-400 group-hover:animate-pulse" />
                 <span className="group-hover:text-cyan-400 transition-colors">
                   Community
                 </span>
@@ -633,11 +669,10 @@ const DashboardLayout = () => {
               {/* ChatBot Section */}
               <button
                 onClick={handleChatbotClick}
-                className={`flex items-center w-full px-4 py-2 sm:py-3 text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 ${
-                  currentView === "chatbot" ? "bg-cyan-500/10" : ""
+                className={`flex items-center w-full px-3 sm:px-4 py
                 }`}
               >
-                <Bot className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <Bot className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-cyan-400 group-hover:animate-pulse" />
                 <span className="group-hover:text-cyan-400 transition-colors">
                   Vecora
                 </span>
@@ -646,9 +681,9 @@ const DashboardLayout = () => {
               {/* Documentation Section */}
               <Link
                 to="/documentation"
-                className="flex items-center w-full px-4 py-2 sm:py-3 text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
+                className="flex items-center w-full px-3 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10"
               >
-                <BookOpen className="h-5 w-5 mr-3 text-cyan-400 group-hover:animate-pulse" />
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-cyan-400 group-hover:animate-pulse" />
                 <span className="group-hover:text-cyan-400 transition-colors">
                   Documentation
                 </span>
@@ -662,6 +697,10 @@ const DashboardLayout = () => {
           className={`flex-1 ${
             isFullWidth ? "" : ""
           } sm:ml-64 transition-all duration-300 h-full`}
+          style={{
+            paddingLeft: "env(safe-area-inset-left, 0)",
+            paddingRight: "env(safe-area-inset-right, 0)",
+          }}
         >
           <main className="h-full relative">
             {currentView === "community" ? (
@@ -802,19 +841,19 @@ const DashboardLayout = () => {
               <>
                 {/* Enhanced User Welcome Section */}
                 {user && (
-                  <div className="w-full px-3 sm:px-6 pt-3 sm:pt-6 mb-2 sm:mb-4">
-                    <div className="relative p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+                  <div className="w-full px-2 sm:px-6 pt-2 sm:pt-6 mb-2 sm:mb-4">
+                    <div className="relative p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-900/90 border border-gray-700/50 backdrop-blur-xl shadow-2xl overflow-hidden">
                       {/* Decorative Elements */}
                       <div className="absolute top-0 right-0 w-32 sm:w-48 h-32 sm:h-48 bg-cyan-500/10 rounded-full filter blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
                       <div className="absolute bottom-0 left-0 w-24 sm:w-32 h-24 sm:h-32 bg-cyan-400/10 rounded-full filter blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
 
-                      <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                      <div className="relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
                         {/* Avatar Section */}
                         <div className="relative group flex-shrink-0 mx-auto sm:mx-0">
                           <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-cyan-300 to-cyan-500 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
                           <div className="relative p-0.5 bg-gradient-to-r from-gray-900 to-gray-800 rounded-full">
                             <img
-                              className="h-16 w-16 sm:h-20 sm:w-20 rounded-full ring-2 ring-cyan-400/20 object-cover transition-transform duration-300 group-hover:scale-105"
+                              className="h-14 w-14 sm:h-20 sm:w-20 rounded-full ring-2 ring-cyan-400/20 object-cover transition-transform duration-300 group-hover:scale-105"
                               src={userAvatar}
                               alt={user.displayName || "User avatar"}
                             />
@@ -822,11 +861,11 @@ const DashboardLayout = () => {
                         </div>
 
                         {/* Welcome Text Section */}
-                        <div className="space-y-0.5 flex-1 text-center sm:text-left">
-                          <h2 className="text-xl sm:text-3xl font-semibold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
+                        <div className="space-y-0.5 flex-1 text-center sm:text-left mt-1 sm:mt-0">
+                          <h2 className="text-lg sm:text-3xl font-semibold bg-gradient-to-r from-cyan-500 via-cyan-400 to-cyan-300 bg-clip-text text-transparent">
                             Welcome back, {userName || "Guest"}
                           </h2>
-                          <p className="text-xs sm:text-sm text-gray-400 tracking-wide truncate">
+                          <p className="text-xs sm:text-sm text-gray-400 tracking-wide line-clamp-2">
                             You're live on Vecem! Explore datasets, craft
                             prompts, and make your mark in our creative
                             community.
