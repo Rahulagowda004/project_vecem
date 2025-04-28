@@ -1,13 +1,1 @@
-{
-  "routes": [
-    {
-      "route": "/*",
-      "methods": [
-        "get"
-      ],
-      "allowedRoles": [
-        "authenticated"
-      ]
-    }
-  ]
-}
+{}
