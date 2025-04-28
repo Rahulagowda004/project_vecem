@@ -1,13 +1,13 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Database, Users, PersonStanding } from 'lucide-react';
-import NeuralNetwork from './NeuralNetwork';
+import React from "react";
+import { motion } from "framer-motion";
+import { Database, Users, PersonStanding } from "lucide-react";
+import NeuralNetwork from "./NeuralNetwork";
 
 const Features = () => {
   const cardVariants = {
-    initial: { 
+    initial: {
       opacity: 0,
-      y: 20 
+      y: 20,
     },
     animate: (index: number) => ({
       opacity: 1,
@@ -15,23 +15,23 @@ const Features = () => {
       transition: {
         delay: index * 0.2,
         duration: 0.5,
-        ease: "easeOut"
-      }
+        ease: "easeOut",
+      },
     }),
     whileHover: {
       scale: 1.05,
       y: -5,
       transition: {
         duration: 0.2,
-        ease: "easeInOut"
-      }
-    }
+        ease: "easeInOut",
+      },
+    },
   };
 
   const iconVariants = {
-    initial: { 
+    initial: {
       scale: 0,
-      rotate: -180 
+      rotate: -180,
     },
     animate: {
       scale: 1,
@@ -39,8 +39,8 @@ const Features = () => {
       transition: {
         type: "spring",
         stiffness: 200,
-        damping: 20
-      }
+        damping: 20,
+      },
     },
     whileHover: {
       scale: 1.2,
@@ -48,94 +48,98 @@ const Features = () => {
       transition: {
         duration: 0.2,
         type: "spring",
-        stiffness: 300
-      }
-    }
+        stiffness: 300,
+      },
+    },
   };
 
   const features = [
     {
-      icon: <Database className="w-10 h-10 text-cyan-400" />,
+      icon: <Database className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400" />,
       title: "Hassle-Free Vector Data",
-      description: "Easily access and utilize vectorized datasets without the need for high computational power."
+      description:
+        "Easily access and utilize vectorized datasets without the need for high computational power.",
     },
     {
-      icon: <Users className="w-12 h-12 text-cyan-500" />,
+      icon: <Users className="w-10 h-10 sm:w-12 sm:h-12 text-cyan-500" />,
       title: "Open-Source & Community-Driven",
-      description: "Contribute, enhance, and innovate—our platform thrives on global collaboration."
+      description:
+        "Contribute, enhance, and innovate—our platform thrives on global collaboration.",
     },
     {
-      icon: <PersonStanding className="w-12 h-12 text-cyan-500" />,
+      icon: (
+        <PersonStanding className="w-10 h-10 sm:w-12 sm:h-12 text-cyan-500" />
+      ),
       title: "Optimized for Accessibility",
-      description: "Find and utilize vectorized data easily for research, AI, and other applications."
-    }
+      description:
+        "Find and utilize vectorized data easily for research, AI, and other applications.",
+    },
   ];
 
   return (
-    <div className="py-20 bg-gradient-to-br">
+    <div className="py-12 sm:py-16 md:py-20 bg-gradient-to-br">
       <NeuralNetwork />
-      <div className="container relative mx-auto px-4">
+      <div className="container relative mx-auto px-4 sm:px-6">
         <div className="flex flex-wrap">
-          <div className="w-full mb-16 text-center">
-            <motion.h2 
-              className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500 mb-6"
+          <div className="w-full mb-10 md:mb-16 text-center">
+            <motion.h2
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500 mb-4 sm:mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
               Why Choose Vecem?
             </motion.h2>
-            <motion.p 
-              className="mt-7 text-xl text-white hover:text-cyan-500"
+            <motion.p
+              className="mt-4 sm:mt-7 text-lg sm:text-xl text-white hover:text-cyan-500"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              
             >
               Empowering users with vectorized data
             </motion.p>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap -mx-4">
           {features.map((feature, index) => (
-            <motion.div 
+            <motion.div
               key={index}
               custom={index}
               initial="initial"
               animate="animate"
               whileHover="whileHover"
               variants={cardVariants}
-              className="w-full md:w-4/12 px-4 mb-8"
+              className="w-full sm:w-6/12 lg:w-4/12 px-4 mb-8"
             >
-              <div className="h-full relative flex flex-col bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-cyan-500/10">
+              <div className="h-full relative flex flex-col bg-gray-800/50 backdrop-blur-sm rounded-xl p-5 sm:p-8 border border-cyan-500/10">
                 <div className="flex-auto">
-                  <motion.div 
+                  <motion.div
                     variants={iconVariants}
-                    className="mb-6 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gray-900/50 border border-cyan-500/20"
+                    className="mb-4 sm:mb-6 inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gray-900/50 border border-cyan-500/20"
                   >
                     {feature.icon}
                   </motion.div>
-                  <motion.h6 
+                  <motion.h6
                     variants={{
-                      whileHover: { 
+                      whileHover: {
                         color: "#22d3ee",
                         x: 5,
-                        transition: { duration: 0.2 }
-                      }
+                        transition: { duration: 0.2 },
+                      },
                     }}
-                    className="text-xl font-semibold text-cyan-500 mb-4"
+                    className="text-lg sm:text-xl font-semibold text-cyan-500 mb-3 sm:mb-4"
                   >
                     {feature.title}
                   </motion.h6>
-                  <motion.p 
+                  <motion.p
                     variants={{
-                      whileHover: { 
+                      whileHover: {
                         color: "#94a3b8",
-                        transition: { duration: 0.2 }
-                      }
+                        transition: { duration: 0.2 },
+                      },
                     }}
-                    className="text-white leading-relaxed"
+                    className="text-sm sm:text-base text-white leading-relaxed"
                   >
                     {feature.description}
                   </motion.p>

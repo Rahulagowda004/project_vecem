@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Tag, TerminalSquare, User } from 'lucide-react';
-import PromptCard from './PromptCard';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Tag, TerminalSquare, User } from "lucide-react";
+import PromptCard from "./PromptCard";
+import { useNavigate } from "react-router-dom";
 
 interface Prompt {
   _id: string;
@@ -48,7 +48,7 @@ const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
         variants={container}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 p-3 sm:p-4 md:p-6"
       >
         {prompts.map((prompt) => (
           <motion.li
@@ -56,7 +56,7 @@ const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
             variants={item}
             whileHover={{ scale: 1.02 }}
             onClick={() => setSelectedPrompt(prompt)}
-            className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer overflow-hidden"
+            className="group relative bg-gray-750/50 rounded-lg p-3 sm:p-4 md:p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer overflow-hidden"
           >
             <div className="absolute inset-0">
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -64,22 +64,24 @@ const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
             </div>
             <div className="relative z-10">
               <div className="flex items-center space-x-2">
-                <TerminalSquare className="w-5 h-5 text-gray-500 group-hover:text-cyan-400 transition-colors" />
-                <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300">
+                <TerminalSquare className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 group-hover:text-cyan-400 transition-colors" />
+                <h3 className="text-base sm:text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 truncate">
                   {prompt.prompt_name}
                 </h3>
               </div>
-              <div className="flex items-center justify-between mt-3">
-                <span className="flex items-center space-x-4 text-sm text-gray-400">
-                  <Tag className="w-4 h-4 mr-1" />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 sm:mt-3 gap-2 sm:gap-0">
+                <span className="flex items-center text-xs sm:text-sm text-gray-400">
+                  <Tag className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                   {prompt.domain || "General"}
                 </span>
                 <button
                   onClick={(e) => handleUsernameClick(e, prompt.username)}
-                  className="flex items-center text-sm text-gray-400 hover:text-cyan-400 transition-colors"
+                  className="flex items-center text-xs sm:text-sm text-gray-400 hover:text-cyan-400 transition-colors"
                 >
-                  <User className="w-4 h-4 mr-1" />
-                  {prompt.username}
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                  <span className="truncate max-w-[120px]">
+                    {prompt.username}
+                  </span>
                 </button>
               </div>
             </div>
@@ -88,14 +90,18 @@ const PromptsGrid: React.FC<PromptsGridProps> = ({ prompts }) => {
       </motion.ul>
 
       <PromptCard
-        prompt={selectedPrompt ? {
-          name: selectedPrompt.prompt_name,
-          domain: selectedPrompt.domain,
-          prompt: selectedPrompt.prompt,
-          username: selectedPrompt.username,
-          createdAt: selectedPrompt.createdAt,
-          updatedAt: selectedPrompt.updatedAt
-        } : null}
+        prompt={
+          selectedPrompt
+            ? {
+                name: selectedPrompt.prompt_name,
+                domain: selectedPrompt.domain,
+                prompt: selectedPrompt.prompt,
+                username: selectedPrompt.username,
+                createdAt: selectedPrompt.createdAt,
+                updatedAt: selectedPrompt.updatedAt,
+              }
+            : null
+        }
         isOpen={!!selectedPrompt}
         onClose={() => setSelectedPrompt(null)}
       />

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { User, ChevronDown, LogOut, Settings, Bot } from "lucide-react";
+import { User, ChevronDown, LogOut, Settings, Menu, X } from "lucide-react";
 import { getUserProfileByUid } from "../services/userService";
 import { API_BASE_URL } from "../config";
 
@@ -33,11 +33,30 @@ const NavbarPro = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState(
     user?.photoURL || "/avatars/default.png"
   );
   const [username, setUsername] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Close dropdown when clicking outside
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -78,6 +97,19 @@ const NavbarPro = () => {
     fetchUserAvatar();
   }, [user]);
 
+  const profileMenuLinks = [
+    {
+      to: username ? `/${username}` : "#",
+      icon: <User className="h-4 w-4 mr-3 text-cyan-400" />,
+      label: "My Profile",
+    },
+    {
+      to: "/settings",
+      icon: <Settings className="h-4 w-4 mr-3 text-cyan-400" />,
+      label: "Settings",
+    },
+  ];
+
   return (
     <nav className="bg-gray-900/90 backdrop-blur-lg border-b border-gray-800 fixed w-full z-50">
       <div className="max-w-full mx-auto px-4">
@@ -86,22 +118,37 @@ const NavbarPro = () => {
             to="/"
             className="flex-shrink-0 transition-transform hover:scale-105"
           >
-            <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-200 bg-clip-text text-transparent">
+            <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-200 bg-clip-text text-transparent">
               Vecem
             </span>
           </Link>
           <div className="flex-1" /> {/* Spacer */}
+          {/* Mobile menu button */}
+          <div className="sm:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cyan-500"
+            >
+              <span className="sr-only">Open main menu</span>
+              {mobileMenuOpen ? (
+                <X className="block h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="block h-6 w-6" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+          {/* Desktop profile dropdown */}
           {user && (
-            <div className="relative">
+            <div className="hidden sm:block relative" ref={profileRef}>
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                 className="flex items-center space-x-3 focus:outline-none p-2 rounded-lg hover:bg-slate-800 transition-colors"
               >
                 {avatarLoading ? (
-                  <div className="h-10 w-10 rounded-full bg-gray-800 animate-pulse" />
+                  <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-gray-800 animate-pulse" />
                 ) : (
                   <img
-                    className="h-10 w-10 rounded-full ring-2 ring-cyan-400/20 object-cover"
+                    className="h-8 w-8 sm:h-10 sm:w-10 rounded-full ring-2 ring-cyan-400/20 object-cover"
                     src={userAvatar}
                     alt={user.displayName || "User avatar"}
                   />
@@ -116,25 +163,73 @@ const NavbarPro = () => {
               {isProfileOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-2xl shadow-lg bg-gray-900 ring-1 ring-cyan-400/10">
                   <div className="py-1 divide-y divide-gray-800">
-                    <Link
-                      to={username ? `/${username}` : "#"}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
-                    >
-                      <User className="h-4 w-4 mr-3 text-cyan-400" />
-                      My Profile
-                    </Link>
-                    <Link
-                      to="/settings"
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
-                    >
-                      <Settings className="h-4 w-4 mr-3 text-cyan-400" />
-                      Settings
-                    </Link>
+                    {profileMenuLinks.map((link, index) => (
+                      <Link
+                        key={index}
+                        to={link.to}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                      >
+                        {link.icon}
+                        {link.label}
+                      </Link>
+                    ))}
                     <LogoutButton />
                   </div>
                 </div>
               )}
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile menu, show/hide based on menu state */}
+      <div className={`sm:hidden ${mobileMenuOpen ? "block" : "hidden"}`}>
+        <div className="px-2 pt-2 pb-3 space-y-1 bg-gray-900 border-t border-gray-800">
+          {user && (
+            <>
+              <div className="px-3 py-2 border-b border-gray-800 flex items-center">
+                {avatarLoading ? (
+                  <div className="h-8 w-8 rounded-full bg-gray-800 animate-pulse mr-3" />
+                ) : (
+                  <img
+                    className="h-8 w-8 rounded-full ring-1 ring-cyan-400/20 object-cover mr-3"
+                    src={userAvatar}
+                    alt={user.displayName || "User avatar"}
+                  />
+                )}
+                <span className="text-gray-300 text-sm">
+                  {username || user.email}
+                </span>
+              </div>
+
+              {profileMenuLinks.map((link, index) => (
+                <Link
+                  key={index}
+                  to={link.to}
+                  className="flex items-center px-3 py-2 text-sm rounded-md text-gray-300 hover:bg-gray-800 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.icon}
+                  {link.label}
+                </Link>
+              ))}
+
+              <div className="px-3 py-2">
+                <button
+                  onClick={() => {
+                    const { logout } = useAuth();
+                    logout().then(() => {
+                      navigate("/");
+                      setMobileMenuOpen(false);
+                    });
+                  }}
+                  className="flex items-center w-full px-3 py-2 text-sm rounded-md text-gray-300 hover:bg-red-500 transition-colors"
+                >
+                  <LogOut className="h-4 w-4 mr-3" />
+                  Logout
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>

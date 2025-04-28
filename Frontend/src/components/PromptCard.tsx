@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Tag, Copy, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Tag, Copy, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface PromptCardProps {
   prompt: {
@@ -39,7 +39,7 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={onClose}
       >
         <motion.div
@@ -47,31 +47,33 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-gradient-to-tr from-gray-900/95 via-gray-800/95 to-gray-900/95 rounded-3xl border border-cyan-500/20 p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl backdrop-blur-xl relative"
+          className="bg-gradient-to-tr from-gray-900/95 via-gray-800/95 to-gray-900/95 rounded-2xl sm:rounded-3xl border border-cyan-500/20 p-4 sm:p-6 md:p-8 max-w-2xl w-full max-h-[85vh] sm:max-h-[80vh] overflow-y-auto shadow-2xl backdrop-blur-xl relative"
         >
           {/* Header */}
-          <div className="flex flex-col gap-4 mb-6">
+          <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div className="flex justify-between items-start">
-              <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
                 {prompt.name}
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-700/50 rounded-full transition-all duration-300 hover:rotate-90"
+                className="p-1.5 sm:p-2 hover:bg-gray-700/50 rounded-full transition-all duration-300 hover:rotate-90"
               >
-                <X className="w-5 h-5 text-cyan-400" />
+                <X className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
               </button>
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2 bg-cyan-500/10 px-3 py-1.5 rounded-full">
-                <Tag className="w-4 h-4 text-cyan-400" />
-                <span className="text-cyan-400 font-medium">{prompt.domain}</span>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-cyan-500/10 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                <Tag className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-400" />
+                <span className="text-xs sm:text-sm text-cyan-400 font-medium">
+                  {prompt.domain}
+                </span>
               </div>
-              <div className="flex items-center gap-2 bg-gray-700/30 px-3 py-1.5 rounded-full">
-                <span className="text-gray-400">by</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-gray-700/30 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                <span className="text-xs sm:text-sm text-gray-400">by</span>
                 <button
                   onClick={() => handleUsernameClick(prompt.username)}
-                  className="flex items-center text-sm group relative"
+                  className="flex items-center text-xs sm:text-sm group relative"
                 >
                   <span className="text-gray-200 hover:text-cyan-400 transition-all duration-300 font-medium relative">
                     {prompt.username}
@@ -83,31 +85,35 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, isOpen, onClose }) => {
           </div>
 
           {/* Prompt Content */}
-          <div className="mt-6">
-            <div className="bg-gray-950/50 rounded-2xl p-6 border border-cyan-500/10 shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+          <div className="mt-4 sm:mt-6">
+            <div className="bg-gray-950/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 border border-cyan-500/10 shadow-lg">
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
                   Prompt Content
                 </h3>
                 <button
                   onClick={handleCopy}
-                  className="px-4 py-2 hover:bg-cyan-500/10 rounded-full transition-colors flex items-center gap-2 text-gray-400 hover:text-cyan-400 border border-transparent hover:border-cyan-500/20"
+                  className="px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 hover:bg-cyan-500/10 rounded-full transition-colors flex items-center gap-1.5 sm:gap-2 text-gray-400 hover:text-cyan-400 border border-transparent hover:border-cyan-500/20"
                 >
                   {copied ? (
                     <>
-                      <Check className="w-4 h-4" />
-                      <span className="text-sm font-medium">Copied!</span>
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="text-xs sm:text-sm font-medium">
+                        Copied!
+                      </span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-4 h-4" />
-                      <span className="text-sm font-medium">Copy</span>
+                      <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="text-xs sm:text-sm font-medium">
+                        Copy
+                      </span>
                     </>
                   )}
                 </button>
               </div>
-              <div className="bg-black/40 rounded-xl p-5 border border-gray-800">
-                <p className="text-gray-300 whitespace-pre-wrap font-mono text-sm leading-relaxed">
+              <div className="bg-black/40 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 border border-gray-800">
+                <p className="text-gray-300 whitespace-pre-wrap font-mono text-xs sm:text-sm leading-relaxed">
                   {prompt.prompt}
                 </p>
               </div>
