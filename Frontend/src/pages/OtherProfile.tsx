@@ -316,53 +316,63 @@ const OtherProfile = () => {
           className="flex flex-col md:flex-row gap-6"
         >
           <motion.div
-            className="flex-shrink-0"
+            className="flex-shrink-0 flex justify-center"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
-            <img
-              src={userData.profilePicture || "/default-avatar.png"}
-              alt="Profile"
-              className="w-48 h-48 rounded-full border-4 border-gray-800 shadow-[0_0_15px_rgba(0,255,255,0.1)]"
-            />
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-cyan-300/20 rounded-full blur-md"></div>
+              <img
+                src={userData.profilePicture || "/default-avatar.png"}
+                alt="Profile"
+                className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full border-4 border-gray-800 shadow-[0_0_15px_rgba(0,255,255,0.1)] relative z-10 object-cover"
+              />
+            </div>
           </motion.div>
 
           <div className="flex-grow">
-            <motion.div className="bg-gray-800 rounded-lg p-6 shadow-md border border-gray-700">
-              <div className="flex items-center justify-between mb-6">
-                <div className="space-y-1">
-                  <h1 className="text-3xl font-bold text-cyan-400">
-                    {userData.name}
-                  </h1>
-                  <p className="text-gray-400 text-lg font-medium">
-                    @{userData.username}
-                  </p>
+            <motion.div className="bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 sm:p-6 shadow-md border border-gray-700 relative overflow-hidden">
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full filter blur-2xl transform translate-x-1/2 -translate-y-1/2 z-0"></div>
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3 sm:mb-6">
+                  <div className="space-y-1 text-center md:text-left">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-cyan-400 break-words">
+                      {userData.name}
+                    </h1>
+                    <p className="text-gray-400 text-base sm:text-lg font-medium">
+                      @{userData.username}
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-gray-300 text-sm sm:text-lg mb-3 sm:mb-4 line-clamp-3 text-center md:text-left">
+                  {userData.bio || "No bio provided"}
+                </p>
+
+                <div className="flex justify-center md:justify-start">
+                  {userData.githubUrl && (
+                    <motion.a
+                      href={userData.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-cyan-300 text-sm sm:text-base"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                      </svg>
+                      View GitHub
+                    </motion.a>
+                  )}
                 </div>
               </div>
-
-              <p className="text-gray-300 text-lg mb-4">
-                {userData.bio || "No bio provided"}
-              </p>
-
-              {userData.githubUrl && (
-                <motion.a
-                  href={userData.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-cyan-300"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <svg
-                    className="w-5 h-5 mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-                  </svg>
-                  View GitHub Profile
-                </motion.a>
-              )}
             </motion.div>
           </div>
         </motion.div>
@@ -396,25 +406,25 @@ const OtherProfile = () => {
 
             {/* Dataset Filters and Search */}
             <div className="p-4 border-b border-gray-700/50">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                 {/* View Selector */}
-                <div className="flex space-x-4">
+                <div className="flex gap-2 sm:gap-4 self-center sm:self-auto">
                   <button
                     onClick={() => setActiveView("datasets")}
-                    className={`px-4 py-2 rounded-lg transition-all ${
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all text-sm sm:text-base ${
                       activeView === "datasets"
                         ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                        : "text-gray-400 hover:text-cyan-400"
+                        : "text-gray-400 hover:text-cyan-400 bg-gray-800/30"
                     }`}
                   >
                     Datasets
                   </button>
                   <button
                     onClick={() => setActiveView("prompts")}
-                    className={`px-4 py-2 rounded-lg transition-all ${
+                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all text-sm sm:text-base ${
                       activeView === "prompts"
                         ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                        : "text-gray-400 hover:text-cyan-400"
+                        : "text-gray-400 hover:text-cyan-400 bg-gray-800/30"
                     }`}
                   >
                     Prompts
@@ -422,17 +432,17 @@ const OtherProfile = () => {
                 </div>
 
                 {/* Center Search Bar */}
-                <div className="flex-1 max-w-md mx-4">
+                <div className="w-full sm:max-w-md sm:mx-4 order-first sm:order-none mb-3 sm:mb-0">
                   <div className="relative">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder={`Search ${activeView}...`}
-                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500"
+                      className="w-full bg-gray-800/50 border border-gray-700/50 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500 text-sm sm:text-base"
                     />
                     <svg
-                      className="w-5 h-5 absolute right-3 top-2.5 text-gray-400"
+                      className="w-4 h-4 sm:w-5 sm:h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -448,18 +458,17 @@ const OtherProfile = () => {
                 </div>
 
                 {/* Right Side Filters */}
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4">
                   <select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value)}
-                    className="bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500"
+                    className="bg-gray-800/50 border border-gray-700/50 rounded-lg px-2 sm:px-4 py-1.5 sm:py-2 text-gray-200 focus:outline-none focus:border-cyan-500 text-sm sm:text-base"
                   >
-                    <option value="latest">Sort by: Latest</option>
-                    <option value="name">Sort by: Name</option>
+                    <option value="latest">Sort: Latest</option>
+                    <option value="name">Sort: Name</option>
                   </select>
                   {searchQuery && (
-                    <div className="text-gray-400">
-                      Found{" "}
+                    <div className="text-gray-400 text-xs sm:text-sm px-2 py-1 bg-gray-800/30 rounded-lg">
                       {activeView === "datasets"
                         ? filteredAndSortedDatasets.length
                         : filteredAndSortedPrompts.length}{" "}
@@ -487,18 +496,18 @@ const OtherProfile = () => {
                       onClick={() =>
                         handleDatasetClick(dataset.id, dataset.name)
                       }
-                      className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                      className="group relative bg-gray-800/40 hover:bg-gray-800/70 rounded-lg p-4 sm:p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
                     >
-                      <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                      <h3 className="text-base sm:text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-2 sm:mb-3 line-clamp-2">
                         {dataset.name}
                       </h3>
-                      <p className="text-gray-300 mb-4">
-                        {dataset.description}
+                      <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4 line-clamp-2">
+                        {dataset.description || "No description provided"}
                       </p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <span className="flex items-center">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-400">
+                        <span className="flex items-center bg-gray-800/50 px-2 py-1 rounded-full">
                           <svg
-                            className="w-4 h-4 mr-1"
+                            className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -511,9 +520,9 @@ const OtherProfile = () => {
                           </svg>
                           {dataset.upload_type || "Unknown Type"}
                         </span>
-                        <span className="flex items-center">
+                        <span className="flex items-center bg-gray-800/50 px-2 py-1 rounded-full">
                           <svg
-                            className="w-4 h-4 mr-1"
+                            className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -605,7 +614,7 @@ const OtherProfile = () => {
                     This user hasn't shared any prompts
                   </p>
                 </motion.div>
-              ) : paginatedItems.length > 0 ? (
+              ) : (
                 paginatedItems.map((prompt) => (
                   <motion.li
                     key={prompt.id}
@@ -639,45 +648,26 @@ const OtherProfile = () => {
                     </div>
                   </motion.li>
                 ))
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="col-span-2 flex flex-col items-center justify-center p-12 text-center"
-                >
-                  <div className="w-24 h-24 mb-6 text-gray-600">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-400 mb-2">
-                    No prompts yet
-                  </h3>
-                  <p className="text-gray-500">
-                    This user hasn't shared any prompts
-                  </p>
-                </motion.div>
               )}
             </motion.ul>
 
-            {/* Show pagination only if there are datasets */}
-            {filteredAndSortedDatasets.length > 0 && (
+            {/* Show pagination only if there are items */}
+            {(activeView === "datasets"
+              ? filteredAndSortedDatasets.length
+              : filteredAndSortedPrompts.length) > 0 && (
               <div className="border-t border-gray-700/50 p-4">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() =>
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
-                    className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
+                    className={`text-gray-400 hover:text-cyan-400 flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg hover:bg-gray-800/50 ${
+                      currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     disabled={currentPage === 1}
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4 sm:w-5 sm:h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -689,33 +679,66 @@ const OtherProfile = () => {
                         d="M15 19l-7-7 7-7"
                       />
                     </svg>
-                    <span>Previous</span>
+                    <span className="text-sm sm:text-base">Prev</span>
                   </button>
-                  <div className="flex items-center space-x-2">
-                    {Array.from({ length: totalPages }, (_, index) => (
-                      <button
-                        key={index + 1}
-                        onClick={() => setCurrentPage(index + 1)}
-                        className={`px-3 py-1 rounded-lg ${
-                          currentPage === index + 1
-                            ? "bg-cyan-500/10 text-cyan-400"
-                            : "hover:bg-gray-700 text-gray-400"
-                        }`}
-                      >
-                        {index + 1}
-                      </button>
-                    ))}
+
+                  <div className="flex items-center">
+                    <div className="hidden sm:flex items-center gap-1">
+                      {Array.from(
+                        { length: Math.min(totalPages, 5) },
+                        (_, index) => {
+                          // Show first page, last page, current page, and pages around current
+                          let pageNum = index + 1;
+                          if (totalPages > 5) {
+                            if (currentPage <= 3) {
+                              // Near beginning: show first 5 pages
+                              pageNum = index + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              // Near end: show last 5 pages
+                              pageNum = totalPages - 4 + index;
+                            } else {
+                              // Middle: show current page and 2 pages on each side
+                              pageNum = currentPage - 2 + index;
+                            }
+                          }
+
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm ${
+                                currentPage === pageNum
+                                  ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                                  : "hover:bg-gray-700 text-gray-400"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        }
+                      )}
+                    </div>
+
+                    {/* Mobile pagination indicator */}
+                    <div className="sm:hidden text-sm text-gray-400 bg-gray-800/50 px-3 py-1 rounded-lg">
+                      Page {currentPage} of {totalPages}
+                    </div>
                   </div>
+
                   <button
                     onClick={() =>
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
-                    className="text-gray-400 hover:text-cyan-400 flex items-center space-x-2"
+                    className={`text-gray-400 hover:text-cyan-400 flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg hover:bg-gray-800/50 ${
+                      currentPage === totalPages
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
                     disabled={currentPage === totalPages}
                   >
-                    <span>Next</span>
+                    <span className="text-sm sm:text-base">Next</span>
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4 sm:w-5 sm:h-5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
