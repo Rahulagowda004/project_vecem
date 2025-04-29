@@ -450,10 +450,10 @@ const UserProfile = () => {
   );
 
   const renderContentHeader = () => (
-    <div className="border-b border-gray-700/50 p-6">
-      <div className="flex items-center justify-between">
+    <div className="border-b border-gray-700/50 p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <h2 className="text-2xl font-bold text-gray-100">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-100">
             {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
           </h2>
           <motion.div
@@ -464,26 +464,26 @@ const UserProfile = () => {
             <span className="text-cyan-400 font-medium">{activeViewCount}</span>
           </motion.div>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/upload")}
-            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-cyan-600 text-white text-sm rounded-lg 
               hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
           >
-            <Upload size={18} />
-            Upload Dataset
+            <Upload size={16} className="hidden sm:block" />
+            <span>Upload Dataset</span>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/prompts")}
-            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg 
+            className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-cyan-600 text-white text-sm rounded-lg 
               hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-600/20"
           >
-            <MessageSquarePlus size={18} />
-            Upload Prompt
+            <MessageSquarePlus size={16} className="hidden sm:block" />
+            <span>Upload Prompt</span>
           </motion.button>
         </div>
       </div>
