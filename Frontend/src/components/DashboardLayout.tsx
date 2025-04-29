@@ -685,7 +685,8 @@ const DashboardLayout = () => {
               {/* ChatBot Section */}
               <button
                 onClick={handleChatbotClick}
-                className={`flex items-center w-full px-3 sm:px-4 py
+                className={`flex items-center w-full px-3 sm:px-4 py-1.5 sm:py-3 text-xs sm:text-sm font-medium text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-800/50 transition-all duration-200 group backdrop-blur-sm border border-transparent hover:border-cyan-500/10 ${
+                  currentView === "chatbot" ? "bg-cyan-500/10" : ""
                 }`}
               >
                 <Bot className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-cyan-400 group-hover:animate-pulse" />
