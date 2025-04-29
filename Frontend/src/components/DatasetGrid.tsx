@@ -138,7 +138,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4"
       >
         {filteredDatasets.length === 0 ? (
           <div className="col-span-full">
