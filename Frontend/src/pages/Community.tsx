@@ -10,10 +10,12 @@ import {
   X,
   Search,
   ChevronRight,
-  Home, // Add these imports
+  Home,
+  Menu, // Add Menu icon for mobile
+  Filter, // Add Filter icon for mobile
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { Link } from "react-router-dom"; // Add this import
+import { Link } from "react-router-dom";
 import { API_BASE_URL } from "../config";
 
 interface Message {
@@ -73,7 +75,7 @@ const Community = () => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState(""); // Add this line
+  const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedTag, setSelectedTag] = useState<"general" | "issue">(
     "general"
@@ -86,7 +88,9 @@ const Community = () => {
   const [currentTag, setCurrentTag] = useState<"general" | "issue">("general");
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [isSending, setIsSending] = useState(false); // Add this state
+  const [isSending, setIsSending] = useState(false);
+  // Add state for mobile filter menu
+  const [showMobileFilterMenu, setShowMobileFilterMenu] = useState(false);
 
   // Update the formatWhatsAppTimestamp function
   const formatWhatsAppTimestamp = (dateString: string | Date) => {
@@ -668,19 +672,19 @@ const Community = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-gradient-to-b from-gray-800/90 to-gray-900/90 rounded-2xl border border-white/10 p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl backdrop-blur-xl"
+              className="bg-gradient-to-b from-gray-800/90 to-gray-900/90 rounded-2xl border border-white/10 p-4 sm:p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl backdrop-blur-xl"
             >
               {/* Guidelines Header */}
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-                    <HelpCircle className="w-6 h-6 text-cyan-400" />
+                    <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">
+                    <h2 className="text-lg sm:text-xl font-bold text-white">
                       {communityGuidelines.title}
                     </h2>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-400">
                       {communityGuidelines.description}
                     </p>
                   </div>
@@ -695,20 +699,22 @@ const Community = () => {
 
               {/* Add Tag Guidelines Section */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">
                   Message Tags
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
                   {Object.entries(messageTagConfig).map(([tag, config]) => (
                     <div
                       key={tag}
-                      className={`p-4 rounded-xl ${config.color} border border-opacity-20`}
+                      className={`p-3 sm:p-4 rounded-xl ${config.color} border border-opacity-20`}
                     >
                       <div className="flex items-center space-x-2">
-                        <Tag className="w-4 h-4" />
-                        <span className="font-medium">{config.label}</span>
+                        <Tag className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="font-medium text-sm sm:text-base">
+                          {config.label}
+                        </span>
                       </div>
-                      <p className="text-sm mt-2 text-gray-300">
+                      <p className="text-xs sm:text-sm mt-2 text-gray-300">
                         {
                           communityGuidelines.tagGuidelines[
                             tag as keyof typeof communityGuidelines.tagGuidelines
@@ -721,22 +727,22 @@ const Community = () => {
               </div>
 
               {/* Guidelines Content */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {communityGuidelines.rules.map((rule, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="p-4 rounded-xl bg-gray-700/30 border border-gray-600/50 hover:border-cyan-500/20 transition-colors"
+                    className="p-3 sm:p-4 rounded-xl bg-gray-700/30 border border-gray-600/50 hover:border-cyan-500/20 transition-colors"
                   >
-                    <div className="flex items-start space-x-3">
-                      <span className="text-2xl">{rule.icon}</span>
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <span className="text-xl sm:text-2xl">{rule.icon}</span>
                       <div>
-                        <h3 className="font-medium text-white mb-1">
+                        <h3 className="font-medium text-sm sm:text-base text-white mb-1">
                           {rule.title}
                         </h3>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-xs sm:text-sm text-gray-400">
                           {rule.description}
                         </p>
                       </div>
@@ -750,7 +756,7 @@ const Community = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowGuidelines(false)}
-                className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium"
+                className="w-full mt-6 py-2.5 sm:py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium text-sm sm:text-base"
               >
                 I Understand
               </motion.button>
@@ -765,20 +771,22 @@ const Community = () => {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 left-0 right-0 z-20 px-6 py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
+          className="sticky top-0 left-0 right-0 z-20 px-3 sm:px-6 py-3 sm:py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
         >
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-3 sm:space-y-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-4">
-                <MessageSquare className="w-6 h-6 text-indigo-400" />
-                <div className="flex items-center space-x-3">
-                  <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400" />
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <h2 className="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
                     Community Chat
                   </h2>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                {/* Updated Tag Filters */}
+
+              {/* Desktop filters and guidelines button */}
+              <div className="hidden sm:flex items-center space-x-4">
+                {/* Tag Filters */}
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-2">
                     {Object.entries(messageTagConfig).map(([tag, config]) => (
@@ -814,7 +822,80 @@ const Community = () => {
                   </div>
                 </motion.button>
               </div>
+
+              {/* Mobile filter and menu buttons */}
+              <div className="flex sm:hidden items-center space-x-2">
+                {/* Current filter indicator for mobile */}
+                <div
+                  className={`px-2 py-0.5 rounded-full text-xs ${messageTagConfig[selectedFilter].color}`}
+                >
+                  {messageTagConfig[selectedFilter].label}
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowMobileFilterMenu(!showMobileFilterMenu)}
+                  className="p-2 rounded-lg bg-gray-800/50"
+                >
+                  <Filter className="w-4 h-4 text-cyan-400" />
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowGuidelines(true)}
+                  className="p-2 rounded-lg bg-gray-800/50"
+                >
+                  <HelpCircle className="w-4 h-4 text-cyan-400" />
+                </motion.button>
+              </div>
             </div>
+
+            {/* Mobile filter menu */}
+            <AnimatePresence>
+              {showMobileFilterMenu && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="sm:hidden overflow-hidden mb-2"
+                >
+                  <div className="bg-gray-800/80 rounded-xl p-3 border border-gray-700/50">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-300">Select View</span>
+                      <button
+                        onClick={() => setShowMobileFilterMenu(false)}
+                        className="p-1 rounded-lg hover:bg-gray-700/50"
+                      >
+                        <X className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col space-y-2">
+                      {Object.entries(messageTagConfig).map(([tag, config]) => (
+                        <button
+                          key={tag}
+                          onClick={() => {
+                            handleFilterChange(tag as "general" | "issue");
+                            setShowMobileFilterMenu(false);
+                          }}
+                          className={`px-3 py-2 rounded-lg flex items-center space-x-2 ${
+                            selectedFilter === tag
+                              ? config.color
+                              : "bg-gray-700/50 text-gray-300"
+                          }`}
+                        >
+                          <Tag className="w-3 h-3" />
+                          <span className="text-sm">{config.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Add the animated search bar */}
             <AnimatePresence>
@@ -827,13 +908,13 @@ const Community = () => {
                   className="overflow-hidden"
                 >
                   <div className="flex items-center space-x-2 bg-gray-800/50 rounded-xl p-2 border border-rose-500/20">
-                    <Search className="w-5 h-5 text-rose-400" />
+                    <Search className="w-4 h-4 sm:w-5 sm:h-5 text-rose-400" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search issues..."
-                      className="flex-1 bg-transparent px-2 py-1 text-white placeholder-gray-400 focus:outline-none text-sm"
+                      className="flex-1 bg-transparent px-2 py-1 text-white placeholder-gray-400 focus:outline-none text-xs sm:text-sm"
                     />
                     {searchQuery && (
                       <motion.button
@@ -842,7 +923,7 @@ const Community = () => {
                         onClick={() => setSearchQuery("")}
                         className="p-1 rounded-lg hover:bg-gray-700/50"
                       >
-                        <X className="w-4 h-4 text-gray-400" />
+                        <X className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                       </motion.button>
                     )}
                   </div>
@@ -857,7 +938,7 @@ const Community = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-800/50 messages-container"
+          className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-800/50 messages-container"
         >
           {isLoading && messages.length === 0 ? (
             <div className="flex justify-center items-center h-full">
@@ -876,7 +957,7 @@ const Community = () => {
                 key={message.id}
                 variants={messageVariants}
                 layout
-                className="mb-6"
+                className="mb-4 sm:mb-6"
               >
                 {renderMessage(message)}
                 {message.tag === "issue" &&
@@ -884,6 +965,8 @@ const Community = () => {
               </motion.div>
             ))
           )}
+          {/* Reference for auto-scrolling */}
+          <div ref={messagesEndRef} />
         </motion.div>
 
         {/* Input Area - Fixed */}
@@ -892,26 +975,29 @@ const Community = () => {
           animate={{ y: 0, opacity: 1 }}
           className="sticky bottom-0 left-0 right-0 z-20 border-t border-gray-800/50 bg-gray-900/80 backdrop-blur-xl"
         >
-          <div className="px-6 py-4">
+          <div className="px-3 sm:px-6 py-3 sm:py-4">
             {replyingTo && (
               <div className="mb-2 p-2 bg-gray-700/50 rounded-lg flex justify-between items-center">
-                <div className="flex items-center text-gray-400">
-                  <CornerDownRight className="w-4 h-4 mr-2" />
+                <div className="flex items-center text-gray-400 text-xs sm:text-sm">
+                  <CornerDownRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Replying to {replyingTo.userName}
                 </div>
-                <button onClick={() => setReplyingTo(null)}>
-                  <X className="w-4 h-4" />
+                <button
+                  onClick={() => setReplyingTo(null)}
+                  className="p-1 hover:bg-gray-600/50 rounded-md"
+                >
+                  <X className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
             )}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder={`Type your ${currentTag} message...`}
-                className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
+                className="flex-1 bg-gray-800/50 text-white text-sm sm:text-base rounded-xl px-4 sm:px-6 py-2.5 sm:py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
               />
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -919,9 +1005,12 @@ const Community = () => {
                 onClick={
                   replyingTo ? () => handleReply(replyingTo) : handleSendMessage
                 }
-                className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center group hover:from-cyan-600 hover:to-blue-600"
+                disabled={!newMessage.trim()}
+                className={`px-4 sm:px-6 py-2.5 sm:py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center group hover:from-cyan-600 hover:to-blue-600 ${
+                  !newMessage.trim() ? "opacity-50" : ""
+                }`}
               >
-                <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <Send className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </div>
           </div>
