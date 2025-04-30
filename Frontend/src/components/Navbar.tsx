@@ -41,10 +41,10 @@ const Navbar = () => {
 
         <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-4 relative z-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 flex-shrink-0 pt-2 sm:pt-0">
+            <div className="flex items-center space-x-2 flex-shrink-0">
               <Link
                 to="/"
-                className="text-lg sm:text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200 transition-transform hover:scale-105 whitespace-nowrap"
+                className="flex items-center text-lg sm:text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200 transition-transform hover:scale-105 whitespace-nowrap"
               >
                 Vecem
               </Link>

@@ -387,7 +387,7 @@ const DashboardLayout = () => {
 
               <Link
                 to="/"
-                className="flex-shrink-0 transition-transform hover:scale-105"
+                className="flex-shrink-0 flex items-center transition-transform hover:scale-105"
               >
                 <span className="text-lg sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200">
                   Vecem
@@ -566,14 +566,15 @@ const DashboardLayout = () => {
         >
           <div className="flex flex-col h-full">
             {/* Close button for mobile */}
-            <div className="sm:hidden flex justify-end p-2 sticky top-0 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800/50 z-10">
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1.5 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+            <div className="sm:hidden flex items-center justify-end p-2 sticky top-0 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800/50 z-10">
+  <button
+    onClick={() => setIsMobileMenuOpen(false)}
+    className="p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all flex items-center justify-center"
+  >
+    <X className="h-4 w-4" />
+  </button>
+</div>
+
 
             {/* Navigation Menu with adjusted mobile spacing */}
             <nav className="flex-1 px-2 py-2 sm:py-4 space-y-1.5 sm:space-y-2 overflow-y-auto">
