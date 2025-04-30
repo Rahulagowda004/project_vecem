@@ -21,9 +21,11 @@ const LogoutButton = () => {
   return (
     <button
       onClick={handleLogout}
-      className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-red-500"
+      className="flex items-center w-full px-4 py-3 text-base text-gray-300 hover:bg-gray-800 transition-colors active:bg-gray-700 rounded-xl"
     >
-      <LogOut className="h-4 w-4 mr-3" />
+      <div className="bg-gray-800/80 p-2 rounded-lg mr-4">
+        <LogOut className="h-5 w-5 text-cyan-400" />
+      </div>
       Logout
     </button>
   );
@@ -31,7 +33,6 @@ const LogoutButton = () => {
 
 const NavbarPro = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState(
@@ -231,19 +232,9 @@ const NavbarPro = () => {
               ))}
 
               <div className="mt-auto border-t border-gray-800 pt-4 pb-8">
-                <button
-                  onClick={() => {
-                    const { logout } = useAuth();
-                    logout().then(() => {
-                      navigate("/");
-                      setMobileMenuOpen(false);
-                    });
-                  }}
-                  className="w-full flex items-center justify-center px-4 py-3 text-base font-medium rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 active:bg-red-500/30 transition-colors"
-                >
-                  <LogOut className="h-5 w-5 mr-3" />
-                  Logout
-                </button>
+                <div className="w-full flex items-center justify-center rounded-xl overflow-hidden">
+                  <LogoutButton />
+                </div>
               </div>
             </>
           )}
