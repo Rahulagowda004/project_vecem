@@ -111,17 +111,17 @@ const NavbarPro = () => {
   ];
 
   return (
-    <nav className="bg-gray-900/90 backdrop-blur-lg border-b border-gray-800 fixed w-full z-50">
+    <nav className="bg-gray-900 border-b border-gray-800 fixed w-full z-50">
       <div className="max-w-full mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link
-            to="/"
-            className="flex-shrink-0 transition-transform hover:scale-105"
-          >
-            <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-200 bg-clip-text text-transparent">
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <Link
+              to="/"
+              className="flex items-center text-lg sm:text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200 transition-transform hover:scale-105 whitespace-nowrap"
+            >
               Vecem
-            </span>
-          </Link>
+            </Link>
+          </div>
           <div className="flex-1" /> {/* Spacer */}
           {/* Mobile menu button */}
           <div className="sm:hidden">
@@ -184,7 +184,7 @@ const NavbarPro = () => {
 
       {/* Mobile menu, show/hide based on menu state */}
       <div
-        className={`sm:hidden fixed inset-x-0 top-16 bottom-0 z-50 bg-gray-900/95 backdrop-blur-lg transform transition-transform duration-300 ease-in-out ${
+        className={`sm:hidden fixed inset-x-0 top-16 z-50 bg-gray-900 border-t border-gray-700 transform transition-transform duration-300 ease-in-out max-h-[80vh] overflow-y-auto rounded-b-xl shadow-lg ${
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
         style={{
@@ -193,7 +193,7 @@ const NavbarPro = () => {
           paddingRight: "env(safe-area-inset-right, 0)",
         }}
       >
-        <div className="px-4 py-3 space-y-2 flex flex-col h-full">
+        <div className="px-4 py-3 space-y-2 flex flex-col bg-gray-900">
           {user && (
             <>
               <div className="px-3 py-4 border-b border-gray-800 flex items-center">
