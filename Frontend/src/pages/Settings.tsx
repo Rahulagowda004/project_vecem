@@ -581,17 +581,17 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       <NavbarPro />
-      <div className="max-w-5xl mx-auto px-4 py-8 pt-24">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 py-6 sm:py-8 pt-20 sm:pt-24">
         {/* Profile Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800 rounded-xl p-4 sm:p-8 mb-8 border border-gray-700/50 relative z-10"
+          className="bg-gray-800 rounded-xl p-4 sm:p-8 mb-6 sm:mb-8 border border-gray-700/50 relative z-10"
         >
-          <h2 className="text-2xl font-bold text-white mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">
             Profile Settings
           </h2>
-          <div className="flex flex-col sm:flex-row items-start gap-6 sm:gap-10">
+          <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-10">
             {/* Avatar Section */}
             <div className="flex flex-col items-center space-y-4 relative z-20 self-center sm:self-start">
               <AvatarSelector
@@ -601,18 +601,19 @@ const Settings = () => {
                 isEditing={isEditing}
               />
               {isEditing && (
-                <span className="text-sm text-gray-400">
+                <span className="text-xs sm:text-sm text-gray-400">
                   Click to change avatar
                 </span>
               )}
             </div>
 
             {/* Profile Details Section */}
-            <div className="flex-1 space-y-6 relative z-10 w-full">
+            <div className="flex-1 space-y-4 sm:space-y-6 relative z-10 w-full">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="space-y-1 flex-grow">
+                <div className="space-y-1 flex-grow w-full">
                   {isEditing ? (
-                    <div className="space-y-6 w-full max-w-md">
+                    <div className="space-y-4 sm:space-y-6 w-full max-w-md">
+                      {/* Form fields with improved mobile spacing */}
                       <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">
                           Display Name
@@ -621,9 +622,11 @@ const Settings = () => {
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="w-full text-xl bg-gray-700/50 text-cyan-400 rounded-lg px-4 py-2.5 border border-gray-600/50 focus:border-cyan-500/50"
+                          className="w-full text-base sm:text-xl bg-gray-700/50 text-cyan-400 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-600/50 focus:border-cyan-500/50"
                         />
                       </div>
+                      
+                      {/* Username field with responsive styling */}
                       <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">
                           Username
@@ -633,18 +636,18 @@ const Settings = () => {
                             type="text"
                             value={`@${username}`}
                             disabled
-                            className="w-full bg-gray-700/30 text-gray-500 rounded-lg px-4 py-2.5 border border-gray-600/30"
+                            className="w-full bg-gray-700/30 text-gray-500 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-600/30"
                           />
                         ) : (
                           <div className="relative">
-                            <span className="absolute left-4 top-2.5 text-gray-400">
+                            <span className="absolute left-3 sm:left-4 top-2 sm:top-2.5 text-gray-400">
                               @
                             </span>
                             <input
                               type="text"
                               value={username}
                               onChange={handleUsernameChange}
-                              className={`w-full pl-8 bg-gray-700/50 text-cyan-400 rounded-lg px-4 py-2.5 border 
+                              className={`w-full pl-7 sm:pl-8 bg-gray-700/50 text-cyan-400 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border 
                                 ${
                                   usernameStatus === "available"
                                     ? "border-green-500/50"
@@ -653,27 +656,30 @@ const Settings = () => {
                                     : "border-gray-600/50"
                                 } focus:border-cyan-500/50`}
                             />
+                            {/* Status messages with responsive text */}
                             {usernameStatus === "checking" && (
-                              <span className="text-xs text-gray-400 mt-1 block">
+                              <span className="text-xs sm:text-sm text-gray-400 mt-1 block">
                                 Checking availability...
                               </span>
                             )}
                             {usernameStatus === "available" && (
-                              <span className="text-xs text-green-400 mt-1 block">
+                              <span className="text-xs sm:text-sm text-green-400 mt-1 block">
                                 Username is available!
                               </span>
                             )}
                             {usernameStatus === "taken" && (
-                              <span className="text-xs text-red-400 mt-1 block">
+                              <span className="text-xs sm:text-sm text-red-400 mt-1 block">
                                 Username is already taken
                               </span>
                             )}
-                            <span className="text-xs text-yellow-400 mt-1 block">
+                            <span className="text-xs sm:text-sm text-yellow-400 mt-1 block">
                               Note: Username can only be set once
                             </span>
                           </div>
                         )}
                       </div>
+
+                      {/* Email field */}
                       <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">
                           Email
@@ -682,9 +688,11 @@ const Settings = () => {
                           type="email"
                           value={user?.email || ""}
                           disabled
-                          className="w-full bg-gray-700/30 text-gray-500 rounded-lg px-4 py-2.5 border border-gray-600/30"
+                          className="w-full bg-gray-700/30 text-gray-500 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-600/30"
                         />
                       </div>
+
+                      {/* API Key field */}
                       <div>
                         <label className="block text-sm font-medium text-gray-400 mb-1">
                           API Key
@@ -693,30 +701,28 @@ const Settings = () => {
                           type="text"
                           value={apiKey}
                           onChange={(e) => setApiKey(e.target.value)}
-                          className="w-full bg-gray-700/50 text-cyan-400 rounded-lg px-4 py-2.5 border border-gray-600/50 focus:border-cyan-500/50"
+                          className="w-full bg-gray-700/50 text-cyan-400 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-600/50 focus:border-cyan-500/50"
                           placeholder="Enter your API key"
                         />
                       </div>
                     </div>
                   ) : (
                     <>
-                      <h1 className="text-3xl font-bold text-cyan-400 break-words">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-cyan-400 break-words">
                         {name}
                       </h1>
-                      <p className="text-gray-400 text-lg">@{username}</p>
-                      <p className="text-gray-500 mt-2">{user?.email}</p>
-                      <p className="text-gray-500 mt-2">
+                      <p className="text-base sm:text-lg text-gray-400">@{username}</p>
+                      <p className="text-sm sm:text-base text-gray-500 mt-2">{user?.email}</p>
+                      <p className="text-sm sm:text-base text-gray-500 mt-2">
                         API Key: {apiKey || "Not set"}
                       </p>
                     </>
                   )}
                 </div>
                 <button
-                  onClick={() =>
-                    isEditing ? handleSave() : setIsEditing(true)
-                  }
-                  className="px-5 py-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 
-                    hover:bg-cyan-500/20 border border-cyan-500/20 font-medium whitespace-nowrap"
+                  onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+                  className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 
+                    hover:bg-cyan-500/20 border border-cyan-500/20 font-medium text-sm sm:text-base whitespace-nowrap"
                 >
                   {isEditing ? "Save Changes" : "Edit Profile"}
                 </button>
@@ -735,13 +741,13 @@ const Settings = () => {
                     type="text"
                     value={githubUrl}
                     onChange={(e) => setGithubUrl(e.target.value)}
-                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-2.5 
-                      text-gray-200 focus:border-cyan-500/50 focus:outline-none"
+                    className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 
+                      text-gray-200 focus:border-cyan-500/50 focus:outline-none text-sm sm:text-base"
                   />
                 ) : (
                   <a
                     href={githubUrl}
-                    className="text-gray-300 hover:text-cyan-400 transition-colors break-all"
+                    className="text-sm sm:text-base text-gray-300 hover:text-cyan-400 transition-colors break-all"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -760,7 +766,7 @@ const Settings = () => {
                     <textarea
                       value={about}
                       onChange={(e) => setAbout(e.target.value)}
-                      className="w-full bg-gray-700/50 text-white rounded-xl p-4 border border-gray-600/50 focus:border-cyan-500/50"
+                      className="w-full bg-gray-700/50 text-white rounded-xl p-3 sm:p-4 border border-gray-600/50 focus:border-cyan-500/50 text-sm sm:text-base"
                       placeholder="Tell us about yourself..."
                       rows={4}
                     />
@@ -770,7 +776,7 @@ const Settings = () => {
                     <h3 className="text-sm font-medium text-gray-400 mb-2">
                       About
                     </h3>
-                    <p className="text-gray-300">{about}</p>
+                    <p className="text-sm sm:text-base text-gray-300">{about}</p>
                   </div>
                 )}
               </div>
@@ -1105,15 +1111,15 @@ const Settings = () => {
         <motion.div
           variants={cardVariants}
           whileHover={{ y: -5 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-red-500/20 p-6 sm:p-8 w-full"
+          className="bg-gray-800/50 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-red-500/20 p-4 sm:p-8 w-full"
         >
-          <h2 className="text-xl font-semibold text-red-400 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-red-400 mb-4">
             Close Account
           </h2>
           <button
             onClick={handleDeleteAccount}
             className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500/10 text-red-400 
-              rounded-xl hover:bg-red-500/20 border border-red-500/20 transition-colors text-sm sm:text-base"
+              rounded-lg sm:rounded-xl hover:bg-red-500/20 border border-red-500/20 transition-colors text-sm sm:text-base"
           >
             <Trash2 size={16} className="flex-shrink-0" />
             <span>Delete Account</span>

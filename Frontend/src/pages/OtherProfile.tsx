@@ -1,8 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { getUserProfileByUsername } from "../services/userService";
-import type { UserProfileData } from "../services/userService";
 import { useAuth } from "../contexts/AuthContext";
 import NavbarPro from "../components/NavbarPro";
 import { MessageSquarePlus } from "lucide-react";
@@ -11,6 +10,25 @@ import { getPromptDetails, logPromptClick } from "../services/promptService";
 import { toast } from "react-hot-toast";
 import { API_BASE_URL } from "../config";
 
+interface Dataset {
+  id: string;
+  name: string;
+  description: string;
+  upload_type?: string;
+  uploadedAt: string;
+  updatedAt: string;
+}
+
+interface Prompt {
+  id: string;
+  name: string;
+  description: string;
+  domain: string;
+  prompt: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 interface UserProfileData {
   uid: string;
   username: string;
@@ -18,23 +36,8 @@ interface UserProfileData {
   profilePicture?: string;
   bio?: string;
   githubUrl?: string;
-  datasets: {
-    id: string;
-    name: string;
-    description: string;
-    upload_type?: string;
-    uploadedAt: string;
-    updatedAt: string;
-  }[];
-  prompts?: {
-    id: string;
-    name: string;
-    description: string;
-    domain: string;
-    prompt: string;
-    createdAt: string;
-    updatedAt?: string;
-  }[];
+  datasets: Dataset[];
+  prompts?: Prompt[];
 }
 
 const OtherProfile = () => {
@@ -53,7 +56,7 @@ const OtherProfile = () => {
   );
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null);
   const [isPromptCardOpen, setIsPromptCardOpen] = useState(false);
-  const [promptsLoading, setPromptsLoading] = useState(false);
+  const promptsLoading = false; // Changed from useState to a constant since it's not being modified
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "Date not available";
@@ -120,12 +123,12 @@ const OtherProfile = () => {
     },
   };
 
-  const item = {
+  const itemVariants = {
     hidden: { y: 20, opacity: 0 },
     show: { y: 0, opacity: 1 },
   };
 
-  const handleDatasetClick = async (datasetId: string, datasetName: string) => {
+  const handleDatasetClick = async (_datasetId: string, datasetName: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/dataset-click`, {
         method: "POST",
@@ -229,7 +232,7 @@ const OtherProfile = () => {
       : filteredAndSortedPrompts.length) / itemsPerPage
   );
 
-  const handlePromptClick = async (promptId: string, promptName: string) => {
+  const handlePromptClick = async (_promptId: string, promptName: string) => {
     try {
       try {
         await logPromptClick(userData?.uid || "", promptName);
@@ -247,7 +250,7 @@ const OtherProfile = () => {
         name: promptData.name,
         domain: promptData.domain,
         prompt: promptData.prompt,
-        username: promptData.username, // Include username in the prompt data
+        username: promptData.username,
         createdAt: promptData.createdAt,
         updatedAt: promptData.updatedAt,
       });
@@ -307,16 +310,16 @@ const OtherProfile = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       <NavbarPro />
-      <div className="max-w-5xl mx-auto px-4 py-8 pt-24">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 py-6 sm:py-8 pt-20 sm:pt-24">
         {/* Profile Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col md:flex-row gap-6"
+          className="flex flex-col md:flex-row gap-4 px-2 sm:px-0"
         >
           <motion.div
-            className="flex-shrink-0 flex justify-center"
+            className="flex-shrink-0 flex justify-center mb-4 md:mb-0"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
@@ -325,44 +328,44 @@ const OtherProfile = () => {
               <img
                 src={userData.profilePicture || "/default-avatar.png"}
                 alt="Profile"
-                className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full border-4 border-gray-800 shadow-[0_0_15px_rgba(0,255,255,0.1)] relative z-10 object-cover"
+                className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full border-4 border-gray-800 shadow-[0_0_15px_rgba(0,255,255,0.1)] relative z-10 object-cover"
               />
             </div>
           </motion.div>
 
           <div className="flex-grow">
-            <motion.div className="bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 sm:p-6 shadow-md border border-gray-700 relative overflow-hidden">
+            <motion.div className="bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 sm:p-4 md:p-6 shadow-md border border-gray-700 relative overflow-hidden">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full filter blur-2xl transform translate-x-1/2 -translate-y-1/2 z-0"></div>
 
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3 sm:mb-6">
-                  <div className="space-y-1 text-center md:text-left">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-cyan-400 break-words">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between mb-3 sm:mb-4">
+                  <div className="text-center sm:text-left space-y-1 mb-3 sm:mb-0">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyan-400 break-words">
                       {userData.name}
                     </h1>
-                    <p className="text-gray-400 text-base sm:text-lg font-medium">
+                    <p className="text-sm sm:text-base text-gray-400 font-medium">
                       @{userData.username}
                     </p>
                   </div>
                 </div>
 
-                <p className="text-gray-300 text-sm sm:text-lg mb-3 sm:mb-4 line-clamp-3 text-center md:text-left">
+                <p className="text-sm sm:text-base text-gray-300 mb-3 sm:mb-4 line-clamp-3 text-center sm:text-left">
                   {userData.bio || "No bio provided"}
                 </p>
 
-                <div className="flex justify-center md:justify-start">
+                <div className="flex justify-center sm:justify-start">
                   {userData.githubUrl && (
                     <motion.a
                       href={userData.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-cyan-300 text-sm sm:text-base"
+                      className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-cyan-300 text-sm"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                        className="w-4 h-4 mr-2"
                         fill="currentColor"
                         viewBox="0 0 24 24"
                       >
@@ -377,18 +380,18 @@ const OtherProfile = () => {
           </div>
         </motion.div>
 
-        {/* Datasets Section */}
+        {/* Content Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-8"
+          className="mt-4 sm:mt-8"
         >
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-700">
-            <div className="border-b border-gray-700/50 p-6">
-              <div className="flex items-center justify-between">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-2xl border border-gray-700">
+            <div className="border-b border-gray-700/50 p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-3">
-                  <h2 className="text-2xl font-bold text-gray-100">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-100">
                     {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
                   </h2>
                   <motion.div
@@ -488,55 +491,58 @@ const OtherProfile = () => {
             >
               {activeView === "datasets" ? (
                 paginatedItems.length > 0 ? (
-                  paginatedItems.map((dataset) => (
-                    <motion.li
-                      key={dataset.id}
-                      variants={item}
-                      whileHover={{ scale: 1.02 }}
-                      onClick={() =>
-                        handleDatasetClick(dataset.id, dataset.name)
-                      }
-                      className="group relative bg-gray-800/40 hover:bg-gray-800/70 rounded-lg p-4 sm:p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
-                    >
-                      <h3 className="text-base sm:text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-2 sm:mb-3 line-clamp-2">
-                        {dataset.name}
-                      </h3>
-                      <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4 line-clamp-2">
-                        {dataset.description || "No description provided"}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-400">
-                        <span className="flex items-center bg-gray-800/50 px-2 py-1 rounded-full">
-                          <svg
-                            className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                            <path
-                              fillRule="evenodd"
-                              d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          {dataset.upload_type || "Unknown Type"}
-                        </span>
-                        <span className="flex items-center bg-gray-800/50 px-2 py-1 rounded-full">
-                          <svg
-                            className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          {formatDate(dataset.updatedAt || dataset.uploadedAt)}
-                        </span>
-                      </div>
-                    </motion.li>
-                  ))
+                  paginatedItems.map((item) => {
+                    const dataset = item as Dataset;
+                    return (
+                      <motion.li
+                        key={dataset.id}
+                        variants={itemVariants}
+                        whileHover={{ scale: 1.02 }}
+                        onClick={() =>
+                          handleDatasetClick(dataset.id, dataset.name)
+                        }
+                        className="group relative bg-gray-800/40 hover:bg-gray-800/70 rounded-lg p-4 sm:p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
+                      >
+                        <h3 className="text-base sm:text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-2 sm:mb-3 line-clamp-2">
+                          {dataset.name}
+                        </h3>
+                        <p className="text-gray-300 text-sm sm:text-base mb-3 sm:mb-4 line-clamp-2">
+                          {dataset.description || "No description provided"}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs sm:text-sm text-gray-400">
+                          <span className="flex items-center bg-gray-800/50 px-2 py-1 rounded-full">
+                            <svg
+                              className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                              <path
+                                fillRule="evenodd"
+                                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            {dataset.upload_type || "Unknown Type"}
+                          </span>
+                          <span className="flex items-center bg-gray-800/50 px-2 py-1 rounded-full">
+                            <svg
+                              className="w-3 h-3 sm:w-4 sm:h-4 mr-1"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            {formatDate(dataset.updatedAt || dataset.uploadedAt)}
+                          </span>
+                        </div>
+                      </motion.li>
+                    );
+                  })
                 ) : (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -615,39 +621,42 @@ const OtherProfile = () => {
                   </p>
                 </motion.div>
               ) : (
-                paginatedItems.map((prompt) => (
-                  <motion.li
-                    key={prompt.id}
-                    variants={item}
-                    whileHover={{ scale: 1.02 }}
-                    onClick={() => handlePromptClick(prompt.id, prompt.name)}
-                    className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
-                  >
-                    <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
-                      {prompt.name}
-                    </h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-400">
-                      <span className="flex items-center">
-                        <MessageSquarePlus className="w-4 h-4 mr-1" />
-                        {prompt.domain || "General"}
-                      </span>
-                      <span className="flex items-center">
-                        <svg
-                          className="w-4 h-4 mr-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        {formatDate(prompt.updatedAt || prompt.createdAt)}
-                      </span>
-                    </div>
-                  </motion.li>
-                ))
+                paginatedItems.map((item) => {
+                  const prompt = item as Prompt;
+                  return (
+                    <motion.li
+                      key={prompt.id}
+                      variants={itemVariants}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={() => handlePromptClick(prompt.id, prompt.name)}
+                      className="group relative bg-gray-750/50 rounded-lg p-5 border border-gray-700/50 hover:border-cyan-500/50 transition-all duration-300 cursor-pointer"
+                    >
+                      <h3 className="text-lg font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors duration-300 mb-3">
+                        {prompt.name}
+                      </h3>
+                      <div className="flex items-center space-x-4 text-sm text-gray-400">
+                        <span className="flex items-center">
+                          <MessageSquarePlus className="w-4 h-4 mr-1" />
+                          {prompt.domain || "General"}
+                        </span>
+                        <span className="flex items-center">
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          {formatDate(prompt.updatedAt || prompt.createdAt)}
+                        </span>
+                      </div>
+                    </motion.li>
+                  );
+                })
               )}
             </motion.ul>
 

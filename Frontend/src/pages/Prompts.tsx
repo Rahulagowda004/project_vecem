@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Plus, Minus, Save, User, ChevronRight } from "lucide-react";
+import { Save, User, ChevronRight } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { getUserProfileByUid } from "../services/userService";
 import { saveUserPrompt } from "../services/promptService";
@@ -143,42 +142,42 @@ const Prompts = () => {
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       {uploadStatus.show && <StatusMessage />}
-      <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
-        {/* Breadcrumb navigation */}
-        <nav className="flex mb-6 text-sm text-gray-400">
+      <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 mobile-safe-padding">
+        {/* Mobile-optimized breadcrumb navigation */}
+        <nav className="flex flex-wrap items-center gap-2 sm:gap-0 mb-4 sm:mb-6 text-sm text-gray-400">
           {userProfile?.username ? (
             <Link
               to={`/${userProfile.username}`}
-              className="flex items-center hover:text-cyan-400 transition-colors"
+              className="flex items-center hover:text-cyan-400 transition-colors min-h-[44px]"
             >
-              <User className="w-4 h-4 mr-1" />
-              {userProfile.username}
+              <User className="w-4 h-4 mr-1 flex-shrink-0" />
+              <span className="break-all">{userProfile.username}</span>
             </Link>
           ) : (
-            <span className="flex items-center">
-              <User className="w-4 h-4 mr-1" />
+            <span className="flex items-center min-h-[44px]">
+              <User className="w-4 h-4 mr-1 flex-shrink-0" />
               Loading...
             </span>
           )}
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <span className="text-white">Upload Prompt</span>
+          <ChevronRight className="w-4 h-4 mx-1 sm:mx-2 flex-shrink-0" />
+          <span className="text-white min-h-[44px] flex items-center">Upload Prompt</span>
         </nav>
 
-        <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
-          <h1 className="text-3xl font-bold text-white mb-6">Create Prompt</h1>
+        <div className="min-h-[calc(100vh-6rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-4 sm:p-6 md:p-8 overflow-y-auto">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">Create Prompt</h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-200">
+                <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-gray-200">
                   Prompt Name
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={handleNameChange}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
-                    text-white placeholder-gray-400"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gray-700 border border-gray-600 
+                    text-white placeholder-gray-400 min-h-[44px]"
                   placeholder="Enter_prompt_name"
                   required
                   pattern="[A-Za-z0-9_]+"
@@ -187,14 +186,14 @@ const Prompts = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-200">
+                <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-gray-200">
                   Domain
                 </label>
                 <select
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
-                    text-white placeholder-gray-400"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gray-700 border border-gray-600 
+                    text-white placeholder-gray-400 min-h-[44px]"
                   required
                 >
                   <option value="">Select a domain</option>
@@ -208,34 +207,34 @@ const Prompts = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2 text-gray-200">
+              <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-gray-200">
                 Prompt Content
               </label>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 
-                  text-white placeholder-gray-400 resize-none h-64"
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-gray-700 border border-gray-600 
+                  text-white placeholder-gray-400 resize-none h-48 sm:h-64"
                 placeholder="Enter your prompt content"
                 required
               />
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-2">
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="px-6 py-2 bg-gray-700 text-white rounded-lg 
-                  hover:bg-gray-600 transition-colors"
+                className="w-full sm:w-auto px-6 py-2.5 bg-gray-700 text-white rounded-lg 
+                  hover:bg-gray-600 transition-colors min-h-[44px]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex items-center gap-2 px-6 py-2 bg-cyan-600 
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-cyan-600 
                   text-white rounded-lg hover:bg-cyan-700 transition-colors
-                  disabled:bg-gray-500 disabled:cursor-not-allowed"
+                  disabled:bg-gray-500 disabled:cursor-not-allowed min-h-[44px]"
               >
                 {isLoading ? (
                   <span>Saving...</span>

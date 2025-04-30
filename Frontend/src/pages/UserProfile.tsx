@@ -384,10 +384,10 @@ const UserProfile = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col md:flex-row gap-6"
+      className="flex flex-col md:flex-row gap-4 px-2 sm:px-0"
     >
       <motion.div
-        className="flex-shrink-0 flex justify-center"
+        className="flex-shrink-0 flex justify-center mb-4 md:mb-0"
         whileHover={{ scale: 1.05 }}
         transition={{ type: "spring", stiffness: 300 }}
       >
@@ -396,44 +396,44 @@ const UserProfile = () => {
           <img
             src={userData.profilePicture || "/default-avatar.png"}
             alt="Profile"
-            className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full border-4 border-gray-800 shadow-[0_0_15px_rgba(0,255,255,0.1)] relative z-10 object-cover"
+            className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full border-4 border-gray-800 shadow-[0_0_15px_rgba(0,255,255,0.1)] relative z-10 object-cover"
           />
         </div>
       </motion.div>
 
       <div className="flex-grow">
-        <motion.div className="bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 sm:p-6 shadow-md border border-gray-700 relative overflow-hidden">
+        <motion.div className="bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 sm:p-4 md:p-6 shadow-md border border-gray-700 relative overflow-hidden">
           {/* Decorative elements */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full filter blur-2xl transform translate-x-1/2 -translate-y-1/2 z-0"></div>
 
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-3 sm:mb-6">
-              <div className="space-y-1 text-center md:text-left">
-                <h1 className="text-2xl sm:text-3xl font-bold text-cyan-400 break-words">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start sm:justify-between mb-3 sm:mb-4">
+              <div className="text-center sm:text-left space-y-1 mb-3 sm:mb-0">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-cyan-400 break-words">
                   {userData.name}
                 </h1>
-                <p className="text-gray-400 text-base sm:text-lg font-medium">
+                <p className="text-sm sm:text-base text-gray-400 font-medium">
                   @{userData.username}
                 </p>
               </div>
             </div>
 
-            <p className="text-gray-300 text-sm sm:text-lg mb-3 sm:mb-4 line-clamp-3 text-center md:text-left">
+            <p className="text-sm sm:text-base text-gray-300 mb-3 sm:mb-4 line-clamp-3 text-center sm:text-left">
               {userData.bio || "No bio provided"}
             </p>
 
-            <div className="flex justify-center md:justify-start">
+            <div className="flex justify-center sm:justify-start">
               {userData.githubUrl && (
                 <motion.a
                   href={userData.githubUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-cyan-300 text-sm sm:text-base"
+                  className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-cyan-300 text-sm"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+                    className="w-4 h-4 mr-2"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
@@ -868,7 +868,7 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       <NavbarPro />
-      <div className="max-w-5xl mx-auto px-4 py-8 pt-24">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 py-6 sm:py-8 pt-20 sm:pt-24">
         {/* Profile Header */}
         {renderProfileHeader()}
 
@@ -877,9 +877,9 @@ const UserProfile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-8"
+          className="mt-4 sm:mt-8"
         >
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-700">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg sm:rounded-xl shadow-2xl border border-gray-700">
             {renderContentHeader()}
             {renderFiltersAndSearch()}
             {renderContentList()}
