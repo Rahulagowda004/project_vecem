@@ -77,13 +77,13 @@ const Features = () => {
   ];
 
   return (
-    <div className="py-12 sm:py-16 md:py-20 bg-gradient-to-br">
+    <div className="py-8 sm:py-12 md:py-16 lg:py-20 bg-gradient-to-br">
       <NeuralNetwork />
       <div className="container relative mx-auto px-4 sm:px-6">
         <div className="flex flex-wrap">
-          <div className="w-full mb-10 md:mb-16 text-center">
+          <div className="w-full mb-8 sm:mb-10 md:mb-16 text-center">
             <motion.h2
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500 mb-4 sm:mb-6"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500 mb-3 sm:mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
@@ -91,7 +91,7 @@ const Features = () => {
               Why Choose Vecem?
             </motion.h2>
             <motion.p
-              className="mt-4 sm:mt-7 text-lg sm:text-xl text-white hover:text-cyan-500"
+              className="mt-3 sm:mt-4 md:mt-6 text-base sm:text-lg md:text-xl text-white hover:text-cyan-500 px-4 sm:px-0"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
@@ -101,7 +101,7 @@ const Features = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap -mx-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {features.map((feature, index) => (
             <motion.div
               key={index}
@@ -110,13 +110,13 @@ const Features = () => {
               animate="animate"
               whileHover="whileHover"
               variants={cardVariants}
-              className="w-full sm:w-6/12 lg:w-4/12 px-4 mb-8"
+              className="h-full"
             >
-              <div className="h-full relative flex flex-col bg-gray-800/50 backdrop-blur-sm rounded-xl p-5 sm:p-8 border border-cyan-500/10">
+              <div className="h-full relative flex flex-col bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 sm:p-6 md:p-8 border border-cyan-500/10">
                 <div className="flex-auto">
                   <motion.div
                     variants={iconVariants}
-                    className="mb-4 sm:mb-6 inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gray-900/50 border border-cyan-500/20"
+                    className="mb-3 sm:mb-4 md:mb-6 inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl bg-gray-900/50 border border-cyan-500/20"
                   >
                     {feature.icon}
                   </motion.div>
@@ -128,7 +128,7 @@ const Features = () => {
                         transition: { duration: 0.2 },
                       },
                     }}
-                    className="text-lg sm:text-xl font-semibold text-cyan-500 mb-3 sm:mb-4"
+                    className="text-base sm:text-lg md:text-xl font-semibold text-cyan-500 mb-2 sm:mb-3"
                   >
                     {feature.title}
                   </motion.h6>

@@ -12,10 +12,15 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [userProfileLink, setUserProfileLink] = useState("/profile");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleClose = () => {
     setIsOpen(false);
     setIsLoginMode(true);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   useEffect(() => {
@@ -50,6 +55,37 @@ const Navbar = () => {
               </Link>
             </div>
             
+            {/* Mobile menu button */}
+            {user && (
+              <button
+                onClick={toggleMobileMenu}
+                className="sm:hidden p-2 rounded-lg text-gray-300 hover:text-cyan-400 focus:outline-none"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  {isMobileMenuOpen ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  )}
+                </svg>
+              </button>
+            )}
+            
             <div className="flex items-center gap-2 sm:gap-4">
               {!user ? (
                 <Link
@@ -60,16 +96,16 @@ const Navbar = () => {
                   Login/Signup
                 </Link>
               ) : (
-                <div className="flex items-center gap-2 sm:gap-6">
+                <div className="hidden sm:flex items-center gap-2 sm:gap-6">
                   <Link
                     to="/home"
-                    className="text-gray-300 hover:text-cyan-400 transition-colors text-sm hidden sm:block"
+                    className="text-gray-300 hover:text-cyan-400 transition-colors text-sm"
                   >
                     Home
                   </Link>
                   <Link
                     to={userProfileLink}
-                    className="text-gray-300 hover:text-cyan-400 transition-colors text-sm hidden sm:block"
+                    className="text-gray-300 hover:text-cyan-400 transition-colors text-sm"
                   >
                     Profile
                   </Link>
@@ -83,6 +119,39 @@ const Navbar = () => {
               )}
             </div>
           </div>
+
+          {/* Mobile menu */}
+          {user && (
+            <div
+              className={`${
+                isMobileMenuOpen ? 'block' : 'hidden'
+              } sm:hidden py-2 space-y-2 absolute left-0 right-0 top-full bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900 border-t border-gray-700/30 px-4`}
+            >
+              <Link
+                to="/home"
+                className="block text-gray-300 hover:text-cyan-400 transition-colors py-2 text-sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link
+                to={userProfileLink}
+                className="block text-gray-300 hover:text-cyan-400 transition-colors py-2 text-sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Profile
+              </Link>
+              <button
+                onClick={() => {
+                  logout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full text-left text-red-400 hover:text-red-300 transition-colors py-2 text-sm"
+              >
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

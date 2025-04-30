@@ -242,7 +242,7 @@ const NavbarPro = () => {
                   className="w-full flex items-center justify-center px-4 py-3 text-base font-medium rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 active:bg-red-500/30 transition-colors"
                 >
                   <LogOut className="h-5 w-5 mr-3" />
-                  Sign Out
+                  Logout
                 </button>
               </div>
             </>
