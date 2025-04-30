@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -17,7 +17,6 @@ import {
   Send,
   TerminalSquare,
   Bot,
-  Menu,
   X,
 } from "lucide-react";
 import DatasetGrid from "./DatasetGrid";
@@ -567,17 +566,17 @@ const DashboardLayout = () => {
         >
           <div className="flex flex-col h-full">
             {/* Close button for mobile */}
-            <div className="sm:hidden flex justify-end p-2">
+            <div className="sm:hidden flex justify-end p-2 sticky top-0 bg-gray-900/95 backdrop-blur-lg border-b border-gray-800/50 z-10">
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 rounded-full bg-gray-800/50 text-gray-400 hover:text-white"
+                className="p-1.5 rounded-lg bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Navigation Menu */}
-            <nav className="flex-1 px-2 py-2 sm:py-4 space-y-1 sm:space-y-2 overflow-y-auto">
+            {/* Navigation Menu with adjusted mobile spacing */}
+            <nav className="flex-1 px-2 py-2 sm:py-4 space-y-1.5 sm:space-y-2 overflow-y-auto">
               {/* Datasets Section */}
               <div className="space-y-1 sm:space-y-2">
                 <div
