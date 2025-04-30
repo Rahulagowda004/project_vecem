@@ -134,20 +134,20 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
   };
 
   return (
-    <div className="container mx-auto px-1 sm:px-4 py-2 sm:py-6">
+    <div className="container mx-auto px-2 py-2">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
       >
         {filteredDatasets.length === 0 ? (
           <div className="col-span-full">
-            <div className="flex flex-col items-center justify-center p-3 sm:p-6 md:p-8 bg-gray-800/50 rounded-xl border border-gray-700/50">
-              <Database className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-gray-500 mb-2 sm:mb-4" />
-              <h3 className="text-sm sm:text-lg font-medium text-gray-300 mb-1 sm:mb-2">
+            <div className="flex flex-col items-center justify-center p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+              <Database className="w-8 h-8 text-gray-500 mb-2" />
+              <h3 className="text-base font-medium text-gray-300 mb-1">
                 No Datasets Found
               </h3>
-              <p className="text-xs sm:text-sm text-gray-500 text-center">
+              <p className="text-xs text-gray-500 text-center">
                 {searchQuery
                   ? `No datasets found matching "${searchQuery}"`
                   : category !== "all"
@@ -166,40 +166,40 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
                 onClick={() => handleDatasetClick(dataset)}
-                className="group relative bg-gray-800/50 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-4 
+                className="group relative bg-gray-800/50 backdrop-blur-sm rounded-lg p-3
                   hover:bg-gray-700/50 transition-all duration-300 cursor-pointer 
                   border border-gray-700/50 hover:border-cyan-500/30 shadow-lg 
-                  hover:shadow-cyan-500/10 h-[140px] sm:h-[200px] flex flex-col justify-between"
+                  hover:shadow-cyan-500/10 h-[120px] sm:h-[180px] flex flex-col justify-between"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                 <div className="relative flex flex-col h-full">
-                  <div className="flex items-start space-x-2 sm:space-x-4 mb-1 sm:mb-4">
-                    <div className="p-1.5 sm:p-3 bg-gray-900/50 rounded-md sm:rounded-lg group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="h-4 w-4 sm:h-6 sm:w-6 text-cyan-400" />
+                  <div className="flex items-start space-x-2 mb-2">
+                    <div className="p-1.5 bg-gray-900/50 rounded-md group-hover:scale-110 transition-transform duration-300">
+                      <Icon className="h-4 w-4 text-cyan-400" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm sm:text-lg font-medium text-white group-hover:text-cyan-400 transition-colors line-clamp-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-white group-hover:text-cyan-400 transition-colors line-clamp-1">
                         {dataset.name}
                       </h3>
-                      <div className="flex items-center gap-1 sm:gap-2 mt-1 sm:mt-2 flex-wrap">
-                        <span className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full bg-cyan-500/10 text-cyan-400 font-medium">
+                      <div className="flex items-center gap-1 mt-1 flex-wrap">
+                        <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-cyan-500/10 text-cyan-400 font-medium">
                           {dataset.datasetType}
                         </span>
-                        <span className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full bg-gray-700/50 text-gray-400">
+                        <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-gray-700/50 text-gray-400">
                           {dataset.domain}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-gray-400 text-[10px] sm:text-sm line-clamp-3 mb-1 sm:mb-4">
+                  <p className="text-gray-400 text-[10px] line-clamp-2 mb-2">
                     {dataset.description}
                   </p>
 
-                  <div className="mt-auto text-[10px] sm:text-sm text-gray-400 flex items-center">
+                  <div className="mt-auto text-[10px] text-gray-400 flex items-center">
                     <span className="flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-cyan-400" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                       {dataset.type}
                     </span>
                   </div>
@@ -248,7 +248,7 @@ const DatasetGrid = ({ searchQuery, category, datasets }: DatasetGridProps) => {
 
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-2 sm:top-4 right-2 sm:right-4 p-1.5 sm:p-2 rounded-full bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200"
+                className="absolute top-2 sm:top-4 right-2 sm:right-4 p-2 sm:p-2.5 rounded-full bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all duration-200 flex items-center justify-center"
               >
                 <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
