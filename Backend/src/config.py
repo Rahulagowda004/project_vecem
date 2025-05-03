@@ -19,7 +19,9 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     
     # CORS Configuration
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: List[str] = [
+        "https://vecem.in",       # Allow all origins during development (remove in production)
+    ]
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
