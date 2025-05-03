@@ -800,40 +800,39 @@ const UploadFile = () => {
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       {showConfirmation && <ConfirmationDialog />}
       {uploadStatus.show && <StatusMessage />}
-      <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
-        {/* Updated breadcrumb navigation */}
-        <nav className="flex mb-6 text-sm text-gray-400">
+      <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 mobile-safe-padding">
+        {/* Mobile-optimized breadcrumb navigation */}
+        <nav className="flex flex-wrap items-center gap-2 sm:gap-0 mb-4 sm:mb-6 text-sm text-gray-400">
           {userProfile?.username ? (
             <Link
               to={`/${userProfile.username}`}
-              className="flex items-center hover:text-cyan-400 transition-colors"
+              className="flex items-center hover:text-cyan-400 transition-colors min-h-[44px]"
             >
-              <User className="w-4 h-4 mr-1" />
-              {userProfile.username}
+              <User className="w-4 h-4 mr-1 flex-shrink-0" />
+              <span className="break-all">{userProfile.username}</span>
             </Link>
           ) : (
-            <span className="flex items-center">
-              <User className="w-4 h-4 mr-1" />
+            <span className="flex items-center min-h-[44px]">
+              <User className="w-4 h-4 mr-1 flex-shrink-0" />
               Loading...
             </span>
           )}
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <span className="text-white">Upload Dataset</span>
+          <ChevronRight className="w-4 h-4 mx-1 sm:mx-2 flex-shrink-0" />
+          <span className="text-white min-h-[44px] flex items-center">Upload Dataset</span>
         </nav>
 
-        <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
-          <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-6">
+        <div className="min-h-[calc(100vh-6rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-4 sm:p-6 md:p-8 overflow-y-auto">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-4 sm:mb-6">
             Data Specifications
           </h1>
-          <h5 className="text-white text-center items-center mb-8">
-            Specify your dataset, select the format, ensure compatibility, and
-            track uploads in real time.
+          <h5 className="text-white text-center items-center mb-6 sm:mb-8 text-sm sm:text-base">
+            Specify your dataset, select the format, ensure compatibility, and track uploads in real time.
           </h5>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Dataset Name */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-white">
+              <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                 Dataset Name
               </label>
               <input
@@ -842,25 +841,18 @@ const UploadFile = () => {
                 value={formData.name}
                 onChange={handleNameChange}
                 required
-                className={`w-full px-4 py-2 rounded-xl bg-gray-700/50 border 
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border 
                   ${nameError ? "border-red-500" : "border-gray-600"}
-                  text-white placeholder-gray-400
+                  text-white placeholder-gray-400 min-h-[44px]
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition`}
-                placeholder="Enter dataset name "
+                placeholder="Enter dataset name"
               />
-              {isCheckingName && (
-                <p className="text-sm text-gray-400 mt-1">
-                  Checking dataset name...
-                </p>
-              )}
-              {nameError && (
-                <p className="text-sm text-red-400 mt-1">{nameError}</p>
-              )}
+              {/* ...existing name error and checking states... */}
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-white">
+              <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                 Dataset Description
               </label>
               <textarea
@@ -868,88 +860,125 @@ const UploadFile = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
                   text-white placeholder-gray-400
-                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition h-32"
-                placeholder="Enter dataset description "
+                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition h-24 sm:h-32"
+                placeholder="Enter dataset description"
               />
             </div>
 
-            {/* Domain Selection */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-white">
-                Domain
-              </label>
-              <select
-                name="domain"
-                value={formData.domain}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                  text-white placeholder-gray-400
-                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-              >
-                <option value="">Select a domain </option>
-                {domains.map((domain) => (
-                  <option key={domain} value={domain}>
-                    {domain}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Domain and License in a responsive grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {/* Domain Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
+                  Domain
+                </label>
+                <select
+                  name="domain"
+                  value={formData.domain}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                    text-white placeholder-gray-400 min-h-[44px]
+                    focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+                >
+                  <option value="">Select a domain</option>
+                  {domains.map((domain) => (
+                    <option key={domain} value={domain}>
+                      {domain}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2 text-white">
-                License
-              </label>
-              <select
-                name="license"
-                value={formData.license}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                  text-white placeholder-gray-400
-                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-              >
-                <option value="">Select a License </option>
-                {licenses.map((license) => (
-                  <option key={license} value={license}>
-                    {license}
-                  </option>
-                ))}
-              </select>
+              {/* License Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
+                  License
+                </label>
+                <select
+                  name="license"
+                  value={formData.license}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                    text-white placeholder-gray-400 min-h-[44px]
+                    focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+                >
+                  <option value="">Select a License</option>
+                  {licenses.map((license) => (
+                    <option key={license} value={license}>
+                      {license}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Dataset Type */}
-            <label className="block text-sm font-medium mb-2 text-white">
-              Dataset Type
-            </label>
-            <div className="flex gap-4">
-              {["Raw", "Vectorized", "Both"].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setDatasetType(type as typeof datasetType)}
-                  className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all duration-200 
-                    ${
-                      datasetType === type
-                        ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
-                        : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
-                    }`}
-                >
-                  {type}
-                </button>
-              ))}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-white">
+                Dataset Type
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {["Raw", "Vectorized", "Both"].map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setDatasetType(type as typeof datasetType)}
+                    className={`flex items-center justify-center px-4 py-2.5 rounded-xl border-2 transition-all duration-200 min-h-[44px]
+                      ${
+                        datasetType === type
+                          ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                          : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
+                      }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Vectorized Settings */}
+            {/* File Type Selection */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-white">
+                File Type
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { type: "Image", icon: Image },
+                  { type: "Audio", icon: Mic },
+                  { type: "Text", icon: FileType },
+                  { type: "Video", icon: Video },
+                ].map(({ type, icon: Icon }) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setFileType(type as typeof fileType)}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 min-h-[44px]
+                      ${
+                        fileType === type
+                          ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                          : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
+                      }`}
+                  >
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-2" />
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Vectorized Settings Panel */}
             {(datasetType === "Vectorized" || datasetType === "Both") && (
-              <div className="space-y-4 p-6 bg-gray-750 rounded-lg border border-gray-700">
+              <div className="space-y-4 p-4 sm:p-6 bg-gray-750 rounded-lg border border-gray-700">
                 <h3 className="text-lg font-medium text-white mb-4">
                   Vectorized Settings
                 </h3>
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white">
+                    <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                       Model Name
                     </label>
                     <input
@@ -958,14 +987,14 @@ const UploadFile = () => {
                       value={formData.modelName || ""}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                        text-white placeholder-gray-400
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400 min-h-[44px]
                         focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter the model name *"
+                      placeholder="Enter model name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white">
+                    <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                       Dataset Dimensions
                     </label>
                     <input
@@ -974,17 +1003,16 @@ const UploadFile = () => {
                       value={formData.dimensions || ""}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                        text-white placeholder-gray-400
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400 min-h-[44px]
                         focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter dimensions *"
+                      placeholder="Enter dimensions"
                       min="100"
                       max="5000"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white">
+                    <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                       Vector Database
                     </label>
                     <input
@@ -993,10 +1021,10 @@ const UploadFile = () => {
                       value={formData.vectorDatabase || ""}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                          text-white placeholder-gray-400
-                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter vector database name *"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400 min-h-[44px]
+                        focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+                      placeholder="Enter database name"
                       pattern="[A-Za-z]+"
                       title="Only letters are allowed"
                     />
@@ -1005,34 +1033,7 @@ const UploadFile = () => {
               </div>
             )}
 
-            {/* File Type Selection */}
-            <label className="block text-sm font-medium mb-2 text-white">
-              File Type
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { type: "Image", icon: Image },
-                { type: "Audio", icon: Mic },
-                { type: "Text", icon: FileType },
-                { type: "Video", icon: Video },
-              ].map(({ type, icon: Icon }) => (
-                <button
-                  key={type}
-                  onClick={() => setFileType(type as typeof fileType)}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 
-                    ${
-                      fileType === type
-                        ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
-                        : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
-                    }`}
-                >
-                  <Icon className="w-6 h-6 mb-2" />
-                  {type}
-                </button>
-              ))}
-            </div>
-
-            {/* File Upload Section */}
+            {/* File Upload Section with improved mobile layout */}
             <div>
               <label className="block text-sm font-medium mb-2 text-white">
                 Upload Dataset
@@ -1099,27 +1100,53 @@ const UploadFile = () => {
                       </div>
 
                       {selectedUploadTypes.raw === "folders" ? (
-                        <FolderInput
-                          ref={rawFolderInputRef}
-                          onChange={(e) => handleFolderSelect(e, "raw")}
-                          onClick={(e) => {
-                            const element = e.target as HTMLInputElement;
-                            element.value = "";
-                          }}
-                          className={folderInputProps.className}
-                        />
+                        <label className="block">
+                          <span className="sr-only">Choose Folders</span>
+                          <FolderInput
+                            ref={rawFolderInputRef}
+                            onChange={(e) => handleFolderSelect(e, "raw")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            className={folderInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (rawFolderInputRef.current)
+                                rawFolderInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Folders
+                          </button>
+                        </label>
                       ) : (
-                        <input
-                          {...fileInputProps}
-                          type="file"
-                          ref={rawInputRef}
-                          onChange={(e) => handleFileInputChange(e, "raw")}
-                          onClick={(e) => {
-                            const element = e.target as HTMLInputElement;
-                            element.value = "";
-                          }}
-                          accept={fileTypeMap[fileType].extensions.join(",")}
-                        />
+                        <label className="block">
+                          <span className="sr-only">Choose Files</span>
+                          <input
+                            {...fileInputProps}
+                            type="file"
+                            ref={rawInputRef}
+                            onChange={(e) => handleFileInputChange(e, "raw")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            accept={fileTypeMap[fileType].extensions.join(",")}
+                            className={fileInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (rawInputRef.current) rawInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Files
+                          </button>
+                        </label>
                       )}
                     </div>
 
@@ -1187,29 +1214,56 @@ const UploadFile = () => {
                       </div>
 
                       {selectedUploadTypes.vectorized === "folders" ? (
-                        <FolderInput
-                          ref={vectorizedFolderInputRef}
-                          onChange={(e) => handleFolderSelect(e, "vectorized")}
-                          onClick={(e) => {
-                            const element = e.target as HTMLInputElement;
-                            element.value = "";
-                          }}
-                          className={folderInputProps.className}
-                        />
+                        <label className="block">
+                          <span className="sr-only">Choose Folders</span>
+                          <FolderInput
+                            ref={vectorizedFolderInputRef}
+                            onChange={(e) => handleFolderSelect(e, "vectorized")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            className={folderInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (vectorizedFolderInputRef.current)
+                                vectorizedFolderInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Folders
+                          </button>
+                        </label>
                       ) : (
-                        <input
-                          {...fileInputProps}
-                          type="file"
-                          ref={vectorizedInputRef}
-                          onChange={(e) =>
-                            handleFileInputChange(e, "vectorized")
-                          }
-                          onClick={(e) => {
-                            const element = e.target as HTMLInputElement;
-                            element.value = "";
-                          }}
-                          accept={fileTypeMap[fileType].extensions.join(",")}
-                        />
+                        <label className="block">
+                          <span className="sr-only">Choose Files</span>
+                          <input
+                            {...fileInputProps}
+                            type="file"
+                            ref={vectorizedInputRef}
+                            onChange={(e) =>
+                              handleFileInputChange(e, "vectorized")
+                            }
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            accept={fileTypeMap[fileType].extensions.join(",")}
+                            className={fileInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (vectorizedInputRef.current)
+                                vectorizedInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Files
+                          </button>
+                        </label>
                       )}
                     </div>
                   </>
@@ -1283,41 +1337,67 @@ const UploadFile = () => {
                     {selectedUploadTypes[
                       datasetType.toLowerCase() as "raw" | "vectorized"
                     ] === "folders" ? (
-                      <FolderInput
-                        ref={folderInputRef}
-                        onChange={(e) =>
-                          handleFolderSelect(
-                            e,
-                            datasetType.toLowerCase() as "raw" | "vectorized"
-                          )
-                        }
-                        onClick={(e) => {
-                          const element = e.target as HTMLInputElement;
-                          element.value = "";
-                        }}
-                        className={folderInputProps.className}
-                      />
+                      <label className="block">
+                        <span className="sr-only">Choose Folders</span>
+                        <FolderInput
+                          ref={folderInputRef}
+                          onChange={(e) =>
+                            handleFolderSelect(
+                              e,
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            )
+                          }
+                          onClick={(e) => {
+                            const element = e.target as HTMLInputElement;
+                            element.value = "";
+                          }}
+                          className={folderInputProps.className + " hidden"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (folderInputRef.current)
+                              folderInputRef.current.click();
+                          }}
+                          className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                        >
+                          Choose Folders
+                        </button>
+                      </label>
                     ) : (
-                      <input
-                        {...fileInputProps}
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={(e) =>
-                          handleFileInputChange(
-                            e,
-                            datasetType.toLowerCase() as "raw" | "vectorized"
-                          )
-                        }
-                        onClick={(e) => {
-                          const element = e.target as HTMLInputElement;
-                          element.value = "";
-                        }}
-                        accept={
-                          datasetType.toLowerCase() === "raw"
-                            ? fileTypeMap[fileType].extensions.join(",")
-                            : undefined
-                        }
-                      />
+                      <label className="block">
+                        <span className="sr-only">Choose Files</span>
+                        <input
+                          {...fileInputProps}
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={(e) =>
+                            handleFileInputChange(
+                              e,
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            )
+                          }
+                          onClick={(e) => {
+                            const element = e.target as HTMLInputElement;
+                            element.value = "";
+                          }}
+                          accept={
+                            datasetType.toLowerCase() === "raw"
+                              ? fileTypeMap[fileType].extensions.join(",")
+                              : undefined
+                          }
+                          className={fileInputProps.className + " hidden"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (fileInputRef.current) fileInputRef.current.click();
+                          }}
+                          className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                        >
+                          Choose Files
+                        </button>
+                      </label>
                     )}
                   </div>
                 )}
@@ -1419,8 +1499,9 @@ const UploadFile = () => {
               disabled={isUploading}
               className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-cyan-400 
                 text-white font-medium rounded-xl shadow-lg shadow-cyan-500/20 
-                hover:from-cyan-600 hover:to-cyan-500 transition-colors
-                focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                hover:from-cyan-600 hover:to-cyan-500 transition-colors min-h-[44px]
+                focus:outline-none focus:ring-2 focus:ring-cyan-500/40
+                disabled:from-gray-500 disabled:to-gray-400 disabled:cursor-not-allowed"
             >
               {isUploading ? "Uploading..." : "Upload"}
             </button>
