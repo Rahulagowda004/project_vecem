@@ -2,13 +2,17 @@
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [
-      "/images/*.{png,jpg,gif}",
+      "/images/*",
       "/css/*",
       "/js/*",
       "/api/*",
-      "/assets/*",
-      "/favicon.ico",
-      "/*.json"
+      "/static/*",
+      "/*.ico",
+      "/*.json",
+      "/*.png",
+      "/*.jpg",
+      "/*.gif",
+      "/assets/*"
     ]
   },
   "routes": [
@@ -18,29 +22,34 @@
       "allowedRoles": ["authenticated"]
     },
     {
-      "route": "/",
-      "methods": ["GET"],
-      "allowedRoles": ["anonymous"]
+      "route": "/login",
+      "serve": "/index.html",
+      "statusCode": 200
     },
     {
-      "route": "/login",
-      "methods": ["GET"],
-      "allowedRoles": ["anonymous"]
+      "route": "/home",
+      "serve": "/index.html",
+      "statusCode": 200
     },
     {
       "route": "/signup",
-      "methods": ["GET"],
-      "allowedRoles": ["anonymous"]
+      "serve": "/index.html",
+      "statusCode": 200
     },
     {
       "route": "/auth/action",
-      "methods": ["GET"],
-      "allowedRoles": ["anonymous"]
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/",
+      "serve": "/index.html",
+      "statusCode": 200
     },
     {
       "route": "/*",
-      "methods": ["GET"],
-      "allowedRoles": ["anonymous", "authenticated"]
+      "serve": "/index.html",
+      "statusCode": 200
     }
   ],
   "globalHeaders": {
@@ -59,5 +68,11 @@
       "maxRetries": 3,
       "delay": "1s"
     }
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css"
   }
 }
