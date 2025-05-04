@@ -1,7 +1,15 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*", "/api/*"]
+    "exclude": [
+      "/images/*.{png,jpg,gif}",
+      "/css/*",
+      "/js/*",
+      "/api/*",
+      "/assets/*",
+      "/favicon.ico",
+      "/*.json"
+    ]
   },
   "routes": [
     {
@@ -32,7 +40,6 @@
     {
       "route": "/*",
       "methods": ["GET"],
-      "rewrite": "/index.html",
       "allowedRoles": ["anonymous", "authenticated"]
     }
   ],
