@@ -4,6 +4,7 @@ import base64
 from datetime import datetime, timedelta
 import pytz
 from bson import ObjectId
+from bson.errors import InvalidId
 from fastapi import FastAPI, HTTPException, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -18,25 +19,35 @@ from src.bot import FRIDAY
 from typing import Optional 
 from src.models.chat_models import General, Issue, IssueReply
 from src.database import mongodb
-from src.routes import admin
+from src.models.dataset_models import DatasetSchema, DatasetInfo, Files
+from src.config import settings
+from src.middleware.error_handler import error_handler
 
-app = FastAPI()
-
-CORS_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-]
+app = FastAPI(
+    title="Vecem API",
+    version="1.0.0",
+    description="Vecem API for managing datasets and user profiles",
+)
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add security middleware
+from src.middleware.security import SecurityMiddleware
+app.middleware("http")(SecurityMiddleware(
+    rate_limit_requests=100,
+    rate_limit_window=60,
+    allowed_hosts=settings.ALLOWED_HOSTS if hasattr(settings, 'ALLOWED_HOSTS') else []
+))
+
+# Add error handler middleware
+app.middleware("http")(error_handler)
 
 # Include routers
 app.include_router(upload_router)
@@ -294,10 +305,12 @@ async def log_dataset_click(data: dict):
         
         if not dataset:
             raise HTTPException(status_code=404, detail="Dataset not found")
-            
+        
+        # Convert to DatasetSchema format    
         dataset["_id"] = str(dataset["_id"])
-        dataset["username"] = username  # Add username to the response
-        return jsonable_encoder(dataset)
+        dataset["username"] = username
+        return jsonable_encoder(DatasetSchema(**dataset))
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -348,30 +361,59 @@ async def log_dataset_edit(data: dict):
 
 @app.put("/update-dataset/{dataset_id}")
 async def update_dataset(dataset_id: str, updated_data: dict):
-    logging.info(f"Endpoint called: update_dataset() for dataset_id: {dataset_id}")
+    logging.info(f"Endpoint called: update_dataset() for dataset_id: {dataset_id} with data: {updated_data}")
     try:
-        # Convert string ID back to ObjectId
         object_id = ObjectId(dataset_id)
         
-        # Update the dataset
+        if not updated_data.get("userId"):
+            raise HTTPException(status_code=400, detail="User ID is required")
+            
+        dataset = await datasets_collection.find_one({
+            "_id": object_id,
+            "uid": updated_data["userId"]
+        })
+        
+        if not dataset:
+            raise HTTPException(status_code=404, detail="Dataset not found")
+        
+        # Determine upload_type based on available files
+        files = dataset.get("files", {})
+        has_raw = bool(files.get("raw"))
+        has_vectorized = bool(files.get("vectorized"))
+        upload_type = "both" if has_raw and has_vectorized else (
+            "raw" if has_raw else "vectorized" if has_vectorized else dataset.get("upload_type", "raw")
+        )
+        
+        # Update using new schema format
+        update_dict = {
+            "dataset_info": {
+                "name": updated_data.get("name"),
+                "description": updated_data.get("description"),
+                "domain": updated_data.get("domain"),
+                "file_type": updated_data.get("fileType"),
+                "dimensions": updated_data.get("vectorizedSettings", {}).get("dimensions"),
+                "vector_database": updated_data.get("vectorizedSettings", {}).get("vectorDatabase"),
+                "model_name": updated_data.get("vectorizedSettings", {}).get("modelName"),
+                "license": dataset["dataset_info"].get("license", ""),  # Preserve existing license
+                "username": dataset["dataset_info"].get("username", ""), # Preserve username
+                "datasetId": dataset["dataset_id"]  # Preserve dataset_id
+            },
+            "upload_type": upload_type,
+            "timestamp": datetime.now()
+        }
+        
         result = await datasets_collection.update_one(
             {"_id": object_id},
-            {"$set": {
-                "dataset_info.name": updated_data.get("name"),
-                "dataset_info.description": updated_data.get("description"),
-                "dataset_info.domain": updated_data.get("domain"),
-                "dataset_info.file_type": updated_data.get("fileType"),
-                "upload_type": updated_data.get("datasetType"),
-                "vectorized_settings": updated_data.get("vectorizedSettings"),
-            }}
+            {"$set": update_dict}
         )
-        logging.info(f"Dataset updated: {result} in update_dataset()")
+        
         if result.modified_count == 0:
-            raise HTTPException(status_code=404, detail="Dataset not found")
+            raise HTTPException(status_code=404, detail="Failed to update dataset")
             
-        return {"message": "Dataset updated successfully"}
+        return {"message": "Dataset updated successfully", "status": "success"}
         
     except Exception as e:
+        logging.error(f"Error updating dataset: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 class DatasetDeleteRequest(BaseModel):
@@ -555,7 +597,14 @@ async def get_messages(tag: str):
         ist = pytz.timezone('Asia/Kolkata')
         processed_messages = []
         for msg in messages:
-            user = await user_profile_collection.find_one({"uid": msg["uid"]})
+            # Handle cases where user might not exist
+            user = await user_profile_collection.find_one({"uid": msg.get("uid")})
+            user_name = "Anonymous"
+            user_avatar = ""
+            
+            if user:
+                user_name = user.get("name", "Anonymous")
+                user_avatar = user.get("profilePicture", "")
             
             # Get replies for issues
             replies = []
@@ -565,24 +614,31 @@ async def get_messages(tag: str):
                 ).sort("created_at", 1).to_list(None)
                 
                 for reply in replies_cursor:
-                    reply_user = await user_profile_collection.find_one({"uid": reply["uid"]})
+                    reply_user = await user_profile_collection.find_one({"uid": reply.get("uid")})
+                    reply_name = "Anonymous"
+                    reply_avatar = ""
+                    
+                    if reply_user:
+                        reply_name = reply_user.get("name", "Anonymous")
+                        reply_avatar = reply_user.get("profilePicture", "")
+                        
                     replies.append({
                         "id": str(reply["_id"]),
-                        "content": reply["description"],
-                        "userId": reply["uid"],
-                        "userName": reply_user.get("name", "Anonymous") if reply_user else "Anonymous",
-                        "userAvatar": reply_user.get("profilePicture", ""),
-                        "timestamp": reply["created_at"],
+                        "content": reply.get("description", ""),
+                        "userId": reply.get("uid", ""),
+                        "userName": reply_name,
+                        "userAvatar": reply_avatar,
+                        "timestamp": reply.get("created_at", datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')),
                         "tag": tag
                     })
 
             processed_msg = {
                 "id": str(msg["_id"]),
-                "content": msg["description"],
-                "userId": msg["uid"],
-                "userName": user.get("name", "Anonymous") if user else "Anonymous",
-                "userAvatar": user.get("profilePicture", ""),
-                "timestamp": msg["created_at"],  # Already in IST format
+                "content": msg.get("description", ""),
+                "userId": msg.get("uid", ""),
+                "userName": user_name,
+                "userAvatar": user_avatar,
+                "timestamp": msg.get("created_at", datetime.now(ist).strftime('%Y-%m-%d %H:%M:%S %Z')),
                 "tag": tag,
                 "replies": replies
             }
@@ -591,44 +647,28 @@ async def get_messages(tag: str):
         return jsonable_encoder(processed_messages)
     except Exception as e:
         logging.error(f"Error fetching {tag} messages: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return []  # Return empty list instead of raising error
 
 # Initialize the chatbot
-bot = FRIDAY()
+bot = None
 
 class ChatMessage(BaseModel):
     message: str
-    uid: str  # Add uid to request
-    session_id: Optional[str] = None
+    uid: str
 
 @app.post("/chat")
 async def chat_endpoint(chat_message: ChatMessage):
     try:
-        # Get user's API key from MongoDB
-        user = await user_profile_collection.find_one(
-            {"uid": chat_message.uid},
-            {"api_key": 1}
-        )
-        
-        if not user or not user.get("api_key"):
-            raise HTTPException(
-                status_code=401,
-                detail="API key not found. Please configure your API key."
-            )
-
-        # Get response using only the message parameter
-        response = await bot.get_response(message=chat_message.message)
-        
-        return {
-            "response": response,
-            "session_id": None
-        }
-
-    except HTTPException as he:
-        raise he
+        # Create new bot instance for each message to ensure fresh API key
+        bot = FRIDAY(chat_message.uid)
+        await bot.initialize()  # This will fetch the latest API key
+        response = await bot.get_response(chat_message.message)
+        return {"response": response}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logging.error(f"Chat endpoint error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error processing chat message")
+        logging.error(f"Error in chat endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # Add these new endpoints before the shutdown event
 @app.post("/prompt-click")
@@ -753,3 +793,54 @@ async def create_prompt(prompt: Prompts):
     except Exception as e:
         logging.error(f"Error saving prompt: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for monitoring and status verification
+    Returns health status of API and connected services
+    """
+    try:
+        # Check MongoDB connection
+        db_status = "healthy"
+        db_error = None
+        try:
+            # Ping MongoDB to verify connection
+            await mongodb.mongo_client.admin.command('ping')
+        except Exception as e:
+            db_status = "unhealthy"
+            db_error = str(e)
+        
+        # Check Azure Blob Storage connection
+        storage_status = "healthy"
+        storage_error = None
+        try:
+            # List containers to verify connection
+            from src.utils.azure_storage import blob_service_client
+            containers = list(blob_service_client.list_containers(max_results=1))
+        except Exception as e:
+            storage_status = "unhealthy"
+            storage_error = str(e)
+            
+        return {
+            "status": "online",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0.0",
+            "services": {
+                "database": {
+                    "status": db_status,
+                    "error": db_error
+                },
+                "storage": {
+                    "status": storage_status,
+                    "error": storage_error
+                }
+            }
+        }
+    except Exception as e:
+        logging.error(f"Health check failed: {str(e)}")
+        return {
+            "status": "degraded",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e)
+        }

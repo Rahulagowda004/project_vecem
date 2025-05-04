@@ -11,33 +11,46 @@ from langchain_core.messages import HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
+from src.database.mongodb import user_profile_collection
 
 # Load environment variables
 load_dotenv()
 
 class FRIDAY:
-    def __init__(self):
-        self.api_key = "AIzaSyCHHf95-Yx6F525N5p44Lz2uOuV0C6LXcQ"
-        if not self.api_key:
-            raise ValueError("API key not found in environment variables")
+    def __init__(self, uid: str = None):
+        if not uid:
+            raise ValueError("User ID is required")
         
+        self.uid = uid
+        self.api_key = None
+        self.model = None
+        self.chat_history = ChatMessageHistory()
+        self.output_parser = StrOutputParser()
+    
+    async def initialize(self):
+        # Fetch API key from user profile every time
+        user = await user_profile_collection.find_one({"uid": self.uid})
+        if not user or not user.get("api_key"):
+            raise ValueError("API key not found for user")
+        
+        self.api_key = user["api_key"]
         self.model = ChatGoogleGenerativeAI(
             model="gemini-1.5-pro",
             api_key=self.api_key,
             temperature=0.7
         )
-        self.chat_history = ChatMessageHistory()
-        self.output_parser = StrOutputParser()
 
     def setup_chain(self) -> RunnableWithMessageHistory:
         """Set up the prompt and chain with the model."""
         try:
             prompt = ChatPromptTemplate.from_messages([
-                ("system", """You are Vecem, an expert prompt engineer specializing in crafting precise, context-driven system messages for AI agents.
-                When the user explicitly requests a system message, ask up to 4 targeted questions only if their request is ambiguous or lacks critical details. Focus on clarifying the agent's goal, role, format, constraints, and relevant context.
-                If the user's input is clear, generate a highly effective system message without unnecessary follow-ups.
-                If the user sends a casual greeting or any non-system-message request, respond naturally with initiating topics about the current project they are working on.
-                Your objective is to ensure clarity, relevance, and usability in system messages, as if you were collaborating with a human partner. Avoid over-questioning and keep communication natural.
+                ("system", """Vecora is an expert prompt engineer specializing in generating tailored system messages for AI agents.
+
+When greeted or asked a general question, Vecora responds in a friendly, helpful, and informative tone.
+
+When given a specific agent type or context, Vecora crafts a precise, context-driven system message suited to the user's needs.
+
+Unless the user specifies otherwise, Vecora provides concise prompts instead of lengthy ones.
                 """),
                 MessagesPlaceholder(variable_name="thinking")
             ])
@@ -49,6 +62,12 @@ class FRIDAY:
     async def get_response(self, message: str) -> str:
         """Handle a single message and return the response."""
         try:
+            # Re-initialize to get fresh API key for each request
+            await self.initialize()
+
+            if not self.api_key:
+                raise ValueError("API key not initialized. Please ensure you have set up your API key.")
+
             chain = self.setup_chain()
             with_message_history = RunnableWithMessageHistory(
                 chain,
@@ -68,9 +87,12 @@ class FRIDAY:
 
             return response_text.strip()
 
+        except ValueError as ve:
+            logging.error(f"API key error: {str(ve)}")
+            return "I apologize, but there seems to be an issue with your API key. Please check your API key settings."
         except Exception as e:
             logging.error(f"Error processing message: {str(e)}")
-            return "I apologize, but I encountered an error. Please try again."
+            return "Enter a valid API key to continue."
 
     async def chat(self) -> None:
         """Main chat loop with error handling."""

@@ -3,19 +3,35 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
-import { sendFirebaseUidAndEmail } from "../services/uploadService"; // Import the updated function
+import { sendFirebaseUidAndEmail } from "../services/uploadService";
+import config from "../config"; // Import the config with fallbacks
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCOvJJJ09So-UMX48LPD11Qph5u4kHdY5c",
-  authDomain: "vecem-a2b35.firebaseapp.com",
-  projectId: "vecem-a2b35",
-  storageBucket: "vecem-a2b35.appspot.com",
-  messagingSenderId: "1001351785962",
-  appId: "1:1001351785962:web:56e302507f3a89aa0e5693",
-  measurementId: "G-N2XVLS35MY",
+// Define Firebase config type for TypeScript
+type FirebaseConfigType = {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+  measurementId?: string;
 };
 
-// Initialize Firebase
+// Use the Firebase configuration from config.ts which includes fallbacks
+const firebaseConfig: FirebaseConfigType = config.FIREBASE_CONFIG;
+
+// Log environment variable loading status for debugging
+console.log("Firebase config loaded:", {
+  apiKey: !!firebaseConfig.apiKey,
+  authDomain: !!firebaseConfig.authDomain,
+  projectId: !!firebaseConfig.projectId,
+  storageBucket: !!firebaseConfig.storageBucket,
+  messagingSenderId: !!firebaseConfig.messagingSenderId,
+  appId: !!firebaseConfig.appId,
+  measurementId: !!firebaseConfig.measurementId,
+});
+
+// Initialize Firebase without additional validation (already handled in config.ts)
 const app = initializeApp(firebaseConfig);
 
 // Initialize services
@@ -33,7 +49,7 @@ auth.onAuthStateChanged(async (user) => {
     console.log("User UID:", uid);
     console.log("User Email:", email);
     console.log("User Name:", name);
-    await sendFirebaseUidAndEmail(uid, email, name); // Send UID and email to backend
+    await sendFirebaseUidAndEmail(uid, email, name);
   }
 });
 

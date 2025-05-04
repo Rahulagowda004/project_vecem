@@ -6,6 +6,7 @@ import PageBackground from "../components/layouts/PageBackground";
 import { motion, AnimatePresence } from "framer-motion";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase/firebase";
+import { API_BASE_URL } from "../config";
 
 interface SignupProps {
   onClose?: () => void;
@@ -79,7 +80,7 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
     const user = auth.currentUser;
     if (user) {
       const token = await user.getIdToken();
-      await fetch("http://localhost:5000/register-user", {
+      await fetch(`${API_BASE_URL}/register-user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,10 +100,10 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
     this.setState({ loading: true, error: "" });
 
     // Debug log
-    console.log('Attempting signup with:', {
+    console.log("Attempting signup with:", {
       email: this.state.email,
       passwordLength: this.state.password.length,
-      password: this.state.password // Temporary debug log
+      password: this.state.password, // Temporary debug log
     });
 
     try {
@@ -115,13 +116,13 @@ class SignupComponent extends React.Component<SignupProps, SignupState> {
         this.state.email.trim(),
         this.state.password.trim()
       );
-      
+
       if (this.props.onClose) {
         this.props.onClose();
       }
       window.location.href = "/";
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error("Signup error:", error);
       this.setState({
         error: error.message || "Failed to create account",
         loading: false,

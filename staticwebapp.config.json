@@ -1,0 +1,78 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/images/*",
+      "/css/*",
+      "/js/*",
+      "/api/*",
+      "/static/*",
+      "/*.ico",
+      "/*.json",
+      "/*.png",
+      "/*.jpg",
+      "/*.gif",
+      "/assets/*"
+    ]
+  },
+  "routes": [
+    {
+      "route": "/api/*",
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/login",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/home",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/signup",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/auth/action",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ],
+  "globalHeaders": {
+    "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'",
+    "cache-control": "no-cache"
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  },
+  "apiRoutes": {
+    "timeout": "30s",
+    "retry": {
+      "maxRetries": 3,
+      "delay": "1s"
+    }
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".css": "text/css"
+  }
+}

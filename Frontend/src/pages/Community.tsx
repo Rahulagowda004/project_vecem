@@ -10,10 +10,13 @@ import {
   X,
   Search,
   ChevronRight,
-  Home, // Add these imports
+  Home,
+  Menu, // Add Menu icon for mobile
+  Filter, // Add Filter icon for mobile
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { Link } from "react-router-dom"; // Add this import
+import { Link } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 interface Message {
   id: number;
@@ -72,7 +75,7 @@ const Community = () => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [searchQuery, setSearchQuery] = useState(""); // Add this line
+  const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [selectedTag, setSelectedTag] = useState<"general" | "issue">(
     "general"
@@ -83,96 +86,110 @@ const Community = () => {
   const [showGuidelines, setShowGuidelines] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [currentTag, setCurrentTag] = useState<"general" | "issue">("general");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  // Add state for mobile filter menu
+  const [showMobileFilterMenu, setShowMobileFilterMenu] = useState(false);
 
   // Update the formatWhatsAppTimestamp function
-const formatWhatsAppTimestamp = (dateString: string | Date) => {
-  try {
-    // Debug log to see what we're receiving
-    console.log('Raw timestamp:', dateString);
+  const formatWhatsAppTimestamp = (dateString: string | Date) => {
+    try {
+      // Debug log to see what we're receiving
+      console.log("Raw timestamp:", dateString);
 
-    // Handle different date formats
-    let messageDate: Date;
+      // Handle different date formats
+      let messageDate: Date;
 
-    if (typeof dateString === 'string') {
-      // Try parsing the string directly first
-      messageDate = new Date(dateString);
-      
-      if (isNaN(messageDate.getTime())) {
-        // If parsing failed, try different formats
-        if (dateString.includes(' ')) {
-          // Handle MySQL format: "YYYY-MM-DD HH:mm:ss"
-          const [date, time] = dateString.split(' ');
-          messageDate = new Date(`${date}T${time}`);
-        } else if (dateString.includes('/')) {
-          // Handle date format with slashes
-          const [month, day, year] = dateString.split('/');
-          messageDate = new Date(Number(year), Number(month) - 1, Number(day));
+      if (typeof dateString === "string") {
+        // Try parsing the string directly first
+        messageDate = new Date(dateString);
+
+        if (isNaN(messageDate.getTime())) {
+          // If parsing failed, try different formats
+          if (dateString.includes(" ")) {
+            // Handle MySQL format: "YYYY-MM-DD HH:mm:ss"
+            const [date, time] = dateString.split(" ");
+            messageDate = new Date(`${date}T${time}`);
+          } else if (dateString.includes("/")) {
+            // Handle date format with slashes
+            const [month, day, year] = dateString.split("/");
+            messageDate = new Date(
+              Number(year),
+              Number(month) - 1,
+              Number(day)
+            );
+          }
         }
+      } else if (dateString instanceof Date) {
+        messageDate = dateString;
+      } else {
+        console.error("Unsupported date format:", dateString);
+        return String(dateString);
       }
-    } else if (dateString instanceof Date) {
-      messageDate = dateString;
-    } else {
-      console.error('Unsupported date format:', dateString);
-      return dateString.toString();
+
+      // Validate the parsed date
+      if (!messageDate || isNaN(messageDate.getTime())) {
+        console.error("Invalid date:", dateString);
+        return dateString.toString();
+      }
+
+      // Format the date
+      const now = new Date();
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (messageDate.toDateString() === now.toDateString()) {
+        const formattedTime = messageDate.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+        console.log("Today's formatted time:", formattedTime);
+        return formattedTime.toLowerCase();
+      }
+
+      // Rest of the formatting logic remains the same
+      if (messageDate.toDateString() === yesterday.toDateString()) {
+        return `Yesterday ${messageDate
+          .toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          .toLowerCase()}`;
+      }
+
+      if (messageDate.getFullYear() === now.getFullYear()) {
+        return `${messageDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })} ${messageDate
+          .toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+          })
+          .toLowerCase()}`;
+      }
+
+      return `${messageDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })} ${messageDate
+        .toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+        .toLowerCase()}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      // Return the original string if we can't parse it
+      return String(dateString);
     }
-
-    // Validate the parsed date
-    if (!messageDate || isNaN(messageDate.getTime())) {
-      console.error('Invalid date:', dateString);
-      return dateString.toString();
-    }
-
-    // Format the date
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (messageDate.toDateString() === now.toDateString()) {
-      const formattedTime = messageDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-      console.log('Today\'s formatted time:', formattedTime);
-      return formattedTime.toLowerCase();
-    }
-
-    // Rest of the formatting logic remains the same
-    if (messageDate.toDateString() === yesterday.toDateString()) {
-      return `Yesterday ${messageDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }).toLowerCase()}`;
-    }
-
-    if (messageDate.getFullYear() === now.getFullYear()) {
-      return `${messageDate.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-      })} ${messageDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      }).toLowerCase()}`;
-    }
-
-    return `${messageDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })} ${messageDate.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }).toLowerCase()}`;
-
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    // Return the original string if we can't parse it
-    return String(dateString);
-  }
-};
+  };
 
   const postMessage = async (content: string, tag: "general" | "issue") => {
     try {
@@ -183,7 +200,7 @@ const formatWhatsAppTimestamp = (dateString: string | Date) => {
         created_at: new Date().toISOString(),
       };
 
-      const response = await fetch(`http://127.0.0.1:5000/community/${tag}`, {
+      const response = await fetch(`${API_BASE_URL}/community/${tag}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -216,7 +233,7 @@ const formatWhatsAppTimestamp = (dateString: string | Date) => {
         created_at: new Date().toISOString(),
       };
 
-      const response = await fetch("http://127.0.0.1:5000/community/reply", {
+      const response = await fetch(`${API_BASE_URL}/community/reply`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -236,37 +253,65 @@ const formatWhatsAppTimestamp = (dateString: string | Date) => {
   };
 
   // Update the fetchMessages function to properly format timestamps
-const fetchMessages = async (tag: "general" | "issue") => {
-  try {
-    const response = await fetch(
-      `http://127.0.0.1:5000/community/messages/${tag}`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch messages");
-    }
-    const data = await response.json();
-    console.log('Raw message data:', data); // Debug log
+  const fetchMessages = async (tag: "general" | "issue") => {
+    try {
+      if (messages.length === 0) {
+        setIsLoading(true);
+      }
+      setFetchError(null);
+      const response = await fetch(`${API_BASE_URL}/community/messages/${tag}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch messages: ${response.statusText}`);
+      }
+      const data = await response.json();
 
-    return data.map((message: any) => {
-      // Log each message's timestamp for debugging
-      console.log('Message timestamp:', message.created_at || message.timestamp);
-      
-      return {
-        ...message,
-        // Ensure we have a valid timestamp
-        timestamp: message.created_at || message.timestamp || new Date().toISOString()
-      };
-    });
-  } catch (error) {
-    console.error("Error fetching messages:", error);
-    return [];
-  }
-};
+      if (!Array.isArray(data)) {
+        setMessages([]);
+        return;
+      }
+
+      // Keep track of existing messages to prevent duplicates
+      setMessages((prevMessages) => {
+        const newMessages = data.map((message: any) => ({
+          ...message,
+          timestamp:
+            message.created_at || message.timestamp || new Date().toISOString(),
+          userName: message.userName || "Anonymous",
+          userAvatar: message.userAvatar || "",
+          content: message.content || "",
+          replies: Array.isArray(message.replies) ? message.replies : [],
+        }));
+
+        // Merge existing and new messages, removing duplicates
+        const mergedMessages = [...prevMessages];
+        newMessages.forEach((newMsg) => {
+          const existingIndex = mergedMessages.findIndex(
+            (msg) => msg.id === newMsg.id
+          );
+          if (existingIndex === -1) {
+            mergedMessages.push(newMsg);
+          } else {
+            mergedMessages[existingIndex] = newMsg;
+          }
+        });
+
+        // Sort messages by timestamp
+        return mergedMessages.sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
+      });
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      setFetchError("Failed to load messages. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadMessages = async () => {
-      const messages = await fetchMessages(selectedFilter);
-      setMessages(messages);
+      await fetchMessages(selectedFilter);
     };
     loadMessages();
   }, [selectedFilter]); // Reload when filter changes
@@ -274,14 +319,14 @@ const fetchMessages = async (tag: "general" | "issue") => {
   // Add these two useEffect hooks for auto-refresh and scrolling
   useEffect(() => {
     const interval = setInterval(async () => {
-      const messages = await fetchMessages(selectedFilter);
-      setMessages(messages);
-    }, 5000); // Refresh every 5 seconds
+      await fetchMessages(selectedFilter);
+    }, 10000); // Increased to 10 seconds to reduce unnecessary refreshes
 
     return () => clearInterval(interval);
   }, [selectedFilter]);
 
-  useEffect(() => { // This is correct
+  useEffect(() => {
+    // This is correct
     const scrollToBottom = () => {
       const messagesDiv = document.querySelector(".messages-container");
       if (messagesDiv) {
@@ -292,73 +337,77 @@ const fetchMessages = async (tag: "general" | "issue") => {
   }, [messages]);
 
   // Update handleSendMessage function
-const handleSendMessage = async () => {
-  if (!newMessage.trim() || !user) return;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !user) return;
 
-  try {
-    const timestamp = new Date().toISOString();
-    const result = await postMessage(newMessage, currentTag);
-    console.log('Message post response:', result);
+    try {
+      const timestamp = new Date().toISOString();
+      setNewMessage(""); // Clear message immediately
 
-    const newMsg: Message = {
-      id: result.id,
-      userId: user.uid,
-      userName: user.displayName || "Anonymous",
-      userAvatar: user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
-      content: result.payload.description,
-      // Use the most reliable timestamp source
-      timestamp: result.created_at || result.timestamp || timestamp,
-      tag: currentTag,
-      replies: [],
-    };
+      const result = await postMessage(newMessage.trim(), currentTag);
 
-    console.log('New message timestamp:', newMsg.timestamp);
-    setMessages((prev) => [...prev, newMsg]);
-    setNewMessage("");
-  } catch (error) {
-    console.error("Error sending message:", error);
-  }
-};
+      const newMsg: Message = {
+        id: result.id,
+        userId: user.uid,
+        userName: user.displayName || "Anonymous",
+        userAvatar:
+          user.photoURL ||
+          `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
+        content: result.payload.description,
+        timestamp: result.created_at || result.timestamp || timestamp,
+        tag: currentTag,
+        replies: [],
+      };
+
+      setMessages((prev) => [...prev, newMsg]);
+      await fetchMessages(currentTag);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
 
   // Add function to handle replies
   // Update handleReply function
-const handleReply = async (parentMessage: Message) => {
-  if (!newMessage.trim() || !user) return;
+  const handleReply = async (parentMessage: Message) => {
+    if (!newMessage.trim() || !user) return;
 
-  try {
-    const result = await postReply(parentMessage.id.toString(), newMessage);
-    console.log('Reply response:', result); // Debug log
+    try {
+      setNewMessage(""); // Clear message immediately
+      setReplyingTo(null); // Clear reply state immediately
 
-    const newReply: Message = {
-      id: result.id,
-      userId: user.uid,
-      userName: user.displayName || "Anonymous",
-      userAvatar: user.photoURL || `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
-      content: newMessage,
-      timestamp: result.timestamp || result.created_at,
-      tag: selectedTag,
-    };
+      const result = await postReply(
+        parentMessage.id.toString(),
+        newMessage.trim()
+      );
 
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === parentMessage.id
-          ? { ...msg, replies: [...(msg.replies || []), newReply] }
-          : msg
-      )
-    );
+      const newReply: Message = {
+        id: result.id,
+        userId: user.uid,
+        userName: user.displayName || "Anonymous",
+        userAvatar:
+          user.photoURL ||
+          `https://api.dicebear.com/6.x/avataaars/svg?seed=${user.uid}`,
+        content: newMessage,
+        timestamp: result.timestamp || result.created_at,
+        tag: selectedTag,
+      };
 
-    setNewMessage("");
-    setReplyingTo(null);
-  } catch (error) {
-    console.error("Error sending reply:", error);
-  }
-};
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === parentMessage.id
+            ? { ...msg, replies: [...(msg.replies || []), newReply] }
+            : msg
+        )
+      );
+    } catch (error) {
+      console.error("Error sending reply:", error);
+    }
+  };
 
   const handleFilterChange = async (newFilter: "general" | "issue") => {
     setSelectedFilter(newFilter);
     setCurrentTag(newFilter);
-    const messages = await fetchMessages(newFilter);
-    setMessages(messages);
+    await fetchMessages(newFilter);
   };
 
   const filteredMessages = messages.filter(
@@ -445,7 +494,6 @@ const handleReply = async (parentMessage: Message) => {
             animate={{ opacity: 1 }}
             className="pl-4 flex items-start space-x-4"
           >
-
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="relative flex-shrink-0"
@@ -466,7 +514,9 @@ const handleReply = async (parentMessage: Message) => {
                 }`}
               >
                 <div className="mb-1">
-                  <span className="text-cyan-400 text-sm">{reply.userName}</span>
+                  <span className="text-cyan-400 text-sm">
+                    {reply.userName}
+                  </span>
                   {reply.userId === user?.uid && (
                     <span className="text-xs text-cyan-400/50 ml-2">(You)</span>
                   )}
@@ -545,7 +595,11 @@ const handleReply = async (parentMessage: Message) => {
 
     // New rendering for general messages
     return (
-      <div className={`flex items-start space-x-4 ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+      <div
+        className={`flex items-start space-x-4 ${
+          isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
+        }`}
+      >
         <motion.div
           whileHover={{ scale: 1.05 }}
           className="relative flex-shrink-0"
@@ -558,7 +612,11 @@ const handleReply = async (parentMessage: Message) => {
           <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black" />
         </motion.div>
 
-        <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+        <div
+          className={`flex flex-col ${
+            isOwnMessage ? "items-end" : "items-start"
+          }`}
+        >
           <motion.div
             whileHover={{ scale: 1.01 }}
             className={`max-w-md rounded-2xl p-4 ${
@@ -578,11 +636,17 @@ const handleReply = async (parentMessage: Message) => {
             <p className="text-white text-sm">{message.content}</p>
           </motion.div>
 
-          <div className={`flex items-center mt-1 space-x-2 text-xs ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+          <div
+            className={`flex items-center mt-1 space-x-2 text-xs ${
+              isOwnMessage ? "flex-row-reverse space-x-reverse" : ""
+            }`}
+          >
             {isOwnMessage && (
               <span className="text-xs text-cyan-400/50">(You)</span>
             )}
-            <span className="text-gray-500">{formatWhatsAppTimestamp(message.timestamp)}</span>
+            <span className="text-gray-500">
+              {formatWhatsAppTimestamp(message.timestamp)}
+            </span>
           </div>
         </div>
       </div>
@@ -608,19 +672,19 @@ const handleReply = async (parentMessage: Message) => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-gradient-to-b from-gray-800/90 to-gray-900/90 rounded-2xl border border-white/10 p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl backdrop-blur-xl"
+              className="bg-gradient-to-b from-gray-800/90 to-gray-900/90 rounded-2xl border border-white/10 p-4 sm:p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl backdrop-blur-xl"
             >
               {/* Guidelines Header */}
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-                    <HelpCircle className="w-6 h-6 text-cyan-400" />
+                    <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-white">
+                    <h2 className="text-lg sm:text-xl font-bold text-white">
                       {communityGuidelines.title}
                     </h2>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-xs sm:text-sm text-gray-400">
                       {communityGuidelines.description}
                     </p>
                   </div>
@@ -635,20 +699,22 @@ const handleReply = async (parentMessage: Message) => {
 
               {/* Add Tag Guidelines Section */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">
                   Message Tags
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
                   {Object.entries(messageTagConfig).map(([tag, config]) => (
                     <div
                       key={tag}
-                      className={`p-4 rounded-xl ${config.color} border border-opacity-20`}
+                      className={`p-3 sm:p-4 rounded-xl ${config.color} border border-opacity-20`}
                     >
                       <div className="flex items-center space-x-2">
-                        <Tag className="w-4 h-4" />
-                        <span className="font-medium">{config.label}</span>
+                        <Tag className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="font-medium text-sm sm:text-base">
+                          {config.label}
+                        </span>
                       </div>
-                      <p className="text-sm mt-2 text-gray-300">
+                      <p className="text-xs sm:text-sm mt-2 text-gray-300">
                         {
                           communityGuidelines.tagGuidelines[
                             tag as keyof typeof communityGuidelines.tagGuidelines
@@ -661,22 +727,22 @@ const handleReply = async (parentMessage: Message) => {
               </div>
 
               {/* Guidelines Content */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {communityGuidelines.rules.map((rule, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="p-4 rounded-xl bg-gray-700/30 border border-gray-600/50 hover:border-cyan-500/20 transition-colors"
+                    className="p-3 sm:p-4 rounded-xl bg-gray-700/30 border border-gray-600/50 hover:border-cyan-500/20 transition-colors"
                   >
-                    <div className="flex items-start space-x-3">
-                      <span className="text-2xl">{rule.icon}</span>
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <span className="text-xl sm:text-2xl">{rule.icon}</span>
                       <div>
-                        <h3 className="font-medium text-white mb-1">
+                        <h3 className="font-medium text-sm sm:text-base text-white mb-1">
                           {rule.title}
                         </h3>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-xs sm:text-sm text-gray-400">
                           {rule.description}
                         </p>
                       </div>
@@ -690,7 +756,7 @@ const handleReply = async (parentMessage: Message) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowGuidelines(false)}
-                className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium"
+                className="w-full mt-6 py-2.5 sm:py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl font-medium text-sm sm:text-base"
               >
                 I Understand
               </motion.button>
@@ -705,20 +771,22 @@ const handleReply = async (parentMessage: Message) => {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 left-0 right-0 z-20 px-6 py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
+          className="sticky top-0 left-0 right-0 z-20 px-3 sm:px-6 py-3 sm:py-4 bg-gray-900/50 border-b border-cyan-500/10 backdrop-blur-xl"
         >
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-3 sm:space-y-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-4">
-                <MessageSquare className="w-6 h-6 text-indigo-400" />
-                <div className="flex items-center space-x-3">
-                  <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400" />
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <h2 className="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
                     Community Chat
                   </h2>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                {/* Updated Tag Filters */}
+
+              {/* Desktop filters and guidelines button */}
+              <div className="hidden sm:flex items-center space-x-4">
+                {/* Tag Filters */}
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-2">
                     {Object.entries(messageTagConfig).map(([tag, config]) => (
@@ -754,7 +822,80 @@ const handleReply = async (parentMessage: Message) => {
                   </div>
                 </motion.button>
               </div>
+
+              {/* Mobile filter and menu buttons */}
+              <div className="flex sm:hidden items-center space-x-2">
+                {/* Current filter indicator for mobile */}
+                <div
+                  className={`px-2 py-0.5 rounded-full text-xs ${messageTagConfig[selectedFilter].color}`}
+                >
+                  {messageTagConfig[selectedFilter].label}
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowMobileFilterMenu(!showMobileFilterMenu)}
+                  className="p-2 rounded-lg bg-gray-800/50"
+                >
+                  <Filter className="w-4 h-4 text-cyan-400" />
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowGuidelines(true)}
+                  className="p-2 rounded-lg bg-gray-800/50"
+                >
+                  <HelpCircle className="w-4 h-4 text-cyan-400" />
+                </motion.button>
+              </div>
             </div>
+
+            {/* Mobile filter menu */}
+            <AnimatePresence>
+              {showMobileFilterMenu && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="sm:hidden overflow-hidden mb-2"
+                >
+                  <div className="bg-gray-800/80 rounded-xl p-3 border border-gray-700/50">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-300">Select View</span>
+                      <button
+                        onClick={() => setShowMobileFilterMenu(false)}
+                        className="p-1 rounded-lg hover:bg-gray-700/50"
+                      >
+                        <X className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col space-y-2">
+                      {Object.entries(messageTagConfig).map(([tag, config]) => (
+                        <button
+                          key={tag}
+                          onClick={() => {
+                            handleFilterChange(tag as "general" | "issue");
+                            setShowMobileFilterMenu(false);
+                          }}
+                          className={`px-3 py-2 rounded-lg flex items-center space-x-2 ${
+                            selectedFilter === tag
+                              ? config.color
+                              : "bg-gray-700/50 text-gray-300"
+                          }`}
+                        >
+                          <Tag className="w-3 h-3" />
+                          <span className="text-sm">{config.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Add the animated search bar */}
             <AnimatePresence>
@@ -767,13 +908,13 @@ const handleReply = async (parentMessage: Message) => {
                   className="overflow-hidden"
                 >
                   <div className="flex items-center space-x-2 bg-gray-800/50 rounded-xl p-2 border border-rose-500/20">
-                    <Search className="w-5 h-5 text-rose-400" />
+                    <Search className="w-4 h-4 sm:w-5 sm:h-5 text-rose-400" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search issues..."
-                      className="flex-1 bg-transparent px-2 py-1 text-white placeholder-gray-400 focus:outline-none text-sm"
+                      className="flex-1 bg-transparent px-2 py-1 text-white placeholder-gray-400 focus:outline-none text-xs sm:text-sm"
                     />
                     {searchQuery && (
                       <motion.button
@@ -782,7 +923,7 @@ const handleReply = async (parentMessage: Message) => {
                         onClick={() => setSearchQuery("")}
                         className="p-1 rounded-lg hover:bg-gray-700/50"
                       >
-                        <X className="w-4 h-4 text-gray-400" />
+                        <X className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                       </motion.button>
                     )}
                   </div>
@@ -797,22 +938,35 @@ const handleReply = async (parentMessage: Message) => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="flex-1 overflow-y-auto px-6 py-8 space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-800/50 messages-container"
+          className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-800/50 messages-container"
         >
-          {(selectedFilter === "issue" && searchQuery
-            ? filteredIssueMessages
-            : filteredMessages
-          ).map((message) => (
-            <motion.div
-              key={message.id}
-              variants={messageVariants}
-              layout
-              className="mb-6"
-            >
-              {renderMessage(message)}
-              {message.tag === "issue" && renderReplies(message.replies || [])}
-            </motion.div>
-          ))}
+          {isLoading && messages.length === 0 ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="text-cyan-400">Loading messages...</div>
+            </div>
+          ) : fetchError ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="text-red-400">{fetchError}</div>
+            </div>
+          ) : (
+            (selectedFilter === "issue" && searchQuery
+              ? filteredIssueMessages
+              : filteredMessages
+            ).map((message) => (
+              <motion.div
+                key={message.id}
+                variants={messageVariants}
+                layout
+                className="mb-4 sm:mb-6"
+              >
+                {renderMessage(message)}
+                {message.tag === "issue" &&
+                  renderReplies(message.replies || [])}
+              </motion.div>
+            ))
+          )}
+          {/* Reference for auto-scrolling */}
+          <div ref={messagesEndRef} />
         </motion.div>
 
         {/* Input Area - Fixed */}
@@ -821,34 +975,42 @@ const handleReply = async (parentMessage: Message) => {
           animate={{ y: 0, opacity: 1 }}
           className="sticky bottom-0 left-0 right-0 z-20 border-t border-gray-800/50 bg-gray-900/80 backdrop-blur-xl"
         >
-          <div className="px-6 py-4">
+          <div className="px-3 sm:px-6 py-3 sm:py-4">
             {replyingTo && (
               <div className="mb-2 p-2 bg-gray-700/50 rounded-lg flex justify-between items-center">
-                <div className="flex items-center text-gray-400">
-                  <CornerDownRight className="w-4 h-4 mr-2" />
+                <div className="flex items-center text-gray-400 text-xs sm:text-sm">
+                  <CornerDownRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Replying to {replyingTo.userName}
                 </div>
-                <button onClick={() => setReplyingTo(null)}>
-                  <X className="w-4 h-4" />
+                <button
+                  onClick={() => setReplyingTo(null)}
+                  className="p-1 hover:bg-gray-600/50 rounded-md"
+                >
+                  <X className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
             )}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder={`Type your ${currentTag} message...`}
-                className="flex-1 bg-gray-800/50 text-white rounded-xl px-6 py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
+                className="flex-1 bg-gray-800/50 text-white text-sm sm:text-base rounded-xl px-4 sm:px-6 py-2.5 sm:py-3.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-gray-400 border border-gray-700/50"
               />
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={replyingTo ? () => handleReply(replyingTo) : handleSendMessage}
-                className="px-6 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg flex items-center justify-center gap-2 group"
+                onClick={
+                  replyingTo ? () => handleReply(replyingTo) : handleSendMessage
+                }
+                disabled={!newMessage.trim()}
+                className={`px-4 sm:px-6 py-2.5 sm:py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl transition-all shadow-lg flex items-center justify-center group hover:from-cyan-600 hover:to-blue-600 ${
+                  !newMessage.trim() ? "opacity-50" : ""
+                }`}
               >
-                <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <Send className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </motion.button>
             </div>
           </div>

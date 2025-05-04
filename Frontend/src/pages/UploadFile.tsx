@@ -1,9 +1,18 @@
 import React, { useState, useRef, FormEvent, useEffect } from "react";
-import { FileType, Image, Mic, Video, ChevronRight, User } from "lucide-react";
+import {
+  FileType,
+  Image,
+  Mic,
+  Video,
+  ChevronRight,
+  User,
+  Folder,
+} from "lucide-react";
 import {
   uploadDataset,
   DatasetForm,
   checkDatasetNameAvailability,
+  uploadFolders,
 } from "../services/uploadService";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
@@ -25,7 +34,11 @@ interface DatasetForm {
   name: string;
   description: string;
   domain: string;
+<<<<<<< HEAD
   license: string; // Changed from License to license
+=======
+  license: string;
+>>>>>>> backend
   dimensions?: number;
   vectorDatabase?: string;
   modelName?: string;
@@ -52,7 +65,7 @@ const UploadFile = () => {
     name: "",
     description: "",
     domain: "",
-    license: "", // Changed from License to license
+    license: "",
   });
   const [totalSize, setTotalSize] = useState<{
     raw: number;
@@ -68,6 +81,12 @@ const UploadFile = () => {
   const [selectedFiles, setSelectedFiles] = useState<{
     files: FileList | null;
     type: "raw" | "vectorized";
+    isFolderUpload?: boolean;
+    info?: {
+      count?: number;
+      size?: number;
+      description?: string;
+    };
   } | null>(null);
   const [uploadStatus, setUploadStatus] = useState<{
     show: boolean;
@@ -78,6 +97,32 @@ const UploadFile = () => {
     null
   );
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [folderContents, setFolderContents] = useState<{
+    raw: File[];
+    vectorized: File[];
+  }>({
+    raw: [],
+    vectorized: [],
+  });
+  const rawFolderInputRef = useRef<HTMLInputElement>(null);
+  const vectorizedFolderInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  const licenses = [
+    "CC0 1.0 Universal (Public Domain Dedication)",
+    "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)",
+    "Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)",
+    "Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)",
+    "Open Data Commons Public Domain Dedication and License (PDDL)",
+    "Open Data Commons Attribution License (ODC-By)",
+    "Open Data Commons Open Database License (ODbL)",
+    "MIT License (for datasets with code)",
+    "Apache License 2.0 (optional for datasets + software tools)",
+    "Proprietary License (Custom Terms)",
+    "Research-Only License (for datasets restricted to academic or research use)",
+    "No License (All rights reserved)"
+  ];
 
   const licenses = [
     "MIT License",
@@ -138,8 +183,47 @@ const UploadFile = () => {
     },
   };
 
-  // Update handleFileInputChange to remove file type validation
+  // Remove folderMode state as we'll detect automatically
+  const [selectedUploadTypes, setSelectedUploadTypes] = useState<{
+    raw: "files" | "folders" | null;
+    vectorized: "files" | "folders" | null;
+  }>({
+    raw: null,
+    vectorized: null,
+  });
+
+  // Update handleFileInputChange to set upload type to files
   const handleFileInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    type: "raw" | "vectorized"
+  ) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) {
+      setError("Please select files");
+      return;
+    }
+
+    // Create a new FileList-like object with the files
+    const filesArray = Array.from(files);
+    const filteredFiles = new DataTransfer();
+    filesArray.forEach((file) => filteredFiles.items.add(file));
+
+    setSelectedFiles({
+      files: filteredFiles.files,
+      type,
+    });
+
+    // Update selected upload type
+    setSelectedUploadTypes((prev) => ({
+      ...prev,
+      [type]: "files",
+    }));
+
+    setShowConfirmation(true);
+  };
+
+  // Function to handle folder selection
+  const handleFolderSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
     type: "raw" | "vectorized"
   ) => {
@@ -151,32 +235,65 @@ const UploadFile = () => {
 
     const filesArray = Array.from(files);
 
-    if (type === "raw") {
-      const allowedExtensions = fileTypeMap[fileType].extensions;
-      const invalidFiles = filesArray.filter((file) => {
-        const extension = "." + file.name.split(".").pop()?.toLowerCase();
-        return !allowedExtensions.includes(extension);
-      });
+    // Group files by their top-level folders
+    const folderGroups: { [folderName: string]: File[] } = {};
+    filesArray.forEach((file) => {
+      const path = file.webkitRelativePath;
+      const topFolder = path.split("/")[0]; // Get top-level folder name
 
-      if (invalidFiles.length > 0) {
-        setError(
-          `Invalid file types detected. Allowed extensions: ${allowedExtensions.join(
-            ", "
-          )}`
-        );
-        if (event.target) event.target.value = "";
-        return;
+      if (!folderGroups[topFolder]) {
+        folderGroups[topFolder] = [];
       }
+      folderGroups[topFolder].push(file);
+    });
+
+    // Update the folder contents for the appropriate type
+    if (type === "raw") {
+      // Add to existing files rather than replacing them
+      setFolderContents((prev) => ({
+        ...prev,
+        raw: [...prev.raw, ...filesArray],
+      }));
+    } else {
+      setFolderContents((prev) => ({
+        ...prev,
+        vectorized: [...prev.vectorized, ...filesArray],
+      }));
     }
 
-    // Create a new FileList-like object with the filtered files
-    const filteredFiles = new DataTransfer();
-    filesArray.forEach((file) => filteredFiles.items.add(file));
+    // Update selected upload type
+    setSelectedUploadTypes((prev) => ({
+      ...prev,
+      [type]: "folders",
+    }));
+
+    setError("");
+
+    // Calculate total size and file count for the confirmation dialog
+    const totalSize = filesArray.reduce((sum, file) => sum + file.size, 0);
+    const filesCount = filesArray.length;
+    const folderCount = Object.keys(folderGroups).length;
+
+    // Create a readable description of the folders
+    const foldersDescription = Object.entries(folderGroups)
+      .map(([folder, files]) => `${folder} (${files.length} files)`)
+      .join(", ");
 
     setSelectedFiles({
-      files: filteredFiles.files,
+      files: files,
       type,
+      isFolderUpload: true,
+      info: {
+        count: filesCount,
+        size: totalSize,
+        description: foldersDescription,
+      },
     });
+
+    // Show folder selection summary
+    console.log(
+      `Selected ${folderCount} folders with ${filesCount} files for ${type} data`
+    );
     setShowConfirmation(true);
   };
 
@@ -329,26 +446,52 @@ const UploadFile = () => {
       }
     }
 
-    // Validate file selection
-    if (datasetType === "Both") {
-      const rawFiles = rawInputRef.current?.files;
-      const vectorizedFiles = vectorizedInputRef.current?.files;
+    // Validate file or folder selection
+    let hasFiles = false;
 
-      if (!rawFiles?.length || !vectorizedFiles?.length) {
-        setError("Both raw and vectorized files are required");
-        setIsUploading(false);
-        return;
-      }
+    // Check for folder uploads
+    if (
+      datasetType === "Both" &&
+      folderContents.raw.length > 0 &&
+      folderContents.vectorized.length > 0
+    ) {
+      hasFiles = true;
     } else {
-      const files = fileInputRef.current?.files;
-      if (!files?.length) {
-        setError(`Please select ${fileType.toLowerCase()} files to upload`);
-        setIsUploading(false);
-        return;
-      }
+      if (datasetType === "Raw" && folderContents.raw.length > 0)
+        hasFiles = true;
+      if (datasetType === "Vectorized" && folderContents.vectorized.length > 0)
+        hasFiles = true;
     }
 
-    // Continue with existing upload logic
+    if (!hasFiles) {
+      setError(
+        `Please select ${fileType.toLowerCase()} ${
+          folderContents.raw.length > 0 || folderContents.vectorized.length > 0
+            ? "folders"
+            : "files"
+        } to upload`
+      );
+      setIsUploading(false);
+      return;
+    }
+
+    // Check if dataset name already exists
+    try {
+      const nameCheckResult = await checkDatasetNameAvailability(formData.name);
+      if (!nameCheckResult.available) {
+        setError("Dataset name already exists. Please use a different name.");
+        setIsUploading(false);
+        return;
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Error checking dataset name"
+      );
+      setIsUploading(false);
+      return;
+    }
+
+    // Continue with upload logic
     try {
       let result;
       const datasetId = `${formData.name}_${Date.now()}`;
@@ -362,45 +505,52 @@ const UploadFile = () => {
         vector_database: formData.vectorDatabase,
       };
 
-      if (datasetType === "Both") {
-        const rawFiles = rawInputRef.current?.files;
-        const vectorizedFiles = vectorizedInputRef.current?.files;
-
-        if (!rawFiles?.length && !vectorizedFiles?.length) {
-          setError(`Please select ${fileType.toLowerCase()} files to upload`);
-          setIsUploading(false); // Reset uploading state
-          return;
-        }
-
-        console.log("Uploading both raw and vectorized files:", {
-          rawCount: rawFiles?.length,
-          vectorizedCount: vectorizedFiles?.length,
-        });
-
-        result = await uploadDataset(
-          rawFiles,
-          vectorizedFiles,
-          "both",
+      if (
+        folderContents.raw.length > 0 ||
+        folderContents.vectorized.length > 0
+      ) {
+        // Handle folder upload
+        result = await uploadFolders(
+          {
+            raw: folderContents.raw,
+            vectorized: folderContents.vectorized,
+          },
+          datasetType.toLowerCase() as "raw" | "vectorized" | "both",
           datasetInfoWithId
         );
       } else {
-        const files = fileInputRef.current?.files;
-        if (!files?.length) {
-          setError(`Please select ${fileType.toLowerCase()} files to upload`);
-          setIsUploading(false); // Reset uploading state
-          return;
+        // Handle file upload (existing logic)
+        if (datasetType === "Both") {
+          const rawFiles = rawInputRef.current?.files;
+          const vectorizedFiles = vectorizedInputRef.current?.files;
+
+          if (!rawFiles?.length && !vectorizedFiles?.length) {
+            setError(`Please select ${fileType.toLowerCase()} files to upload`);
+            setIsUploading(false);
+            return;
+          }
+
+          result = await uploadDataset(
+            rawFiles,
+            vectorizedFiles,
+            "both",
+            datasetInfoWithId
+          );
+        } else {
+          const files = fileInputRef.current?.files;
+          if (!files?.length) {
+            setError(`Please select ${fileType.toLowerCase()} files to upload`);
+            setIsUploading(false);
+            return;
+          }
+
+          result = await uploadDataset(
+            datasetType.toLowerCase() === "raw" ? files : null,
+            datasetType.toLowerCase() === "vectorized" ? files : null,
+            datasetType.toLowerCase() as "raw" | "vectorized",
+            datasetInfoWithId
+          );
         }
-
-        console.log(`Uploading ${datasetType.toLowerCase()} files:`, {
-          fileCount: files.length,
-        });
-
-        result = await uploadDataset(
-          datasetType.toLowerCase() === "raw" ? files : null,
-          datasetType.toLowerCase() === "vectorized" ? files : null,
-          datasetType.toLowerCase() as "raw" | "vectorized",
-          datasetInfoWithId
-        );
       }
 
       if (result?.success) {
@@ -467,23 +617,58 @@ const UploadFile = () => {
   const ConfirmationDialog = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-md w-full mx-4">
-        <h3 className="text-xl font-semibold mb-4">Confirm File Upload</h3>
-        <p className="text-gray-300 mb-4">
-          {selectedFiles?.files?.length} files selected. Are you sure you want
-          to proceed with these files?
-        </p>
+        <h3 className="text-xl font-semibold mb-4">
+          Confirm {selectedFiles?.isFolderUpload ? "Folder" : "File"} Upload
+        </h3>
+        <div className="mb-4">
+          {selectedFiles?.isFolderUpload ? (
+            <div className="space-y-2">
+              <p className="text-gray-300">
+                Selected {selectedFiles.info?.count} files
+              </p>
+              <p className="text-gray-400 text-sm">
+                Size: {formatFileSize(selectedFiles.info?.size || 0)}
+              </p>
+              <p className="text-gray-400 text-sm">
+                Folders: {selectedFiles.info?.description}
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-300">
+              {selectedFiles?.files?.length} files selected
+            </p>
+          )}
+        </div>
         <div className="flex justify-end gap-4">
           <button
             onClick={() => {
               setShowConfirmation(false);
               // Clear the file input
               if (selectedFiles?.type === "raw") {
-                if (rawInputRef.current) rawInputRef.current.value = "";
+                if (rawFolderInputRef.current) {
+                  rawFolderInputRef.current.value = "";
+                  setFolderContents((prev) => ({ ...prev, raw: [] }));
+                } else if (rawInputRef.current) {
+                  rawInputRef.current.value = "";
+                }
               } else if (selectedFiles?.type === "vectorized") {
-                if (vectorizedInputRef.current)
+                if (vectorizedFolderInputRef.current) {
+                  vectorizedFolderInputRef.current.value = "";
+                  setFolderContents((prev) => ({ ...prev, vectorized: [] }));
+                } else if (vectorizedInputRef.current) {
                   vectorizedInputRef.current.value = "";
-              } else if (fileInputRef.current) {
-                fileInputRef.current.value = "";
+                }
+              } else {
+                if (folderInputRef.current) {
+                  folderInputRef.current.value = "";
+                  if (selectedFiles?.type === "raw") {
+                    setFolderContents((prev) => ({ ...prev, raw: [] }));
+                  } else {
+                    setFolderContents((prev) => ({ ...prev, vectorized: [] }));
+                  }
+                } else if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
               }
             }}
             className="px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
@@ -494,7 +679,13 @@ const UploadFile = () => {
             onClick={() => {
               setShowConfirmation(false);
               if (selectedFiles) {
-                handleFileChange(selectedFiles.files, selectedFiles.type);
+                if (selectedFiles.isFolderUpload) {
+                  // For folder uploads, we've already processed the files
+                  // Just continue with the rest of the flow
+                } else {
+                  // For file uploads, use existing handleFileChange
+                  handleFileChange(selectedFiles.files, selectedFiles.type);
+                }
               }
             }}
             className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors"
@@ -545,44 +736,116 @@ const UploadFile = () => {
     multiple: true,
   };
 
+  // Add folder input properties
+  const folderInputProps = {
+    className:
+      "w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-cyan-600 file:text-white hover:file:bg-cyan-700 file:transition-colors",
+    multiple: true,
+  };
+
+  // Create a function to correctly apply folder input attributes
+  const applyFolderAttributes = (
+    inputRef: React.RefObject<HTMLInputElement>
+  ) => {
+    if (inputRef.current) {
+      // Set webkitdirectory as a boolean property rather than a string attribute
+      inputRef.current.webkitdirectory = true;
+    }
+  };
+
+  useEffect(() => {
+    // Apply the webkitdirectory attribute to all folder input refs
+    applyFolderAttributes(rawFolderInputRef);
+    applyFolderAttributes(vectorizedFolderInputRef);
+    applyFolderAttributes(folderInputRef);
+  }, []);
+
+  // Additionally set webkitdirectory whenever selectedUploadTypes changes
+  useEffect(() => {
+    if (selectedUploadTypes.raw === "folders") {
+      applyFolderAttributes(rawFolderInputRef);
+    }
+    if (selectedUploadTypes.vectorized === "folders") {
+      applyFolderAttributes(vectorizedFolderInputRef);
+    }
+  }, [selectedUploadTypes]);
+
+  useEffect(() => {
+    // Set initial upload types based on datasetType to avoid null states
+    if (
+      selectedUploadTypes.raw === null ||
+      selectedUploadTypes.vectorized === null
+    ) {
+      setSelectedUploadTypes({
+        raw: "folders", // Default to folders for better UX
+        vectorized: "folders", // Default to folders for better UX
+      });
+    }
+  }, [datasetType]);
+
+  // Create a specialized FolderInput component for selecting folders
+  // This will replace our existing implementation
+  const FolderInput = React.forwardRef<
+    HTMLInputElement,
+    {
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+      onClick?: (e: React.MouseEvent<HTMLInputElement>) => void;
+      className?: string;
+    }
+  >((props, ref) => {
+    return (
+      <input
+        type="file"
+        ref={ref}
+        onChange={props.onChange}
+        onClick={props.onClick}
+        className={props.className}
+        // Set attributes directly in HTML to ensure browser compatibility
+        webkitdirectory="true"
+        directory="true"
+        mozdirectory="true"
+        multiple
+      />
+    );
+  });
+
   return (
     <div className="min-h-screen h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white">
       {showConfirmation && <ConfirmationDialog />}
       {uploadStatus.show && <StatusMessage />}
-      <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-8 py-6 md:py-8">
-        {/* Updated breadcrumb navigation */}
-        <nav className="flex mb-6 text-sm text-gray-400">
+      <div className="min-h-screen h-full w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 mobile-safe-padding">
+        {/* Mobile-optimized breadcrumb navigation */}
+        <nav className="flex flex-wrap items-center gap-2 sm:gap-0 mb-4 sm:mb-6 text-sm text-gray-400">
           {userProfile?.username ? (
             <Link
               to={`/${userProfile.username}`}
-              className="flex items-center hover:text-cyan-400 transition-colors"
+              className="flex items-center hover:text-cyan-400 transition-colors min-h-[44px]"
             >
-              <User className="w-4 h-4 mr-1" />
-              {userProfile.username}
+              <User className="w-4 h-4 mr-1 flex-shrink-0" />
+              <span className="break-all">{userProfile.username}</span>
             </Link>
           ) : (
-            <span className="flex items-center">
-              <User className="w-4 h-4 mr-1" />
+            <span className="flex items-center min-h-[44px]">
+              <User className="w-4 h-4 mr-1 flex-shrink-0" />
               Loading...
             </span>
           )}
-          <ChevronRight className="w-4 h-4 mx-2" />
-          <span className="text-white">Upload Dataset</span>
+          <ChevronRight className="w-4 h-4 mx-1 sm:mx-2 flex-shrink-0" />
+          <span className="text-white min-h-[44px] flex items-center">Upload Dataset</span>
         </nav>
 
-        <div className="min-h-[calc(100vh-4rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-6 md:p-8 overflow-y-auto">
-          <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-6">
+        <div className="min-h-[calc(100vh-6rem)] bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700/50 p-4 sm:p-6 md:p-8 overflow-y-auto">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-4 sm:mb-6">
             Data Specifications
           </h1>
-          <h5 className="text-white text-center items-center mb-8">
-            Specify your dataset, select the format, ensure compatibility, and
-            track uploads in real time.
+          <h5 className="text-white text-center items-center mb-6 sm:mb-8 text-sm sm:text-base">
+            Specify your dataset, select the format, ensure compatibility, and track uploads in real time.
           </h5>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Dataset Name */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-white">
+              <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                 Dataset Name
               </label>
               <input
@@ -591,25 +854,18 @@ const UploadFile = () => {
                 value={formData.name}
                 onChange={handleNameChange}
                 required
-                className={`w-full px-4 py-2 rounded-xl bg-gray-700/50 border 
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border 
                   ${nameError ? "border-red-500" : "border-gray-600"}
-                  text-white placeholder-gray-400
+                  text-white placeholder-gray-400 min-h-[44px]
                   focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition`}
-                placeholder="Enter dataset name "
+                placeholder="Enter dataset name"
               />
-              {isCheckingName && (
-                <p className="text-sm text-gray-400 mt-1">
-                  Checking dataset name...
-                </p>
-              )}
-              {nameError && (
-                <p className="text-sm text-red-400 mt-1">{nameError}</p>
-              )}
+              {/* ...existing name error and checking states... */}
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-white">
+              <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                 Dataset Description
               </label>
               <textarea
@@ -617,34 +873,60 @@ const UploadFile = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
+                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
                   text-white placeholder-gray-400
-                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition h-32"
-                placeholder="Enter dataset description "
+                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition h-24 sm:h-32"
+                placeholder="Enter dataset description"
               />
             </div>
 
-            {/* Domain Selection */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-white">
-                Domain
-              </label>
-              <select
-                name="domain"
-                value={formData.domain}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                  text-white placeholder-gray-400
-                  focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-              >
-                <option value="">Select a domain </option>
-                {domains.map((domain) => (
-                  <option key={domain} value={domain}>
-                    {domain}
-                  </option>
-                ))}
-              </select>
+            {/* Domain and License in a responsive grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {/* Domain Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
+                  Domain
+                </label>
+                <select
+                  name="domain"
+                  value={formData.domain}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                    text-white placeholder-gray-400 min-h-[44px]
+                    focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+                >
+                  <option value="">Select a domain</option>
+                  {domains.map((domain) => (
+                    <option key={domain} value={domain}>
+                      {domain}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* License Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
+                  License
+                </label>
+                <select
+                  name="license"
+                  value={formData.license}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                    text-white placeholder-gray-400 min-h-[44px]
+                    focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+                >
+                  <option value="">Select a License</option>
+                  {licenses.map((license) => (
+                    <option key={license} value={license}>
+                      {license}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>
@@ -670,35 +952,68 @@ const UploadFile = () => {
             </div>
 
             {/* Dataset Type */}
-            <label className="block text-sm font-medium mb-2 text-white">
-              Dataset Type
-            </label>
-            <div className="flex gap-4">
-              {["Raw", "Vectorized", "Both"].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setDatasetType(type as typeof datasetType)}
-                  className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all duration-200 
-                    ${
-                      datasetType === type
-                        ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
-                        : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
-                    }`}
-                >
-                  {type}
-                </button>
-              ))}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-white">
+                Dataset Type
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {["Raw", "Vectorized", "Both"].map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setDatasetType(type as typeof datasetType)}
+                    className={`flex items-center justify-center px-4 py-2.5 rounded-xl border-2 transition-all duration-200 min-h-[44px]
+                      ${
+                        datasetType === type
+                          ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                          : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
+                      }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Vectorized Settings */}
+            {/* File Type Selection */}
+            <div>
+              <label className="block text-sm font-medium mb-2 text-white">
+                File Type
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { type: "Image", icon: Image },
+                  { type: "Audio", icon: Mic },
+                  { type: "Text", icon: FileType },
+                  { type: "Video", icon: Video },
+                ].map(({ type, icon: Icon }) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setFileType(type as typeof fileType)}
+                    className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 min-h-[44px]
+                      ${
+                        fileType === type
+                          ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                          : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
+                      }`}
+                  >
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 mb-2" />
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Vectorized Settings Panel */}
             {(datasetType === "Vectorized" || datasetType === "Both") && (
-              <div className="space-y-4 p-6 bg-gray-750 rounded-lg border border-gray-700">
+              <div className="space-y-4 p-4 sm:p-6 bg-gray-750 rounded-lg border border-gray-700">
                 <h3 className="text-lg font-medium text-white mb-4">
                   Vectorized Settings
                 </h3>
-                <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white">
+                    <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                       Model Name
                     </label>
                     <input
@@ -707,14 +1022,14 @@ const UploadFile = () => {
                       value={formData.modelName || ""}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                        text-white placeholder-gray-400
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400 min-h-[44px]
                         focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter the model name *"
+                      placeholder="Enter model name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white">
+                    <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                       Dataset Dimensions
                     </label>
                     <input
@@ -723,17 +1038,16 @@ const UploadFile = () => {
                       value={formData.dimensions || ""}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                        text-white placeholder-gray-400
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400 min-h-[44px]
                         focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter dimensions *"
+                      placeholder="Enter dimensions"
                       min="100"
                       max="5000"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-white">
+                    <label className="block text-sm font-medium mb-1.5 sm:mb-2 text-white">
                       Vector Database
                     </label>
                     <input
@@ -742,10 +1056,10 @@ const UploadFile = () => {
                       value={formData.vectorDatabase || ""}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-2 rounded-xl bg-gray-700/50 border border-gray-600 
-                          text-white placeholder-gray-400
-                          focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
-                      placeholder="Enter vector database name *"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gray-700/50 border border-gray-600 
+                        text-white placeholder-gray-400 min-h-[44px]
+                        focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/40 outline-none transition"
+                      placeholder="Enter database name"
                       pattern="[A-Za-z]+"
                       title="Only letters are allowed"
                     />
@@ -754,98 +1068,373 @@ const UploadFile = () => {
               </div>
             )}
 
-            {/* File Type Selection */}
-            <label className="block text-sm font-medium mb-2 text-white">
-              File Type
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { type: "Image", icon: Image },
-                { type: "Audio", icon: Mic },
-                { type: "Text", icon: FileType },
-                { type: "Video", icon: Video },
-              ].map(({ type, icon: Icon }) => (
-                <button
-                  key={type}
-                  onClick={() => setFileType(type as typeof fileType)}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 
-                    ${
-                      fileType === type
-                        ? "bg-cyan-600/80 border-cyan-400 shadow-lg shadow-cyan-500/20"
-                        : "bg-gray-700/50 border-gray-600 hover:bg-gray-600/50 hover:border-gray-500"
-                    }`}
-                >
-                  <Icon className="w-6 h-6 mb-2" />
-                  {type}
-                </button>
-              ))}
-            </div>
-
-            {/* File Upload Section */}
+            {/* File Upload Section with improved mobile layout */}
             <div>
               <label className="block text-sm font-medium mb-2 text-white">
                 Upload Dataset
               </label>
+
               <div className="space-y-4">
                 {datasetType === "Both" ? (
                   <>
                     {/* Raw Data Upload */}
                     <div>
                       <label className="block text-sm font-medium mb-2 text-white">
-                        Raw Data
+                        Raw Data{" "}
+                        {selectedUploadTypes.raw === "folders"
+                          ? "Folders"
+                          : "Files"}
                       </label>
-                      <input
-                        {...fileInputProps}
-                        type="file"
-                        ref={rawInputRef}
-                        onChange={(e) => handleFileInputChange(e, "raw")}
-                        onClick={(e) => {
-                          const element = e.target as HTMLInputElement;
-                          element.value = "";
-                        }}
-                        accept={fileTypeMap[fileType].extensions.join(",")}
-                      />
+                      <div className="flex items-center gap-3 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Clear any existing selection
+                            setFolderContents((prev) => ({ ...prev, raw: [] }));
+                            setSelectedUploadTypes((prev) => ({
+                              ...prev,
+                              raw: "files",
+                            }));
+                            if (rawFolderInputRef.current)
+                              rawFolderInputRef.current.value = "";
+                            if (rawInputRef.current)
+                              rawInputRef.current.value = "";
+                          }}
+                          className={`text-xs px-3 py-1 rounded-full 
+                            ${
+                              selectedUploadTypes.raw !== "folders"
+                                ? "bg-cyan-600/80 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                        >
+                          Files
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Clear any existing selection
+                            setFolderContents((prev) => ({ ...prev, raw: [] }));
+                            setSelectedUploadTypes((prev) => ({
+                              ...prev,
+                              raw: "folders",
+                            }));
+                            if (rawFolderInputRef.current)
+                              rawFolderInputRef.current.value = "";
+                            if (rawInputRef.current)
+                              rawInputRef.current.value = "";
+                          }}
+                          className={`text-xs px-3 py-1 rounded-full 
+                            ${
+                              selectedUploadTypes.raw === "folders"
+                                ? "bg-cyan-600/80 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                        >
+                          Folders
+                        </button>
+                      </div>
+
+                      {selectedUploadTypes.raw === "folders" ? (
+                        <label className="block">
+                          <span className="sr-only">Choose Folders</span>
+                          <FolderInput
+                            ref={rawFolderInputRef}
+                            onChange={(e) => handleFolderSelect(e, "raw")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            className={folderInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (rawFolderInputRef.current)
+                                rawFolderInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Folders
+                          </button>
+                        </label>
+                      ) : (
+                        <label className="block">
+                          <span className="sr-only">Choose Files</span>
+                          <input
+                            {...fileInputProps}
+                            type="file"
+                            ref={rawInputRef}
+                            onChange={(e) => handleFileInputChange(e, "raw")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            accept={fileTypeMap[fileType].extensions.join(",")}
+                            className={fileInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (rawInputRef.current) rawInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Files
+                          </button>
+                        </label>
+                      )}
                     </div>
 
                     {/* Vectorized Data Upload */}
                     <div>
                       <label className="block text-sm font-medium mb-2 text-white">
-                        Vectorized Data
+                        Vectorized Data{" "}
+                        {selectedUploadTypes.vectorized === "folders"
+                          ? "Folders"
+                          : "Files"}
                       </label>
-                      <input
-                        {...fileInputProps}
-                        type="file"
-                        ref={vectorizedInputRef}
-                        onChange={(e) => handleFileInputChange(e, "vectorized")}
-                        onClick={(e) => {
-                          const element = e.target as HTMLInputElement;
-                          element.value = "";
-                        }}
-                        accept={fileTypeMap[fileType].extensions.join(",")}
-                      />
+                      <div className="flex items-center gap-3 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Clear any existing selection
+                            setFolderContents((prev) => ({
+                              ...prev,
+                              vectorized: [],
+                            }));
+                            setSelectedUploadTypes((prev) => ({
+                              ...prev,
+                              vectorized: "files",
+                            }));
+                            if (vectorizedFolderInputRef.current)
+                              vectorizedFolderInputRef.current.value = "";
+                            if (vectorizedInputRef.current)
+                              vectorizedInputRef.current.value = "";
+                          }}
+                          className={`text-xs px-3 py-1 rounded-full 
+                            ${
+                              selectedUploadTypes.vectorized !== "folders"
+                                ? "bg-cyan-600/80 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                        >
+                          Files
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Clear any existing selection
+                            setFolderContents((prev) => ({
+                              ...prev,
+                              vectorized: [],
+                            }));
+                            setSelectedUploadTypes((prev) => ({
+                              ...prev,
+                              vectorized: "folders",
+                            }));
+                            if (vectorizedFolderInputRef.current)
+                              vectorizedFolderInputRef.current.value = "";
+                            if (vectorizedInputRef.current)
+                              vectorizedInputRef.current.value = "";
+                          }}
+                          className={`text-xs px-3 py-1 rounded-full 
+                            ${
+                              selectedUploadTypes.vectorized === "folders"
+                                ? "bg-cyan-600/80 text-white"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                        >
+                          Folders
+                        </button>
+                      </div>
+
+                      {selectedUploadTypes.vectorized === "folders" ? (
+                        <label className="block">
+                          <span className="sr-only">Choose Folders</span>
+                          <FolderInput
+                            ref={vectorizedFolderInputRef}
+                            onChange={(e) => handleFolderSelect(e, "vectorized")}
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            className={folderInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (vectorizedFolderInputRef.current)
+                                vectorizedFolderInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Folders
+                          </button>
+                        </label>
+                      ) : (
+                        <label className="block">
+                          <span className="sr-only">Choose Files</span>
+                          <input
+                            {...fileInputProps}
+                            type="file"
+                            ref={vectorizedInputRef}
+                            onChange={(e) =>
+                              handleFileInputChange(e, "vectorized")
+                            }
+                            onClick={(e) => {
+                              const element = e.target as HTMLInputElement;
+                              element.value = "";
+                            }}
+                            accept={fileTypeMap[fileType].extensions.join(",")}
+                            className={fileInputProps.className + " hidden"}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (vectorizedInputRef.current)
+                                vectorizedInputRef.current.click();
+                            }}
+                            className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                          >
+                            Choose Files
+                          </button>
+                        </label>
+                      )}
                     </div>
                   </>
                 ) : (
-                  <input
-                    {...fileInputProps}
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={(e) =>
-                      handleFileInputChange(
-                        e,
-                        datasetType.toLowerCase() as "raw" | "vectorized"
-                      )
-                    }
-                    onClick={(e) => {
-                      const element = e.target as HTMLInputElement;
-                      element.value = "";
-                    }}
-                    accept={
-                      datasetType.toLowerCase() === "raw"
-                        ? fileTypeMap[fileType].extensions.join(",")
-                        : undefined
-                    }
-                  />
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Clear any existing selection
+                          const type = datasetType.toLowerCase() as
+                            | "raw"
+                            | "vectorized";
+                          setFolderContents((prev) => ({
+                            ...prev,
+                            [type]: [],
+                          }));
+                          setSelectedUploadTypes((prev) => ({
+                            ...prev,
+                            [type]: "files",
+                          }));
+                          if (folderInputRef.current)
+                            folderInputRef.current.value = "";
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
+                        }}
+                        className={`text-xs px-3 py-1 rounded-full 
+                          ${
+                            selectedUploadTypes[
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            ] !== "folders"
+                              ? "bg-cyan-600/80 text-white"
+                              : "bg-gray-700 text-gray-300"
+                          }`}
+                      >
+                        Files
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // Clear any existing selection
+                          const type = datasetType.toLowerCase() as
+                            | "raw"
+                            | "vectorized";
+                          setFolderContents((prev) => ({
+                            ...prev,
+                            [type]: [],
+                          }));
+                          setSelectedUploadTypes((prev) => ({
+                            ...prev,
+                            [type]: "folders",
+                          }));
+                          if (folderInputRef.current)
+                            folderInputRef.current.value = "";
+                          if (fileInputRef.current)
+                            fileInputRef.current.value = "";
+                        }}
+                        className={`text-xs px-3 py-1 rounded-full 
+                          ${
+                            selectedUploadTypes[
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            ] === "folders"
+                              ? "bg-cyan-600/80 text-white"
+                              : "bg-gray-700 text-gray-300"
+                          }`}
+                      >
+                        Folders
+                      </button>
+                    </div>
+
+                    {selectedUploadTypes[
+                      datasetType.toLowerCase() as "raw" | "vectorized"
+                    ] === "folders" ? (
+                      <label className="block">
+                        <span className="sr-only">Choose Folders</span>
+                        <FolderInput
+                          ref={folderInputRef}
+                          onChange={(e) =>
+                            handleFolderSelect(
+                              e,
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            )
+                          }
+                          onClick={(e) => {
+                            const element = e.target as HTMLInputElement;
+                            element.value = "";
+                          }}
+                          className={folderInputProps.className + " hidden"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (folderInputRef.current)
+                              folderInputRef.current.click();
+                          }}
+                          className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                        >
+                          Choose Folders
+                        </button>
+                      </label>
+                    ) : (
+                      <label className="block">
+                        <span className="sr-only">Choose Files</span>
+                        <input
+                          {...fileInputProps}
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={(e) =>
+                            handleFileInputChange(
+                              e,
+                              datasetType.toLowerCase() as "raw" | "vectorized"
+                            )
+                          }
+                          onClick={(e) => {
+                            const element = e.target as HTMLInputElement;
+                            element.value = "";
+                          }}
+                          accept={
+                            datasetType.toLowerCase() === "raw"
+                              ? fileTypeMap[fileType].extensions.join(",")
+                              : undefined
+                          }
+                          className={fileInputProps.className + " hidden"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (fileInputRef.current) fileInputRef.current.click();
+                          }}
+                          className="w-full px-4 py-2 rounded-xl bg-cyan-600 text-white font-medium hover:bg-cyan-700 transition-colors"
+                        >
+                          Choose Files
+                        </button>
+                      </label>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -854,10 +1443,89 @@ const UploadFile = () => {
 
               {/* Help text */}
               <p className="mt-2 text-sm text-gray-400">
-                {datasetType === "Vectorized"
-                  ? "Select a folder containing vectorized data files"
-                  : `Select a folder containing only ${fileType.toLowerCase()} files`}
+                {folderContents.raw.length > 0 ||
+                folderContents.vectorized.length > 0
+                  ? `Selected folders will be used for ${
+                      datasetType.toLowerCase() === "vectorized"
+                        ? "vectorized data"
+                        : fileType.toLowerCase() + " files"
+                    }.`
+                  : datasetType === "Vectorized"
+                  ? "Select files containing vectorized data"
+                  : `Select ${fileType.toLowerCase()} files to upload`}
               </p>
+
+              {(folderContents.raw.length > 0 ||
+                folderContents.vectorized.length > 0) && (
+                <div className="mt-4 p-3 bg-gray-700/50 rounded-lg border border-gray-600">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium text-cyan-400">
+                      Selected Folders
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Clear selected folders for the current type
+                        const type =
+                          datasetType.toLowerCase() === "vectorized"
+                            ? "vectorized"
+                            : "raw";
+                        setFolderContents((prev) => ({
+                          ...prev,
+                          [type]: [],
+                        }));
+
+                        // Reset associated input
+                        if (type === "raw" && rawFolderInputRef.current) {
+                          rawFolderInputRef.current.value = "";
+                        } else if (
+                          type === "vectorized" &&
+                          vectorizedFolderInputRef.current
+                        ) {
+                          vectorizedFolderInputRef.current.value = "";
+                        } else if (folderInputRef.current) {
+                          folderInputRef.current.value = "";
+                        }
+                      }}
+                      className="text-xs px-2 py-1 bg-gray-600 hover:bg-gray-500 rounded text-gray-300 transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <div className="max-h-32 overflow-y-auto">
+                    {(() => {
+                      // Calculate folder stats
+                      const files =
+                        folderContents[
+                          datasetType.toLowerCase() === "vectorized"
+                            ? "vectorized"
+                            : "raw"
+                        ];
+                      const folders: { [key: string]: number } = {};
+
+                      files.forEach((file) => {
+                        const folderPath =
+                          file.webkitRelativePath.split("/")[0];
+                        folders[folderPath] = (folders[folderPath] || 0) + 1;
+                      });
+
+                      return Object.entries(folders).map(([folder, count]) => (
+                        <div
+                          key={folder}
+                          className="flex items-center justify-between py-1 border-b border-gray-600 last:border-0"
+                        >
+                          <span className="text-sm text-gray-300">
+                            {folder}
+                          </span>
+                          <span className="text-xs bg-gray-600 px-2 py-0.5 rounded-full text-gray-300">
+                            {count} files
+                          </span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Submit button */}
@@ -866,8 +1534,9 @@ const UploadFile = () => {
               disabled={isUploading}
               className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-cyan-400 
                 text-white font-medium rounded-xl shadow-lg shadow-cyan-500/20 
-                hover:from-cyan-600 hover:to-cyan-500 transition-colors
-                focus:outline-none focus:ring-2 focus:ring-cyan-500/40"
+                hover:from-cyan-600 hover:to-cyan-500 transition-colors min-h-[44px]
+                focus:outline-none focus:ring-2 focus:ring-cyan-500/40
+                disabled:from-gray-500 disabled:to-gray-400 disabled:cursor-not-allowed"
             >
               {isUploading ? "Uploading..." : "Upload"}
             </button>

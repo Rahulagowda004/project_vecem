@@ -1,15 +1,10 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from src.utils.logger import logging
-import os
-from dotenv import load_dotenv
+from pymongo.errors import PyMongoError
+from src.config import settings
 
-load_dotenv()
-
-MONGO_URL = "mongodb+srv://admin:8bx2pW7Dglj9j5RY@cluster0.tui77.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-DB_NAME = "vecem"
-
-client = AsyncIOMotorClient(MONGO_URL)
-db = client[DB_NAME]
+client = AsyncIOMotorClient(settings.MONGODB_URL)
+db = client[settings.DATABASE_NAME]
 user_profile_collection = db.userprofile
 datasets_collection = db.datasets
 deleted_datasets_collection = db.deleteddatasets
@@ -123,12 +118,12 @@ async def save_api_key(uid: str, api_key: str) -> bool:
         result = await user_profile_collection.update_one(
             {"uid": uid},
             {"$set": {"api_key": api_key}},
-            upsert=False
+            upsert=True
         )
-        return result.modified_count > 0
-    except Exception as e:
+        return result.modified_count > 0 or result.upserted_id is not None
+    except PyMongoError as e:
         logging.error(f"MongoDB error saving API key: {str(e)}")
-        raise
+        return False
 
 async def check_api_key_exists(uid: str) -> bool:
     try:
@@ -136,8 +131,12 @@ async def check_api_key_exists(uid: str) -> bool:
             {"uid": uid},
             {"api_key": 1}
         )
-        return bool(user and user.get("api_key"))
-    except Exception as e:
+        # Check for null, missing, or empty string API key
+        return (user is not None and 
+                "api_key" in user and 
+                user["api_key"] is not None and 
+                user["api_key"].strip() != "")
+    except PyMongoError as e:
         logging.error(f"MongoDB error checking API key: {str(e)}")
         raise
 

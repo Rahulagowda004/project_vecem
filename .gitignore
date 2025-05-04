@@ -178,3 +178,4 @@ Frontend/package-lock.json
 .vscode/settings.json
 
 Frontend/node_modules/*
+.vercel

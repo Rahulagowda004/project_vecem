@@ -43,4 +43,28 @@
   }
 }
 
-/* Add any additional styles from the original inline Tailwind classes */
+/* Mobile optimization */
+@media (max-width: 639px) {
+  .profileContainer {
+    padding: 1rem;
+  }
+
+  .profileInfo,
+  .profileDetails {
+    padding: 1.5rem;
+  }
+}
+
+/* Tablet optimization */
+@media (min-width: 640px) and (max-width: 767px) {
+  .profileContainer {
+    padding: 1.5rem;
+  }
+}
+
+/* Ensure content is always readable */
+@media (max-width: 480px) {
+  .profileContainer {
+    padding: 0.75rem;
+  }
+}
