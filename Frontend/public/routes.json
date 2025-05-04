@@ -1,0 +1,71 @@
+{
+  "routes": [
+    {
+      "route": "/api/*",
+      "serve": "/api/$1",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/login",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/signup",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/home",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/auth/action",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/upload",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/settings",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/documentation",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/prompts",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/*/*/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/*/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    },
+    {
+      "route": "/*",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ],
+  "platformErrorOverrides": [
+    {
+      "errorType": "NotFound",
+      "serve": "/index.html",
+      "statusCode": 200
+    }
+  ]
+}
